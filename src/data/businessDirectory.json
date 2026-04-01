@@ -1,0 +1,3831 @@
+[
+  {
+    "id": 1,
+    "name": "4240 Architecture",
+    "category": "Architecture",
+    "website": "https://4240architecture.com/",
+    "address": "3507 Ringsby Ct, Suite 117, Denver, CO 80216",
+    "about": "4240 Architecture is an intentionally mid-size firm located in Denver's RiNo neighborhood. It uses a charrette-based design process to create site-specific, economically feasible and culturally sensitive architecture for mixed-use, multifamily, commercial office, senior living, education and hospitality projects.",
+    "phone": "(303) 292-3388\t",
+    "email": "",
+    "nakedProperty": "https://www.nakeddenver.com/properties/milwaukee-place-242-milwaukee-street-denver",
+    "nakedArticle": "https://www.nakeddenver.com/posts/johnny-curiel-expands-portfolio-with-mar-bella-in-cherry-creek",
+    "coordinates": {
+      "lat": 39.7732867,
+      "lng": -104.9814455
+    },
+    "allLocations": [
+      {
+        "address": "3507 Ringsby Ct, Suite 117, Denver, CO 80216",
+        "lat": 39.7732867,
+        "lng": -104.9814455
+      },
+      {
+        "address": "1621 18th St, Suite 200, Denver, CO 80202",
+        "lat": 39.7538967,
+        "lng": -104.997853
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "ACCO Engineered Systems (Colorado)",
+    "category": "Mechanical Contractor",
+    "website": "https://www.accoes.com/",
+    "address": "317 Inverness Way South, Ste. 110, Englewood, CO 80112",
+    "about": "ACCO Engineered Systems, founded in 1934, is an employee-owned company that designs, fabricates, installs and services commercial and industrial HVAC, refrigeration, plumbing, process piping and building automation systems, delivering high-performing mechanical systems across the Western United States.",
+    "phone": "(720) 780-2260",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 3,
+    "name": "Adolfson & Peterson Construction (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.a-p.com/",
+    "address": "1300 E 21st Ave, Denver, CO 80205",
+    "about": "Adolfson & Peterson Construction is a family-owned general contractor established in 1946 that builds strong relationships and communities. With more than 800 employees, AP's mission is to build trust and people while delivering exceptional projects with a focus on safety, integrity and teamwork.",
+    "phone": "(303) 363-7101",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7478836,
+      "lng": -104.9718329
+    },
+    "allLocations": [
+      {
+        "address": "1300 E 21st Ave, Denver, CO 80205",
+        "lat": 39.7478836,
+        "lng": -104.9718329
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Alcorn Construction",
+    "category": "General Contractor",
+    "website": "https://alcorncg.com/",
+    "address": "800 17th St, Suite 650, Denver, CO 80202",
+    "about": "Alcorn Construction is an award-winning general contractor serving the Denver and Phoenix metro areas. The firm specializes in relationship-based commercial office, light industrial, retail, multifamily and senior living projects and puts its people first to better serve its customers.",
+    "phone": "(303) 986-7900",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.746796,
+      "lng": -104.992036
+    },
+    "allLocations": [
+      {
+        "address": "800 17th St, Suite 650, Denver, CO 80202",
+        "lat": 39.746796,
+        "lng": -104.992036
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Alliance Construction Solutions",
+    "category": "General Contractor",
+    "website": "https://allianceconstruction.com/",
+    "address": "385 Inverness Pkwy, Suite 170, Englewood, CO 80112",
+    "about": "Alliance Construction Solutions, formerly Baldwin Construction, is a Denver-based construction manager and general contractor that rebranded in 1996 to reflect its values of forming alliances, building and creating solutions. Now 100% employee-owned, the firm has completed more than 400 projects since its 1982 founding.",
+    "phone": "303-813-0035",
+    "email": "info@allianceconstruction.com",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5629808,
+      "lng": -104.8666732
+    },
+    "allLocations": [
+      {
+        "address": "385 Inverness Pkwy, Suite 170, Englewood, CO 80112",
+        "lat": 39.5629808,
+        "lng": -104.8666732
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Anderson Mason Dale",
+    "category": "Architecture",
+    "website": "https://amdale.com/",
+    "address": "12499 W Colfax Ave, Lakewood, CO 80215",
+    "about": "Anderson Mason Dale Architects (AMD) is a Denver-based firm of about 55 people that has provided planning, programming and design services for colleges, universities, schools, libraries, museums, cultural venues, public safety facilities and housing for over 45 years. The award-winning firm is committed to excellence, ethics, sustainability and collaborative, context-sensitive design.",
+    "phone": "(303) 294-9448",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7401242,
+      "lng": -105.1386101
+    },
+    "allLocations": [
+      {
+        "address": "12499 W Colfax Ave, Lakewood, CO 80215",
+        "lat": 39.7401242,
+        "lng": -105.1386101
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Ascentris",
+    "category": "Private Equity",
+    "website": "https://ascentris.com/",
+    "address": "1401 Lawrence St, Suite 1600, Denver, CO 80202",
+    "about": "Ascentris is a Denver-based real estate private equity firm that manages a series of fully discretionary institutional investment vehicles focused on value-add, core-plus, and core strategies across major property types and markets throughout the United States. Since 2003, the Ascentris management team has followed an investment philosophy and organizational structure designed to identify opportunities ahead of the market while delivering exceptional service, transparency, and accountability to investors.",
+    "phone": "(303) 317-6464",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7471377,
+      "lng": -104.9988938
+    },
+    "allLocations": [
+      {
+        "address": "1401 Lawrence St, Suite 1600, Denver, CO 80202",
+        "lat": 39.7471377,
+        "lng": -104.9988938
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "AtkinsRéalis (Denver)",
+    "category": "Engineering",
+    "website": "https://www.atkinsrealis.com/",
+    "address": "4600 S Syracuse St, Suite 600, Denver, CO 80237",
+    "about": "AtkinsRéalis, formerly SNC-Lavalin Group, is a Montreal-based engineering, procurement and construction company. With about 37,000 employees and operations in more than 160 countries, AtkinsRéalis provides services across industries such as mining, environment and clean energy and is among Canada's largest construction companies by revenue.",
+    "phone": "(303) 221-7275",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6292327,
+      "lng": -104.8988136
+    },
+    "allLocations": [
+      {
+        "address": "4600 S Syracuse St, Suite 600, Denver, CO 80237",
+        "lat": 39.6292327,
+        "lng": -104.8988136
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Balfour Beatty (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.balfourbeattyus.com/",
+    "address": "1801 California St, Suite 2500, Denver, CO 80202",
+    "about": "Balfour Beatty is a leading provider of general contracting, at-risk construction management and design-build services in the US, handling heavy civil and vertical construction projects. It is the US subsidiary of London-based Balfour Beatty plc, an international infrastructure group.",
+    "phone": "(720) 643-2333",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7474482,
+      "lng": -104.9898936
+    },
+    "allLocations": [
+      {
+        "address": "1801 California St, Suite 2500, Denver, CO 80202",
+        "lat": 39.7474482,
+        "lng": -104.9898936
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Bear Peak Development",
+    "category": "Developer",
+    "website": "https://bearpeakdev.com/",
+    "address": "2040 14th Street, Suite 210, Boulder, CO 80303",
+    "about": "Bear Peak Development is a veteran-owned, client-focused developer specializing in small-bay industrial warehouses with secure yards. The company's team — with expertise in law, finance and construction — is trusted by local governments and communities in Northern Colorado and handles everything from entitlements and build-out to property management.",
+    "phone": "(720) 936-7331",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 40.019347,
+      "lng": -105.2772895
+    },
+    "allLocations": [
+      {
+        "address": "2040 14th Street, Suite 210, Boulder, CO 80303",
+        "lat": 40.019347,
+        "lng": -105.2772895
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "name": "BHA Design",
+    "category": "Architecture",
+    "website": "https://bhadesign.com/",
+    "address": "111 S Meldrum St, Suite 110, Fort Collins, CO 80521",
+    "about": "BHA Design is a Fort Collins-based landscape architecture firm founded in 1993 by Bruce Hendee and now owned by Angela Milewski and Roger Sherman. BHA focuses on smart, sustainable design that enhances spaces and communities and fosters a culture of creativity, learning and collaboration.",
+    "phone": "(970) 223-7577",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 40.586546,
+      "lng": -105.0829058
+    },
+    "allLocations": [
+      {
+        "address": "111 S Meldrum St, Suite 110, Fort Collins, CO 80521",
+        "lat": 40.586546,
+        "lng": -105.0829058
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "name": "BMC Investments",
+    "category": "Developer",
+    "website": "https://bmcinvestments.com/",
+    "address": "205 Detroit St, Suite 400, Denver, CO 80206",
+    "about": "BMC Investments is a Denver-based, vertically integrated real estate investment firm founded in 2011. Its portfolio includes more than 16,000 multifamily units and substantial retail and hospitality space, and it has invested nearly $1.4 billion of equity across 43 multifamily investments on behalf of high-net-worth individuals, family offices and institutional investors.",
+    "phone": "(303) 996-2333",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7195773,
+      "lng": -104.954731
+    },
+    "allLocations": [
+      {
+        "address": "205 Detroit St, Suite 400, Denver, CO 80206",
+        "lat": 39.7195773,
+        "lng": -104.954731
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "name": "Brinkman Construction",
+    "category": "General Contractor",
+    "website": "https://brinkmanconstruction.com/",
+    "address": "3528 Precision Dr, Suite 100, Fort Collins, CO 80528",
+    "about": "Brinkman Construction is a 100% employee-owned general contractor serving Colorado's Front Range. Its employee owners bring an entrepreneurial mindset, leveraging collective experience and creativity from pre-planning to close-out to ensure project details are done right.",
+    "phone": "(970) 267-0954",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 40.5180905,
+      "lng": -105.0114475
+    },
+    "allLocations": [
+      {
+        "address": "3528 Precision Dr, Suite 100, Fort Collins, CO 80528",
+        "lat": 40.5180905,
+        "lng": -105.0114475
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "name": "Brinkmann Constructors",
+    "category": "General Contractor",
+    "website": "https://brinkmannconstructors.com/",
+    "address": "3800 Lewiston St, Suite 400, Aurora, CO 80011",
+    "about": "Brinkmann Constructors is a national design/build contractor that is 100% employee-owned. This ownership model empowers employees to think like entrepreneurs and fosters a culture of collaboration and innovation, enabling the company to deliver the best construction experience through lasting relationships and expertise beyond measure.",
+    "phone": "303-657-9700",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.770558,
+      "lng": -104.799683
+    },
+    "allLocations": [
+      {
+        "address": "3800 Lewiston St, Suite 400, Aurora, CO 80011",
+        "lat": 39.770558,
+        "lng": -104.799683
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "name": "Bristlecone Construction",
+    "category": "General Contractor / Modular",
+    "website": "https://bristleconeconstruction.com/",
+    "address": "5601 S Broadway, Ste 170, Littleton, CO 80121",
+    "about": "Bristlecone Construction is a regional general contractor operating in Colorado and Arizona. Founded in 2014, it focuses on commercial and multifamily projects, delivering detailed solutions for complex projects ranging from $500,000 to $80 million.",
+    "phone": "(720) 881-9154",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6145452,
+      "lng": -104.988451
+    },
+    "allLocations": [
+      {
+        "address": "5601 S Broadway, Ste 170, Littleton, CO 80121",
+        "lat": 39.6145452,
+        "lng": -104.988451
+      },
+      {
+        "address": "2650 W Belleview Ave #300, Littleton, CO 80123",
+        "lat": 39.62407,
+        "lng": -105.01967
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "name": "Bryan Construction",
+    "category": "General Contractor",
+    "website": "https://bryanconstruction.com/",
+    "address": "5475 Tech Center Dr, Suite 300, Colorado Springs, CO 80919",
+    "about": "Bryan Construction is an employee-owned contractor guided by a mission of performance excellence. For over four decades the company has delivered projects across Colorado, the U.S. and internationally, striving for on-schedule, on-budget delivery, superior customer service and core values of integrity, honesty and accountability.",
+    "phone": "(719) 632-5355",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 38.9105187,
+      "lng": -104.8250232
+    },
+    "allLocations": [
+      {
+        "address": "5475 Tech Center Dr, Suite 300, Colorado Springs, CO 80919",
+        "lat": 38.9105187,
+        "lng": -104.8250232
+      },
+      {
+        "address": "7807 E Peakview Ave, Suite 150, Centennial, CO 80111",
+        "lat": 39.5996167,
+        "lng": -104.8978174
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "name": "Carmel Partners (Denver)",
+    "category": "Developer",
+    "website": "https://www.carmelpartners.com/",
+    "address": "707 17th St, Suite 3050, Denver, CO 80202",
+    "about": "Carmel Partners is a vertically integrated real estate investment and development firm. With disciplined processes and a long-term outlook, Carmel specializes in purchasing and developing high-quality multifamily assets in U.S. markets with high barriers to entry, controlling the process from investment and underwriting through development and management via its in-house teams.",
+    "phone": "(303) 759-5123",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7471025,
+      "lng": -104.9907957
+    },
+    "allLocations": [
+      {
+        "address": "707 17th St, Suite 3050, Denver, CO 80202",
+        "lat": 39.7471025,
+        "lng": -104.9907957
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "name": "CBRE (Denver)",
+    "category": "Commercial Brokerage",
+    "website": "https://www.cbre.com/",
+    "address": "1225 17th St, Suite 3200, Denver, CO 80202",
+    "about": "CBRE is the world's largest commercial real estate services and investment firm, with more than 155,000 professionals in over 100 countries. The company operates across every dimension of commercial real estate, serving clients through a network of more than 500 offices worldwide.",
+    "phone": "(303) 628-1700",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.750283,
+      "lng": -104.9951731
+    },
+    "allLocations": [
+      {
+        "address": "1225 17th St, Suite 3200, Denver, CO 80202",
+        "lat": 39.750283,
+        "lng": -104.9951731
+      },
+      {
+        "address": "5455 Landmark Place, Suite C102, Greenwood Village, CO 80111",
+        "lat": 39.6173412,
+        "lng": -104.9011726
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "name": "CCIG (Construction Insurance)",
+    "category": "AEC Services (Insurance/Risk)",
+    "website": "https://ccig.com/",
+    "address": "155 Inverness Dr W, Englewood, CO 80112",
+    "about": "CCIG is an Englewood, Colorado-based insurance brokerage with more than 100 professionals. Recognized as one of the nation's leading brokerages, CCIG provides property, casualty, risk management, benefits, life and wealth management services, offering tailored solutions for both business and personal insurance needs.",
+    "phone": "(303) 799-0110",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5797125,
+      "lng": -104.8748007
+    },
+    "allLocations": [
+      {
+        "address": "155 Inverness Dr W, Englewood, CO 80112",
+        "lat": 39.5797125,
+        "lng": -104.8748007
+      },
+      {
+        "address": "5660 Greenwood Plaza Blvd, Suite 500, Greenwood Village, CO 80111",
+        "lat": 39.6133454,
+        "lng": -104.8992421
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "name": "Coburn Architects",
+    "category": "Architecture",
+    "website": "https://coburnarchitects.com/",
+    "address": "2718 Pine St, #100, Boulder, CO 80302",
+    "about": "Coburn Partners is an integrated firm that designs, builds and develops great places for people, communities, life and work. Founded in 1985, the company pioneered environmentally sound methods and has grown from infill design-build houses to a premier homebuilder and national architectural and development-services firm with a portfolio that includes homes, residential and commercial buildings, urban infill and mixed-use centers.",
+    "phone": "(303) 442-3351",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 40.0239508,
+      "lng": -105.2595112
+    },
+    "allLocations": [
+      {
+        "address": "2718 Pine St, #100, Boulder, CO 80302",
+        "lat": 40.0239508,
+        "lng": -105.2595112
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "name": "Confluent Development",
+    "category": "Developer",
+    "website": "https://confluentdev.com/",
+    "address": "2215 Market St, Denver, CO 80205",
+    "about": "Confluent Development is a Denver-based developer that excels in all phases of commercial real estate, delivering custom and complex projects. Its diverse experience allows the team to tailor solutions to client needs, partnering from entitlements and land acquisition through occupancy and using creative, agile approaches to deliver solutions for clients and communities.",
+    "phone": "(303) 573-6500",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7560656,
+      "lng": -104.9908366
+    },
+    "allLocations": [
+      {
+        "address": "2215 Market St, Denver, CO 80205",
+        "lat": 39.7560656,
+        "lng": -104.9908366
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "name": "Corum Real Estate Group",
+    "category": "Commercial Brokerage",
+    "website": "https://corumrealestate.com/",
+    "address": "650 S Cherry St, Suite 1200, Denver, CO 80246",
+    "about": "Corum Real Estate Group is a Denver-based firm that specializes in property management, brokerage, development and asset services. With offices in Denver and Chicago, Corum delivers integrated solutions for office, retail, industrial, multifamily and investment properties and is known for its determined negotiation on behalf of both tenants and landlords.",
+    "phone": "(303) 796-2000",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.705145,
+      "lng": -104.9329946
+    },
+    "allLocations": [
+      {
+        "address": "650 S Cherry St, Suite 1200, Denver, CO 80246",
+        "lat": 39.705145,
+        "lng": -104.9329946
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "name": "CP Group",
+    "category": "Commercial Real Estate (Owner/Developer)",
+    "website": "https://cpgroup.com/",
+    "address": "5355 Town Center Rd, Suite 350, Boca Raton, FL 33486",
+    "about": "CP Group is a vertically integrated commercial real estate and management firm founded in 1986. As a leading owner-operator and developer across the Sunbelt, CP Group is the largest office landlord in Florida, Atlanta's largest private commercial property owner and among the top 25 office landlords in the U.S., specializing in office and mixed-use value-add projects.",
+    "phone": "(561) 447-1800",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 26.3643896,
+      "lng": -80.1277642
+    },
+    "allLocations": [
+      {
+        "address": "5355 Town Center Rd, Suite 350, Boca Raton, FL 33486",
+        "lat": 26.3643896,
+        "lng": -80.1277642
+      },
+      {
+        "address": "1099 18th St, Suite 2110, Denver, CO 80202",
+        "lat": 39.749667,
+        "lng": -104.9924601
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "name": "Crescent Communities (Colorado)",
+    "category": "Developer",
+    "website": "https://crescentcommunities.com/",
+    "address": "1601 Blake St, Suite 650, Denver, CO 80202",
+    "about": "Crescent Communities is a real estate investor, developer and operator of mixed-use communities. Headquartered in Charlotte, the company has around 115 employees and offices in several U.S. cities including Denver, Washington D.C., Atlanta, Orlando, Nashville, Dallas, Phoenix and Salt Lake City.",
+    "phone": "(980) 321-6000",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7510231,
+      "lng": -104.9992194
+    },
+    "allLocations": [
+      {
+        "address": "1601 Blake St, Suite 650, Denver, CO 80202",
+        "lat": 39.7510231,
+        "lng": -104.9992194
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "name": "Cuningham (Denver)",
+    "category": "Architecture",
+    "website": "https://cuningham.com/",
+    "address": "1675 Larimer St, Suite 375, Denver, CO 80202",
+    "about": "Cuningham is a nationally recognized architecture and interior design firm dedicated to creating enduring value for partners and communities. It views each design solution as an opportunity to elevate a client's vision using knowledge-backed insights, balancing social, environmental and organizational objectives and treating sustainability as the baseline.",
+    "phone": "(303) 861-1600",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7499877,
+      "lng": -104.996929
+    },
+    "allLocations": [
+      {
+        "address": "1675 Larimer St, Suite 375, Denver, CO 80202",
+        "lat": 39.7499877,
+        "lng": -104.996929
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "name": "Cushman & Wakefield (Denver)",
+    "category": "Commercial Brokerage",
+    "website": "https://www.cushmanwakefield.com/",
+    "address": "1515 Arapahoe St, Suite 1200, Denver, CO 80202",
+    "about": "Cushman & Wakefield is a global commercial real estate and property management services firm headquartered in Chicago. With 2023 revenue of about $9.49 billion and approximately 52,000 employees, it is among the world's largest in its industry and provides services including leasing, asset management, valuation and advisory.",
+    "phone": "(303) 292-3700",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7478184,
+      "lng": -104.9968347
+    },
+    "allLocations": [
+      {
+        "address": "1515 Arapahoe St, Suite 1200, Denver, CO 80202",
+        "lat": 39.7478184,
+        "lng": -104.9968347
+      },
+      {
+        "address": "1401 Lawrence St, Suite 1100, Denver, CO 80202",
+        "lat": 39.7471377,
+        "lng": -104.9988938
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "name": "Davis Partnership Architects",
+    "category": "Architecture",
+    "website": "https://davispartnership.com/",
+    "address": "2901 Blake St, Suite 100, Denver, CO 80205",
+    "about": "Davis Partnership Architects is a multi-disciplinary design firm in Denver providing architecture, landscape architecture, interior design, lighting and wayfinding services. With more than 55 years of experience and over 145 professionals, the firm delivers innovative, sustainable solutions for projects spanning healthcare, higher education, commercial, civic/cultural, mixed-use, aerospace, multi-family housing and hospitality.",
+    "phone": "(303) 861-8555",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.763448,
+      "lng": -104.9831637
+    },
+    "allLocations": [
+      {
+        "address": "2901 Blake St, Suite 100, Denver, CO 80205",
+        "lat": 39.763448,
+        "lng": -104.9831637
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "name": "DLR Group (Denver)",
+    "category": "Architecture",
+    "website": "https://www.dlrgroup.com/",
+    "address": "1401 Lawrence St, Ste 1000, Denver, CO 80202",
+    "about": "DLR Group is an employee-owned integrated design firm that provides architecture, engineering, planning and interior design services. Headquartered in Omaha with about 1,200 employees, DLR Group's brand promise is to elevate the human experience through design; the firm is an advocate for sustainable design and an early adopter of the Architecture 2030 challenge.",
+    "phone": "(720) 904-0440",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7471377,
+      "lng": -104.9988938
+    },
+    "allLocations": [
+      {
+        "address": "1401 Lawrence St, Ste 1000, Denver, CO 80202",
+        "lat": 39.7471377,
+        "lng": -104.9988938
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "name": "E2 Optics",
+    "category": "Low Voltage / Tech",
+    "website": "https://www.e2optics.com/",
+    "address": "76 Inverness Dr East, Suite A & B, Englewood, CO 80112",
+    "about": "E2 Optics is an award-winning, woman-owned technology integrator headquartered in Denver. Founded in 2010 by Kristi Alford-Haarberg, the company designs and deploys low-voltage solutions integrating audiovisual, security, structured cabling and wireless systems, and its focus on safety and quality has led to rapid growth.",
+    "phone": "(866) 973-1507",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 30,
+    "name": "East West Partners",
+    "category": "Developer",
+    "website": "https://eastwestpartners.com/",
+    "address": "1550 Wewatta St, Suite 540, Denver, CO 80202",
+    "about": "East West Partners is devoted to building, selling, managing and supporting high-quality real estate and life experiences with a focus on innovation, sustainability and community. Since 1986, the firm has developed and sold over $7 billion of residential and commercial real estate across the country.",
+    "phone": "(303) 607-7650",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7526187,
+      "lng": -105.002321
+    },
+    "allLocations": [
+      {
+        "address": "1550 Wewatta St, Suite 540, Denver, CO 80202",
+        "lat": 39.7526187,
+        "lng": -105.002321
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "name": "Encore Electric",
+    "category": "Electrical Contractor",
+    "website": "https://www.encoreelectric.com/",
+    "address": "7125 W Jefferson Ave, Suite 400, Lakewood, CO 80235",
+    "about": "Encore Electric is a Colorado-based electrical contractor that provides preconstruction, construction, technology solutions, fabrication and service for electrical and energy projects. It offers design/build and design/assist services and is known for quality and innovation.",
+    "phone": "(303) 934-1234",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6500021,
+      "lng": -105.0778653
+    },
+    "allLocations": [
+      {
+        "address": "7125 W Jefferson Ave, Suite 400, Lakewood, CO 80235",
+        "lat": 39.6500021,
+        "lng": -105.0778653
+      },
+      {
+        "address": "12900 E Smith Rd, Aurora, CO 80011",
+        "lat": 39.7651944,
+        "lng": -104.835789
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "name": "Evergreen Dev Co",
+    "category": "Developer",
+    "website": "https://evergreendevco.com/",
+    "address": "1873 South Bellaire St, Suite 1200, Denver, CO 80222",
+    "about": "Evergreen Devco Inc., founded in 1974, is a privately held real estate firm specializing in retail, multifamily and industrial development, asset management and leasing. Headquartered in Phoenix with offices in Los Angeles, Denver and Salt Lake City, Evergreen has completed more than 650 projects nationwide and was recognized as a Forbes Small Giant for its financial strength and community focus.",
+    "phone": "(303) 757-0401",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6828125,
+      "lng": -104.9376719
+    },
+    "allLocations": [
+      {
+        "address": "1873 South Bellaire St, Suite 1200, Denver, CO 80222",
+        "lat": 39.6828125,
+        "lng": -104.9376719
+      }
+    ]
+  },
+  {
+    "id": 33,
+    "name": "FCI Constructors",
+    "category": "General Contractor",
+    "website": "https://fciconstructors.com/",
+    "address": "4015 Coriolis Way, Frederick, CO 80504",
+    "about": "FCI Constructors is an employee-owned construction management and general contracting firm founded in 1978 in Grand Junction, Colorado. The company has grown into a premier contractor across the Rocky Mountain and southwestern U.S., appearing on the ENR Top 400 list.",
+    "phone": "(970) 535-4725",
+    "email": "marketing@fciol.com",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 40.1139107,
+      "lng": -104.9787223
+    },
+    "allLocations": [
+      {
+        "address": "4015 Coriolis Way, Frederick, CO 80504",
+        "lat": 40.1139107,
+        "lng": -104.9787223
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "name": "Flatiron Construction",
+    "category": "Heavy Civil",
+    "website": "https://www.flatironcorp.com/",
+    "address": "385 Interlocken Crescent, Suite 900, Broomfield, CO 80021",
+    "about": "Flatiron (part of Flatiron Dragados) is a heavy civil infrastructure contractor based in Broomfield, Colorado. A subsidiary of Hochtief, it builds bridges, highways, railways, tunnels and hydropower facilities using design-build and public-private partnership models.",
+    "phone": "(303) 485-4050",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.9235102,
+      "lng": -105.1173121
+    },
+    "allLocations": [
+      {
+        "address": "385 Interlocken Crescent, Suite 900, Broomfield, CO 80021",
+        "lat": 39.9235102,
+        "lng": -105.1173121
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "name": "Fulenwider",
+    "category": "General Contractor",
+    "website": "https://fulenwider.com/",
+    "address": "270 St. Paul St, Suite 300, Denver, CO 80206",
+    "about": "Fulenwider is a Denver-based developer founded in 1904. The company invests in and collaborates on innovative master-planned communities such as Peña Station NEXT, emphasizing innovation and stewardship in residential and commercial developments.",
+    "phone": "(303) 295-3071",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7207166,
+      "lng": -104.9506867
+    },
+    "allLocations": [
+      {
+        "address": "270 St. Paul St, Suite 300, Denver, CO 80206",
+        "lat": 39.7207166,
+        "lng": -104.9506867
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "name": "Galloway & Company",
+    "category": "Civil Engineering / Planning",
+    "website": "https://gallowayus.com/",
+    "address": "5500 Greenwood Plaza Blvd, Suite 200, Greenwood Village, CO 80111",
+    "about": "Galloway & Company provides comprehensive architecture, engineering, planning and surveying services. With its 'Full Spectrum Approach,' the firm's 330+ professionals deliver multidisciplinary solutions for projects ranging from small sites to master-planned communities across the U.S.",
+    "phone": "(303) 770-8884",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6162501,
+      "lng": -104.8984102
+    },
+    "allLocations": [
+      {
+        "address": "5500 Greenwood Plaza Blvd, Suite 200, Greenwood Village, CO 80111",
+        "lat": 39.6162501,
+        "lng": -104.8984102
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "name": "GE Johnson Construction",
+    "category": "General Contractor",
+    "website": "https://gejohnson.com/",
+    "address": "25 N Cascade Ave, Ste 400, Colorado Springs, CO 80903",
+    "about": "Founded in 1967 by Gil Johnson, GE Johnson Construction grew to become a premier construction firm in the Rocky Mountain and Central regions; it now operates as part of DPR Construction and continues to offer self-perform capabilities, prefabrication and specialized services from offices in Denver, Colorado Springs and Jackson, WY.",
+    "phone": "(719) 473-5321",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 38.8350411,
+      "lng": -104.8249059
+    },
+    "allLocations": [
+      {
+        "address": "25 N Cascade Ave, Ste 400, Colorado Springs, CO 80903",
+        "lat": 38.8350411,
+        "lng": -104.8249059
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "name": "GH Phipps Construction",
+    "category": "General Contractor",
+    "website": "https://ghphipps.com/",
+    "address": "5995 Greenwood Plaza Blvd, Suite 100, Greenwood Village, CO 80111",
+    "about": "GH Phipps is a 100% employee-owned construction company that has been building trust and communities in Colorado and Wyoming since 1952. The firm provides construction services for aerospace, civic, commercial, healthcare and educational sectors, emphasizing integrity, collaboration and excellence.",
+    "phone": "303-571-5377",
+    "email": "marketing@ghphipps.com",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6082513,
+      "lng": -104.8957885
+    },
+    "allLocations": [
+      {
+        "address": "5995 Greenwood Plaza Blvd, Suite 100, Greenwood Village, CO 80111",
+        "lat": 39.6082513,
+        "lng": -104.8957885
+      },
+      {
+        "address": "4800 Innovation Dr, Fort Collins, CO 80525",
+        "lat": 40.5199815,
+        "lng": -105.0465752
+      },
+      {
+        "address": "496 Nevada Mesa View, Colorado Springs, CO 80907",
+        "lat": 38.89448,
+        "lng": -104.8208576
+      }
+    ]
+  },
+  {
+    "id": 39,
+    "name": "Griffis Blessing",
+    "category": "Commercial Brokerage",
+    "website": "https://www.griffisblessing.com/",
+    "address": "102 N Cascade Ave, Suite 550, Colorado Springs, CO 80903",
+    "about": "Headquartered in Colorado Springs since 1985, Griffis Blessing manages and invests in commercial and multifamily properties across Colorado and parts of Kansas. With more than 400 employees, the firm manages over $2 billion in assets, including 6.5 million square feet of commercial space and more than 10,000 apartment units.",
+    "phone": "(719) 520-1234",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 38.8361603,
+      "lng": -104.825425
+    },
+    "allLocations": [
+      {
+        "address": "102 N Cascade Ave, Suite 550, Colorado Springs, CO 80903",
+        "lat": 38.8361603,
+        "lng": -104.825425
+      },
+      {
+        "address": "6161 South Syracuse Way, Suite 380, Greenwood Village, CO 80111",
+        "lat": 39.6046538,
+        "lng": -104.9000041
+      }
+    ]
+  },
+  {
+    "id": 40,
+    "name": "Haselden Construction",
+    "category": "General Contractor",
+    "website": "https://www.haselden.com/",
+    "address": "6950 S Potomac St, Centennial, CO 80112",
+    "about": "Founded in 1973, Haselden Construction is a family-owned builder that undertakes projects from $500,000 to $300 million. Guided by a philosophy of pursuit, planning and execution, the company partners with clients from development through warranty, emphasizing relationships, entrepreneurial spirit, a sense of belonging and long-term legacy.",
+    "phone": "970-200-2545",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5904574,
+      "lng": -104.8306247
+    },
+    "allLocations": [
+      {
+        "address": "6950 S Potomac St, Centennial, CO 80112",
+        "lat": 39.5904574,
+        "lng": -104.8306247
+      },
+      {
+        "address": "155 E Boardwalk Dr, #400, Fort Collins, CO 80525",
+        "lat": 40.5322502,
+        "lng": -105.0742753
+      }
+    ]
+  },
+  {
+    "id": 41,
+    "name": "Heartland Acoustics & Interiors",
+    "category": "Specialty Contractor",
+    "website": "https://heartlandacoustics.com/",
+    "address": "8672 Concord Center Dr, Englewood, CO 80112",
+    "about": "Heartland Acoustics & Interiors specializes in acoustical ceilings and wall panels. The company focuses on building lasting customer relationships through open communication, excellent service, professionalism and attention to detail to meet project schedules.",
+    "phone": "(303) 694-6611",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.559522,
+      "lng": -104.8310178
+    },
+    "allLocations": [
+      {
+        "address": "8672 Concord Center Dr, Englewood, CO 80112",
+        "lat": 39.559522,
+        "lng": -104.8310178
+      }
+    ]
+  },
+  {
+    "id": 42,
+    "name": "HEI Civil",
+    "category": "Civil Contractor",
+    "website": "https://www.heicivil.com/",
+    "address": "5450 Montana Vista Way, Castle Rock, CO 80108",
+    "about": "HEI Civil is a heavy civil construction company founded in 1973 that provides earthwork, underground utilities and site preparation for residential and commercial developments. Operating across the Carolinas, Colorado and Texas, the company emphasizes safety, quality, client service and proper care of equipment.",
+    "phone": "(303) 688-9500",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 43,
+    "name": "Hensel Phelps (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.henselphelps.com/",
+    "address": "420 Sixth Ave, Greeley, CO 80631",
+    "about": "Hensel Phelps is one of the largest general contractors and construction managers in the United States. Founded in 1937 in Greeley, Colorado, the employee-owned firm has multiple district offices and delivers a diverse portfolio of construction projects nationwide.",
+    "phone": "(970) 352-6565",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": [
+      {
+        "address": "12121 Grant St, Suite 410, Thornton, CO 80241",
+        "lat": 39.9160865,
+        "lng": -104.9852585
+      }
+    ]
+  },
+  {
+    "id": 44,
+    "name": "HOK (Denver)",
+    "category": "Architecture",
+    "website": "https://www.hok.com/",
+    "address": "1401 17th St, Suite 600, Denver, CO 80202",
+    "about": "HOK is an American design, architecture, engineering and planning firm founded in 1955. With 26 offices and about 1,600 employees, the interdisciplinary firm delivers services across architecture, consulting, interior design, landscape architecture, planning and sustainable design.",
+    "phone": "(303) 590-9250",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7512057,
+      "lng": -104.9970975
+    },
+    "allLocations": [
+      {
+        "address": "1401 17th St, Suite 600, Denver, CO 80202",
+        "lat": 39.7512057,
+        "lng": -104.9970975
+      }
+    ]
+  },
+  {
+    "id": 45,
+    "name": "Howell Construction",
+    "category": "General Contractor",
+    "website": "https://howellco.com/",
+    "address": "8085 E Harvard Ave, Denver, CO 80231",
+    "about": "Based in Denver and founded in 1935, Howell Construction is a commercial construction firm known for building long-term client relationships. The company focuses on integrity and delivering projects within its capacity, ensuring high-quality craftsmanship and client satisfaction.",
+    "phone": "(303) 696-5800",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6717478,
+      "lng": -104.8946403
+    },
+    "allLocations": [
+      {
+        "address": "8085 E Harvard Ave, Denver, CO 80231",
+        "lat": 39.6717478,
+        "lng": -104.8946403
+      }
+    ]
+  },
+  {
+    "id": 46,
+    "name": "Hyder Construction",
+    "category": "General Contractor",
+    "website": "https://hyderconstruction.com/",
+    "address": "1031 Santa Fe Dr, Suite 300, Denver, CO 80204",
+    "about": "Hyder Construction provides preconstruction and construction services for commercial and resort projects throughout Colorado's Front Range and mountains. Since 1946, the family-owned company has delivered quality construction, leveraging technical and logistical expertise and emphasizing teamwork.",
+    "phone": "(303) 825-1313",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7326291,
+      "lng": -104.9987574
+    },
+    "allLocations": [
+      {
+        "address": "1031 Santa Fe Dr, Suite 300, Denver, CO 80204",
+        "lat": 39.7326291,
+        "lng": -104.9987574
+      }
+    ]
+  },
+  {
+    "id": 47,
+    "name": "JE Dunn Construction (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.jedunn.com/",
+    "address": "2000 S Colorado Blvd, Suite 1000, Denver, CO 80222",
+    "about": "JE Dunn is a family- and employee-owned construction firm founded in 1924. Now the sixth-largest domestic general building contractor in the U.S., it has 26 offices nationwide and emphasizes building authentic partnerships and enriching communities.",
+    "phone": "(303) 753-8988",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6813799,
+      "lng": -104.938977
+    },
+    "allLocations": [
+      {
+        "address": "2000 S Colorado Blvd, Suite 1000, Denver, CO 80222",
+        "lat": 39.6813799,
+        "lng": -104.938977
+      }
+    ]
+  },
+  {
+    "id": 48,
+    "name": "JHL Constructors",
+    "category": "General Contractor",
+    "website": "https://jhlconstructors.com/",
+    "address": "9100 E Panorama Dr, Suite 300, Englewood, CO 80112",
+    "about": "JHL Constructors is a Colorado-based, 100% employee-owned builder with more than 38 years of experience. The firm constructs both vertical and horizontal infrastructure and focuses on reliability, long-term partnerships and a culture of safety and integrity.",
+    "phone": "303-741-6116",
+    "email": "JHLinfo@jhlconstructors.com",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 49,
+    "name": "JLL (Denver)",
+    "category": "Commercial Brokerage",
+    "website": "https://www.jll.com/",
+    "address": "1225 17th St, Suite 1900, Denver, CO 80202",
+    "about": "Jones Lang LaSalle (JLL) is a global real estate services and investment management firm headquartered in Chicago. Operating in over 80 countries, JLL provides services such as capital markets, leasing, property management and technology for commercial real estate, employing over 113,000 people.",
+    "phone": "(303) 260-6500",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.750283,
+      "lng": -104.9951731
+    },
+    "allLocations": [
+      {
+        "address": "1225 17th St, Suite 1900, Denver, CO 80202",
+        "lat": 39.750283,
+        "lng": -104.9951731
+      }
+    ]
+  },
+  {
+    "id": 50,
+    "name": "Kentro Group",
+    "category": "Developer/Investor",
+    "website": "https://kentrogroup.com/",
+    "address": "1509 York St, Suite 201, Denver, CO 80206",
+    "about": "Kentro Group is a Denver-based commercial real estate developer that specializes in grocery-anchored shopping centers and urban retail in high-barrier markets. The firm focuses on off-market deals, strong industry relationships and community-focused development.",
+    "phone": "(303) 500-0944",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7402248,
+      "lng": -104.959887
+    },
+    "allLocations": [
+      {
+        "address": "1509 York St, Suite 201, Denver, CO 80206",
+        "lat": 39.7402248,
+        "lng": -104.959887
+      }
+    ]
+  },
+  {
+    "id": 51,
+    "name": "Kiewit (Colorado)",
+    "category": "Heavy Civil",
+    "website": "https://www.kiewit.com/",
+    "address": "2551 Picadilly Rd, Aurora, CO 80011",
+    "about": "Kiewit is one of North America's largest and most respected construction and engineering organizations. Founded in 1884, the employee-owned firm designs and builds major infrastructure such as tunnels, bridges and energy projects across multiple markets, turning complex challenges into groundbreaking solutions.",
+    "phone": "(303) 459-8700",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7561064,
+      "lng": -104.7347844
+    },
+    "allLocations": [
+      {
+        "address": "2551 Picadilly Rd, Aurora, CO 80011",
+        "lat": 39.7561064,
+        "lng": -104.7347844
+      },
+      {
+        "address": "5580 Havana St, Suite 4A, Denver, CO 80239",
+        "lat": 39.797216,
+        "lng": -104.8656696
+      },
+      {
+        "address": "10055 Trainstation Circle, Lone Tree, CO 80124",
+        "lat": 39.5353301,
+        "lng": -104.8694792
+      }
+    ]
+  },
+  {
+    "id": 52,
+    "name": "Kimley-Horn (Denver)",
+    "category": "Civil Engineering",
+    "website": "https://www.kimley-horn.com/",
+    "address": "1125 17th St, Suite 1400, Denver, CO 80202",
+    "about": "Kimley-Horn is a premier engineering, planning and design consulting firm founded in 1967 in Raleigh, North Carolina. With more than 9,000 employees across 140+ offices nationwide, it partners with public and private sector clients to solve complex challenges, delivering services that span transportation, land development, water resources and environmental planning.",
+    "phone": "(303) 228-2300",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7497006,
+      "lng": -104.9944317
+    },
+    "allLocations": [
+      {
+        "address": "1125 17th St, Suite 1400, Denver, CO 80202",
+        "lat": 39.7497006,
+        "lng": -104.9944317
+      },
+      {
+        "address": "6200 South Syracuse Way, Suite 300, Greenwood Village, CO 80111",
+        "lat": 39.6033504,
+        "lng": -104.8982702
+      }
+    ]
+  },
+  {
+    "id": 53,
+    "name": "KL&A Engineers and Builders",
+    "category": "Structural Engineering",
+    "website": "https://klaa.com/",
+    "address": "1717 Washington Ave, Golden, CO 80401",
+    "about": "KL&A Engineers & Builders is a Rocky Mountain-based firm established in 1994 that combines high-quality structural and civil engineering with integrated construction services. With more than 70 licensed engineers and over 7,000 completed projects, KL&A is known for its expertise in mass timber, sustainability and cost-effective design.",
+    "phone": "(303) 384-9910",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7509031,
+      "lng": -105.2168394
+    },
+    "allLocations": [
+      {
+        "address": "1717 Washington Ave, Golden, CO 80401",
+        "lat": 39.7509031,
+        "lng": -105.2168394
+      },
+      {
+        "address": "421 E 4th St, Loveland, CO 80537",
+        "lat": 40.3955003,
+        "lng": -105.0715338
+      }
+    ]
+  },
+  {
+    "id": 54,
+    "name": "Koelbel and Company",
+    "category": "Developer/Builder",
+    "website": "https://koelbelco.com/",
+    "address": "5291 E Yale Ave, Denver, CO 80222",
+    "about": "Family-owned Koelbel & Company has been shaping Colorado's residential neighborhoods and commercial spaces since 1952. As the state's longest-operating family-owned real estate developer, Koelbel is recognized for its 'Crafted by Koelbel' quality mark and commitment to enhancing land and community through sustainable, well-designed developments.",
+    "phone": "(303) 758-3500",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6677873,
+      "lng": -104.9277638
+    },
+    "allLocations": [
+      {
+        "address": "5291 E Yale Ave, Denver, CO 80222",
+        "lat": 39.6677873,
+        "lng": -104.9277638
+      }
+    ]
+  },
+  {
+    "id": 55,
+    "name": "Kraemer North America (Colorado)",
+    "category": "Heavy Civil",
+    "website": "https://www.kraemerna.com/",
+    "address": "900 W Castleton Rd, Suite 220, Castle Rock, CO 80109",
+    "about": "Kraemer North America is a nationally ranked heavy-civil contractor specializing in complex transportation, rail and marine projects delivered through innovative methods such as Construction Manager/General Contractor (CM/GC) and design-build. The company is known for its high standards of quality, safety and innovation on challenging infrastructure projects.",
+    "phone": "(303) 688-7500",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.4092742,
+      "lng": -104.8684341
+    },
+    "allLocations": [
+      {
+        "address": "900 W Castleton Rd, Suite 220, Castle Rock, CO 80109",
+        "lat": 39.4092742,
+        "lng": -104.8684341
+      }
+    ]
+  },
+  {
+    "id": 56,
+    "name": "Layton Construction (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.laytonconstruction.com/",
+    "address": "8480 E Orchard Rd, Suite 6200, Greenwood Village, CO 80111",
+    "about": "Layton Construction is a construction management firm with a 70-year legacy of 'Constructing with Integrity.' Operating from 16 offices and traveling units across the United States, Layton builds places where people live, work, play and heal. The firm upholds values of quality, honesty, respect, teamwork and unity, striving to exceed customer expectations and maintain lasting relationships.",
+    "phone": "(303) 209-7853",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6080211,
+      "lng": -104.8907239
+    },
+    "allLocations": [
+      {
+        "address": "8480 E Orchard Rd, Suite 6200, Greenwood Village, CO 80111",
+        "lat": 39.6080211,
+        "lng": -104.8907239
+      }
+    ]
+  },
+  {
+    "id": 57,
+    "name": "LCP Development",
+    "category": "Developer",
+    "website": "https://lcpdevelopment.com/",
+    "address": "1127 Sherman St, Suite 150, Denver, CO 80203",
+    "about": "LCP Development began as Littleton Capital Partners in 2004 and pivoted to boutique property management after completing more than 20 development projects. Relocated to Denver in 2015, the firm uses decades of commercial real estate experience to manage more than 1.9 million square feet of office, retail and industrial assets across Colorado.",
+    "phone": "(303) 797-9119",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7344722,
+      "lng": -104.9852488
+    },
+    "allLocations": [
+      {
+        "address": "1127 Sherman St, Suite 150, Denver, CO 80203",
+        "lat": 39.7344722,
+        "lng": -104.9852488
+      }
+    ]
+  },
+  {
+    "id": 58,
+    "name": "Long Building Technologies",
+    "category": "Building Systems/Controls",
+    "website": "https://www.long.com/",
+    "address": "5001 S Zuni St, Littleton, CO 80120",
+    "about": "Long Building Technologies provides integrated commercial building solutions, combining building automation, HVAC equipment, service and security systems to enhance building performance. Founded in 1965 by Wills Long, the company has 21 offices across eight states and continues to innovate.",
+    "phone": "(303) 975-2100",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6248206,
+      "lng": -105.0158137
+    },
+    "allLocations": [
+      {
+        "address": "5001 S Zuni St, Littleton, CO 80120",
+        "lat": 39.6248206,
+        "lng": -105.0158137
+      },
+      {
+        "address": "5260 Mark Dabling Blvd, Suite 200, Colorado Springs, CO 80918",
+        "lat": 38.9083963,
+        "lng": -104.823731
+      },
+      {
+        "address": "2649 E Mulberry St, Unit 4, Fort Collins, CO 80524",
+        "lat": 40.5795114,
+        "lng": -105.0287674
+      }
+    ]
+  },
+  {
+    "id": 59,
+    "name": "Lowe Enterprises (Denver)",
+    "category": "Developer/Owner",
+    "website": "https://www.lowe.com/",
+    "address": "188 Inverness Dr W, Suite 300, Englewood, CO 80112",
+    "about": "Lowe Enterprises is a private real estate firm owned by active and retired employees with over five decades of experience. The company invests in, develops and manages commercial, hotel, multifamily and retail properties across the United States, creating innovative, lasting environments that connect people and place.",
+    "phone": "(303) 799-3830",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5698513,
+      "lng": -104.8702758
+    },
+    "allLocations": [
+      {
+        "address": "188 Inverness Dr W, Suite 300, Englewood, CO 80112",
+        "lat": 39.5698513,
+        "lng": -104.8702758
+      },
+      {
+        "address": "5299 DTC Blvd, #1260, Greenwood Village, CO 80111",
+        "lat": 39.6211042,
+        "lng": -104.8907996
+      }
+    ]
+  },
+  {
+    "id": 60,
+    "name": "Martin/Martin Consulting Engineers",
+    "category": "Structural/Civil Engineering",
+    "website": "https://martinmartin.com/",
+    "address": "12499 W Colfax Ave, Lakewood, CO 80215",
+    "about": "Martin/Martin is a full-service civil and structural engineering firm whose roots date to 1945. Headquartered in the Denver area, the employee-owned company upholds a culture of integrity, service, creativity and quality, offering innovative engineering solutions for clients and communities across a broad range of markets.",
+    "phone": "(303) 431-6100",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7401242,
+      "lng": -105.1386101
+    },
+    "allLocations": [
+      {
+        "address": "12499 W Colfax Ave, Lakewood, CO 80215",
+        "lat": 39.7401242,
+        "lng": -105.1386101
+      }
+    ]
+  },
+  {
+    "id": 61,
+    "name": "McStain Neighborhoods (infill)",
+    "category": "Developer/Builder",
+    "website": "https://mcstain.com/",
+    "address": "2420 W 26th Ave, Suite 480D, Denver, CO 80211-5329",
+    "about": "McStain Neighborhoods began in Boulder, Colorado in 1966 as a small home-building company and has grown into a recognized builder of sustainable communities along the Front Range. Known for its focus on design, energy efficiency and environmentally responsible practices, McStain creates BeWell and all-electric homes.",
+    "phone": "(303) 494-5900",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7543196,
+      "lng": -105.0162759
+    },
+    "allLocations": [
+      {
+        "address": "2420 W 26th Ave, Suite 480D, Denver, CO 80211-5329",
+        "lat": 39.7543196,
+        "lng": -105.0162759
+      }
+    ]
+  },
+  {
+    "id": 62,
+    "name": "McWhinney",
+    "category": "Developer",
+    "website": "https://mcwhinney.com/",
+    "address": "2725 Rocky Mountain Ave, Suite 200, Loveland, CO 80538",
+    "about": "Now branded as Realberry, McWhinney is a Denver-based real estate investment, development and management firm founded by brothers Chad and Troy McWhinney. For nearly 35 years the company has been creating places people love, guided by principles of respect, integrity, perseverance and legacy.",
+    "phone": "(970) 962-9990",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 40.4195912,
+      "lng": -105.0017617
+    },
+    "allLocations": [
+      {
+        "address": "2725 Rocky Mountain Ave, Suite 200, Loveland, CO 80538",
+        "lat": 40.4195912,
+        "lng": -105.0017617
+      }
+    ]
+  },
+  {
+    "id": 63,
+    "name": "Merrick & Company",
+    "category": "Engineering",
+    "website": "https://www.merrick.com/",
+    "address": "8051 E Maplewood Ave, Suite 300, Greenwood Village, CO 80111",
+    "about": "Merrick & Company is an employee-owned engineering, architecture, surveying and geospatial firm headquartered in Greenwood Village, Colorado. Founded in 1955 by structural engineer Sears Merrick, the firm began with structural engineering and expanded into power engineering, surveying and other disciplines while maintaining its commitment to employee ownership and technical excellence.",
+    "phone": "(303) 751-0741",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6055497,
+      "lng": -104.8960667
+    },
+    "allLocations": [
+      {
+        "address": "8051 E Maplewood Ave, Suite 300, Greenwood Village, CO 80111",
+        "lat": 39.6055497,
+        "lng": -104.8960667
+      },
+      {
+        "address": "1755 Telstar Dr, Suite 506, Colorado Springs, CO 80920",
+        "lat": 38.9597186,
+        "lng": -104.7971632
+      },
+      {
+        "address": "2480 W 26th Ave, Unit B225, Denver, CO 80211",
+        "lat": 39.7536498,
+        "lng": -105.0174731
+      }
+    ]
+  },
+  {
+    "id": 64,
+    "name": "MGL Partners",
+    "category": "Developer",
+    "website": "https://mglpartners.com/",
+    "address": "1936 W 33rd Ave, Denver, CO 80211",
+    "about": "MGL Partners is a Colorado real estate development and investment firm that creates multifamily communities across all income levels, including market-rate, affordable, senior and workforce housing. With two decades of experience, the firm optimizes outcomes through tailored capital structures and active involvement in housing and nonprofit communities.",
+    "phone": "(303) 892-6600",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7627291,
+      "lng": -105.0103423
+    },
+    "allLocations": [
+      {
+        "address": "1936 W 33rd Ave, Denver, CO 80211",
+        "lat": 39.7627291,
+        "lng": -105.0103423
+      }
+    ]
+  },
+  {
+    "id": 65,
+    "name": "Milender White",
+    "category": "General Contractor",
+    "website": "https://milenderwhite.com/",
+    "address": "12655 W 54th Dr, Arvada, CO 80002",
+    "about": "Milender White is a construction company that delivers commercial and residential projects throughout the Pacific Coast and Rocky Mountains. For more than 25 years, it has provided forward-thinking construction solutions with a focus on safety, quality, integrity, sustainability, training and diversity.",
+    "phone": "",
+    "email": "(303) 216-0420",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7942554,
+      "lng": -105.1394639
+    },
+    "allLocations": [
+      {
+        "address": "12655 W 54th Dr, Arvada, CO 80002",
+        "lat": 39.7942554,
+        "lng": -105.1394639
+      }
+    ]
+  },
+  {
+    "id": 66,
+    "name": "MOA Architecture",
+    "category": "Architecture",
+    "website": "https://moaarch.com/",
+    "address": "414 14th St, Suite 300, Denver, CO 80202",
+    "about": "MOA Architecture is a multidisciplinary design firm founded in 1981 and headquartered in Denver. With offices in Denver and Casper, Wyoming, MOA brings together architects, interior designers and planners dedicated to making a difference through great design. The firm emphasizes a higher purpose, culture of exploration, teamwork and mentoring, and generates more than 70 percent of its work from repeat clients.",
+    "phone": "(303) 308-1190",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7413348,
+      "lng": -104.9924685
+    },
+    "allLocations": [
+      {
+        "address": "414 14th St, Suite 300, Denver, CO 80202",
+        "lat": 39.7413348,
+        "lng": -104.9924685
+      }
+    ]
+  },
+  {
+    "id": 67,
+    "name": "Mortenson (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.mortenson.com/",
+    "address": "3083 Walnut St, Suite 300, Denver, CO 80205",
+    "about": "Mortenson is a U.S.-based, top-20 builder, developer, and engineering services provider serving the commercial, institutional, and energy sectors. Mortenson's expanding portfolio of integrated services helps its customers move their strategies forward, ensuring their investments result in high-performing assets. Founded in 1954, Mortenson has operations across the U.S.",
+    "phone": "(303) 295-2511",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7637316,
+      "lng": -104.9805282
+    },
+    "allLocations": [
+      {
+        "address": "3083 Walnut St, Suite 300, Denver, CO 80205",
+        "lat": 39.7637316,
+        "lng": -104.9805282
+      }
+    ]
+  },
+  {
+    "id": 68,
+    "name": "MTech Mechanical",
+    "category": "Mechanical Contractor",
+    "website": "https://mtechco.com/",
+    "address": "12300 Pecos St, Westminster, CO 80234",
+    "about": "MTech Mechanical is a design-build mechanical contractor providing HVAC and plumbing system design, construction, installation and maintenance services for commercial and industrial clients across Colorado. The firm employs in-house engineers and offers turnkey solutions for projects of all sizes.",
+    "phone": "(303) 650-4000",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.9216308,
+      "lng": -105.0039891
+    },
+    "allLocations": [
+      {
+        "address": "12300 Pecos St, Westminster, CO 80234",
+        "lat": 39.9216308,
+        "lng": -105.0039891
+      },
+      {
+        "address": "1353 Chambers Ave, Eagle, CO 81631",
+        "lat": 39.666661,
+        "lng": -106.811086
+      },
+      {
+        "address": "977 Elkton Dr, Colorado Springs, CO 80907",
+        "lat": 38.8996547,
+        "lng": -104.8463866
+      }
+    ]
+  },
+  {
+    "id": 69,
+    "name": "Namaste Solar",
+    "category": "Renewables / Contractor",
+    "website": "https://namastesolar.com/",
+    "address": "1900 S Sunset St, Unit 1F, Longmont, CO 80501",
+    "about": "Namaste Solar is a 100% employee-owned cooperative and Certified B Corp based in Colorado. Founded in 2005, it installs solar energy systems and champions responsible business practices, transparency and holistic wealth for its employees and community.",
+    "phone": "(303) 558-6159",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 40.136556,
+      "lng": -105.1207868
+    },
+    "allLocations": [
+      {
+        "address": "1900 S Sunset St, Unit 1F, Longmont, CO 80501",
+        "lat": 40.136556,
+        "lng": -105.1207868
+      },
+      {
+        "address": "888 Federal Blvd, Denver, CO 80204",
+        "lat": 39.7307666,
+        "lng": -105.0246817
+      }
+    ]
+  },
+  {
+    "id": 70,
+    "name": "Newmark (Denver)",
+    "category": "Commercial Brokerage",
+    "website": "https://www.nmrk.com/",
+    "address": "1800 Larimer St, Suite 1700, Denver, CO 80202",
+    "about": "Newmark Group Inc. is a global commercial real estate advisory and services firm headquartered in New York City. With more than 170 offices and over 8,000 employees, Newmark provides capital markets, landlord and tenant representation, property management and valuation services, making it one of the largest investment brokers in the Americas.",
+    "phone": "(303) 892-1111",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7514135,
+      "lng": -104.9940867
+    },
+    "allLocations": [
+      {
+        "address": "1800 Larimer St, Suite 1700, Denver, CO 80202",
+        "lat": 39.7514135,
+        "lng": -104.9940867
+      }
+    ]
+  },
+  {
+    "id": 71,
+    "name": "Nunn Construction",
+    "category": "General Contractor",
+    "website": "https://nunnconstruction.com/",
+    "address": "925 Elkton Dr, Colorado Springs, CO 80907",
+    "about": "Nunn Construction is a Colorado-based builder founded in 1983. The company emphasizes quality, lasting relationships and dedicated service, with values of growth mindset, teamwork, communication and community improvement.",
+    "phone": "970-764-4801",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 38.899898,
+      "lng": -104.8452191
+    },
+    "allLocations": [
+      {
+        "address": "925 Elkton Dr, Colorado Springs, CO 80907",
+        "lat": 38.899898,
+        "lng": -104.8452191
+      },
+      {
+        "address": "190 Turner Dr #A, Durango, CO 81303",
+        "lat": 37.238385,
+        "lng": -107.8764795
+      },
+      {
+        "address": "736 W 6th St, Pueblo, CO 81003",
+        "lat": 38.2722927,
+        "lng": -104.6182344
+      }
+    ]
+  },
+  {
+    "id": 72,
+    "name": "Owen-Ames-Kimball (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.owen-ames-kimball.com/",
+    "address": "202 6th St, Suite 200, Castle Rock, CO 80104",
+    "about": "Owen-Ames-Kimball is a construction company founded in 1891 that provides commercial construction services across the United States, with operations in Michigan, Florida and Colorado. The employee-owned firm specializes in community-driven projects and customized client experiences.",
+    "phone": "(303) 586-7911",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.3752927,
+      "lng": -104.861069
+    },
+    "allLocations": [
+      {
+        "address": "202 6th St, Suite 200, Castle Rock, CO 80104",
+        "lat": 39.3752927,
+        "lng": -104.861069
+      }
+    ]
+  },
+  {
+    "id": 73,
+    "name": "OZ Architecture",
+    "category": "Architecture",
+    "website": "https://ozarch.com/",
+    "address": "3003 Larimer St, Denver, CO 80205",
+    "about": "OZ Architecture is a Denver-based architecture firm known for creating environments that endure and precede trends. The firm focuses on designing spaces that enhance human experience and push boundaries.",
+    "phone": "(303) 861-5704",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7624405,
+      "lng": -104.9804557
+    },
+    "allLocations": [
+      {
+        "address": "3003 Larimer St, Denver, CO 80205",
+        "lat": 39.7624405,
+        "lng": -104.9804557
+      }
+    ]
+  },
+  {
+    "id": 74,
+    "name": "PCL Construction (Colorado)",
+    "category": "General Contractor",
+    "website": "https://www.pcl.com/",
+    "address": "2000 S Colorado Blvd, Suite 2-500, Denver, CO 80222",
+    "about": "PCL Construction is a private, employee-owned group of independent general contracting companies operating in Canada, the United States, Australia and the Caribbean. Founded in 1906 as Poole Construction and relocating its U.S. headquarters to Denver in 1975, PCL has grown into one of North America's largest general contractors, delivering projects across commercial, civil and industrial markets.",
+    "phone": "(303) 365-6500",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6813799,
+      "lng": -104.938977
+    },
+    "allLocations": [
+      {
+        "address": "2000 S Colorado Blvd, Suite 2-500, Denver, CO 80222",
+        "lat": 39.6813799,
+        "lng": -104.938977
+      }
+    ]
+  },
+  {
+    "id": 75,
+    "name": "PCLake/Platte River Analytics?",
+    "category": "Consulting",
+    "website": "https://platteriveranalytics.com/",
+    "address": "9186 Anasazi Indian Way, Littleton, CO 80129",
+    "about": "Platte River Analytics is an award-winning Esri Business Partner that provides GIS consulting, location analytics and spatial business intelligence. The firm assists energy companies and other clients with interactive mapping, dashboards and data analytics, and has earned Esri's ArcGIS System Ready Specialty for its expertise.",
+    "phone": "(217) 821-1978",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 76,
+    "name": "Perkins&Will (Denver)",
+    "category": "Architecture",
+    "website": "https://perkinswill.com/",
+    "address": "475 Lincoln St, Suite 100, Denver, CO 80203",
+    "about": "Perkins&Will is a global design practice founded in 1935 and now employing around 2,600 people. Part of the Dar Al-Handasah group since 1986, the firm offers architecture, interiors, planning and urban design services. Its Denver studio specialises in healthcare, science and technology, and sports and entertainment projects.",
+    "phone": "(303) 308-0200",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7236851,
+      "lng": -104.9863522
+    },
+    "allLocations": [
+      {
+        "address": "475 Lincoln St, Suite 100, Denver, CO 80203",
+        "lat": 39.7236851,
+        "lng": -104.9863522
+      }
+    ]
+  },
+  {
+    "id": 77,
+    "name": "Pinkard Construction",
+    "category": "General Contractor",
+    "website": "https://pinkardbuilds.com/",
+    "address": "9195 W 6th Ave, Lakewood, CO 80215",
+    "about": "Pinkard Construction is a Colorado general contractor founded in 1962 by James W. Pinkard. The company provides construction management, preconstruction and design-build services, operating on a philosophy of hard work, client service and excellence.",
+    "phone": "303-986-4555",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7262203,
+      "lng": -105.0983439
+    },
+    "allLocations": [
+      {
+        "address": "9195 W 6th Ave, Lakewood, CO 80215",
+        "lat": 39.7262203,
+        "lng": -105.0983439
+      }
+    ]
+  },
+  {
+    "id": 78,
+    "name": "Powers Products",
+    "category": "Building Products / Supplier",
+    "website": "https://powersproducts.com/",
+    "address": "4400 S Federal Blvd, Englewood, CO 80110",
+    "about": "Powers Products offers turnkey building solutions for daylighting, fire and smoke separation and space flexibility. Serving Colorado, Wyoming, New Mexico and West Texas, the company distributes specialized products and provides design, construction and support services to ensure successful project outcomes.",
+    "phone": "(303) 791-1010",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6352013,
+      "lng": -105.0253809
+    },
+    "allLocations": [
+      {
+        "address": "4400 S Federal Blvd, Englewood, CO 80110",
+        "lat": 39.6352013,
+        "lng": -105.0253809
+      }
+    ]
+  },
+  {
+    "id": 79,
+    "name": "RedPeak",
+    "category": "Developer/Owner",
+    "website": "https://redpeak.com/",
+    "address": "375 S Broadway, Suite 200, Denver, CO 80209",
+    "about": "RedPeak is a Denver-based multifamily owner and operator established in 2001. From the outset the company chose to focus exclusively on Denver and Colorado markets, and it now manages more than 50 apartment communities serving about 5,000 residents, committed to building strong communities and providing exceptional living experiences.",
+    "phone": "(303) 321-7325",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.710116,
+      "lng": -104.987691
+    },
+    "allLocations": [
+      {
+        "address": "375 S Broadway, Suite 200, Denver, CO 80209",
+        "lat": 39.710116,
+        "lng": -104.987691
+      }
+    ]
+  },
+  {
+    "id": 80,
+    "name": "RK Industries",
+    "category": "MEP / Construction Services",
+    "website": "https://rkindustries.com/",
+    "address": "3301 Lewiston St, Aurora, CO 80011",
+    "about": "RK Industries, founded in 1963, is a family-owned company that has diversified into mechanical, steel, electrical, energy, service, water and mission-critical divisions. Restructured as RK Industries in 2021, the company adheres to SMART values—safety, mentorship, accountability, relationships and teamwork—and promotes a culture of respect, passion and teamwork.",
+    "phone": "303-785-6998",
+    "email": "communications@rkindustries.com",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7633031,
+      "lng": -104.7989703
+    },
+    "allLocations": [
+      {
+        "address": "3301 Lewiston St, Aurora, CO 80011",
+        "lat": 39.7633031,
+        "lng": -104.7989703
+      },
+      {
+        "address": "20101 E 36th Dr, Unit A, Aurora, CO 80011",
+        "lat": 39.764393,
+        "lng": -104.75195
+      }
+    ]
+  },
+  {
+    "id": 81,
+    "name": "SAR+ Architects",
+    "category": "Architecture",
+    "website": "https://sararch.com/",
+    "address": "1550 Wynkoop St, Suite 100, Denver, CO 80202",
+    "about": "SAR+ is a Denver-based architecture, interior design and planning firm known for designing urban projects. The firm treats each project—whether new construction or adaptive reuse—as a creative challenge and works across cities such as Denver, Boulder, San Diego, Kansas City and New York, always respecting the historical and environmental context.",
+    "phone": "(303) 436-9551",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7513295,
+      "lng": -105.0011438
+    },
+    "allLocations": [
+      {
+        "address": "1550 Wynkoop St, Suite 100, Denver, CO 80202",
+        "lat": 39.7513295,
+        "lng": -105.0011438
+      }
+    ]
+  },
+  {
+    "id": 82,
+    "name": "Saunders Construction",
+    "category": "General Contractor",
+    "website": "https://saundersinc.com/",
+    "address": "86 Inverness Place North, Englewood, CO 80112",
+    "about": "Saunders serves the commercial building industry as a full-service general contractor, design-builder and construction manager. A leader in the Colorado construction industry since its inception in 1972, Saunders is one of the region's largest general contractors and recipient of more than 100 industry awards. Saunders is a member of the Citadel Group.",
+    "phone": "303-699-9000",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5754778,
+      "lng": -104.8602276
+    },
+    "allLocations": [
+      {
+        "address": "86 Inverness Place North, Englewood, CO 80112",
+        "lat": 39.5754778,
+        "lng": -104.8602276
+      },
+      {
+        "address": "1660 17th St, Suite LL1, Denver, CO 80202",
+        "lat": 39.7524762,
+        "lng": -104.9997848
+      }
+    ]
+  },
+  {
+    "id": 83,
+    "name": "Semple Brown Design",
+    "category": "Architecture",
+    "website": "https://semplebrown.com/",
+    "address": "1160 Santa Fe Dr, Denver, CO 80204",
+    "about": "Semple Brown is an architecture firm established in 1982 recognized for its sensitivity to historic architecture, adaptive reuse and urban infill projects. The firm has contributed to notable Denver projects such as the Ellie Caulkins Opera House and the revitalizations of Larimer Square and Union Station.",
+    "phone": "(303) 571-4137",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7347676,
+      "lng": -104.9983729
+    },
+    "allLocations": [
+      {
+        "address": "1160 Santa Fe Dr, Denver, CO 80204",
+        "lat": 39.7347676,
+        "lng": -104.9983729
+      }
+    ]
+  },
+  {
+    "id": 84,
+    "name": "SGM (Schneider Gottschalk/Milburn)",
+    "category": "Engineering/Planning",
+    "website": "https://www.sgm-inc.com/",
+    "address": "118 W Sixth St, Suite 200, Glenwood Springs, CO 81601",
+    "about": "SGM is a full-service engineering, surveying and consulting firm founded in 1986 by Dean Gordon and Louis Meyer on Colorado's Western Slope. With seven offices and over 100 professionals, SGM provides civil, structural, environmental and water resource services while maintaining a small-company culture and deep community engagement.",
+    "phone": "(970) 945-1004",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 85,
+    "name": "Shaw Construction",
+    "category": "General Contractor",
+    "website": "https://shawconstruction.net/",
+    "address": "300 Kalamath St, Denver, CO 80223",
+    "about": "Shaw Construction, founded in 1962, offers general contracting services across Colorado, Utah and Wyoming. Consistently ranked as a leading construction manager and design-build contractor in the Rocky Mountain region, the firm works on performing arts, senior living, education, office, hospitality and multifamily projects. With more than 250 employees, Shaw focuses on relationship-driven collaboration.",
+    "phone": "(303) 825-4740",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.721048,
+      "lng": -105.000075
+    },
+    "allLocations": [
+      {
+        "address": "300 Kalamath St, Denver, CO 80223",
+        "lat": 39.721048,
+        "lng": -105.000075
+      },
+      {
+        "address": "760 Horizon Dr, #201, Grand Junction, CO 81506",
+        "lat": 39.1150416,
+        "lng": -108.5329886
+      }
+    ]
+  },
+  {
+    "id": 86,
+    "name": "Shea Properties (Denver)",
+    "category": "Property Owner/Manager",
+    "website": "https://www.sheaproperties.com/",
+    "address": "8351 E Belleview Ave, Denver, CO 80237",
+    "about": "Shea Properties' Colorado division traces its roots to 1881, but its modern presence began in 1997 with the acquisition of more than 22,000 acres in Highlands Ranch. Today Shea develops and manages roughly seven million square feet of commercial space and more than 3,000 apartments across office, multifamily, retail, industrial and entertainment uses.",
+    "phone": "(303) 773-1700",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6245727,
+      "lng": -104.8918427
+    },
+    "allLocations": [
+      {
+        "address": "8351 E Belleview Ave, Denver, CO 80237",
+        "lat": 39.6245727,
+        "lng": -104.8918427
+      }
+    ]
+  },
+  {
+    "id": 87,
+    "name": "Shopworks Architecture",
+    "category": "Architecture",
+    "website": "https://shopworksarc.com/",
+    "address": "301 W 45th Ave, Denver, CO 80216",
+    "about": "Founded in 2012, Shopworks Architecture specialises in urban infill and affordable housing projects. The firm focuses on affordable, permanent supportive, transit-oriented and mixed-use urbanism, taking a holistic, collaborative approach to design that emphasises community and human-centered solutions.",
+    "phone": "(303) 433-4094",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7788229,
+      "lng": -104.9915892
+    },
+    "allLocations": [
+      {
+        "address": "301 W 45th Ave, Denver, CO 80216",
+        "lat": 39.7788229,
+        "lng": -104.9915892
+      }
+    ]
+  },
+  {
+    "id": 88,
+    "name": "Stantec (Denver)",
+    "category": "Architecture/Engineering",
+    "website": "https://www.stantec.com/",
+    "address": "410 17th St, Suite 1400, Denver, CO 80202",
+    "about": "Stantec is a global leader in sustainable engineering, architecture and environmental consulting. The company strives to redefine what's possible by innovating at the intersection of community, creativity and client relationships, bringing together multidisciplinary teams to deliver impactful solutions.",
+    "phone": "(303) 295-1717",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.744188,
+      "lng": -104.988615
+    },
+    "allLocations": [
+      {
+        "address": "410 17th St, Suite 1400, Denver, CO 80202",
+        "lat": 39.744188,
+        "lng": -104.988615
+      }
+    ]
+  },
+  {
+    "id": 89,
+    "name": "Studio K2",
+    "category": "Architecture",
+    "website": "https://studiok2.com/",
+    "address": "1525 Market St, Suite 200, Denver, CO 80202",
+    "about": "Studio K2 Architecture is a client-centered design firm founded in 2009 and led by principals Kevin Koernig and Geneva Kowalski. From its LoDo Denver office, the multi-state-licensed team provides innovative architectural solutions while emphasizing communication, creativity, exceptional service and a sense of fun.",
+    "phone": "(303) 534-4480",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7495304,
+      "lng": -104.9992515
+    },
+    "allLocations": [
+      {
+        "address": "1525 Market St, Suite 200, Denver, CO 80202",
+        "lat": 39.7495304,
+        "lng": -104.9992515
+      }
+    ]
+  },
+  {
+    "id": 90,
+    "name": "Terracon (Denver)",
+    "category": "Geotechnical",
+    "website": "https://www.terracon.com/",
+    "address": "10625 W I-70 Frontage Rd N, Wheat Ridge, CO 80033",
+    "about": "Terracon is an employee-owned consulting firm founded in 1965 that has grown into a leading provider of environmental, geotechnical, facilities and materials services. With more than 180 offices and over 1,500 environmental professionals across the United States, Terracon delivers multidisciplinary expertise to protect both the built and natural environment.",
+    "phone": "(303) 423-3300",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7849039,
+      "lng": -105.1185843
+    },
+    "allLocations": [
+      {
+        "address": "10625 W I-70 Frontage Rd N, Wheat Ridge, CO 80033",
+        "lat": 39.7849039,
+        "lng": -105.1185843
+      }
+    ]
+  },
+  {
+    "id": 91,
+    "name": "The Continuum Company",
+    "category": "Developer",
+    "website": "https://continuum.com/",
+    "address": "1881 16th St, 5th Floor, Denver, CO 80202",
+    "about": "The Continuum Company is a boutique real estate development firm specialising in ground-up development of large-scale mixed-use residential, commercial, hospitality and retail projects. Operating in New York, South Florida and Las Vegas, it focuses on a small number of innovative projects rather than replicating past successes.",
+    "phone": "(303) 573-0050",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 92,
+    "name": "The Gallegos Corporation",
+    "category": "Specialty Contractor",
+    "website": "https://gallegoscorp.com/",
+    "address": "1228 S Kalamath St, Denver, CO 80223",
+    "about": "Family-owned since 1970, The Gallegos Corporation began with a stone fireplace and has grown into a premier provider of natural stone building materials and masonry services. Celebrated for its craftsmanship and attention to detail, the company maintains a trusted reputation for quality work across residential and commercial projects.",
+    "phone": "(303) 753-1021",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6943319,
+      "lng": -105.0002289
+    },
+    "allLocations": [
+      {
+        "address": "1228 S Kalamath St, Denver, CO 80223",
+        "lat": 39.6943319,
+        "lng": -105.0002289
+      }
+    ]
+  },
+  {
+    "id": 93,
+    "name": "The Nichols Partnership",
+    "category": "Developer",
+    "website": "https://thenicholspartnership.com/",
+    "address": "1644 Platte St, Suite 130, Denver, CO 80202",
+    "about": "For more than 30 years, The Nichols Partnership has specialised in developing commercial, mixed-use and multifamily real estate in Denver, Boulder and along Colorado's Front Range. The firm pursues unique market opportunities and produces context-responsive developments that prioritise innovative design, flexibility, quality and sustainability.",
+    "phone": "(303) 291-2200",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7576455,
+      "lng": -105.006944
+    },
+    "allLocations": [
+      {
+        "address": "1644 Platte St, Suite 130, Denver, CO 80202",
+        "lat": 39.7576455,
+        "lng": -105.006944
+      }
+    ]
+  },
+  {
+    "id": 94,
+    "name": "Time Equities",
+    "category": "Commercial Real Estate (Owner/Developer)",
+    "website": "https://www.timeequities.com/",
+    "address": "55 Fifth Ave, 15th Floor, New York, NY 10003",
+    "about": "Time Equities Inc., founded in 1966, is a diversified investment, development, asset and property management company that oversees a portfolio of approximately 43.2 million square feet across 36 U.S. states and several countries. It invests in residential, office, industrial and retail properties, valuing market diversity and long-term real estate opportunities.",
+    "phone": "(212) 206-6000",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 95,
+    "name": "Trailbreak Partners",
+    "category": "Developer / Investor",
+    "website": "https://trailbreakpartners.com/",
+    "address": "1719 N Emerson St, Denver, CO 80218",
+    "about": "Trailbreak Partners is a commercial real estate investment and development firm that delivers opportunistic investing with precision. Its purpose is to create lasting value for investors through disciplined real estate investments, closely monitoring markets to identify inefficiencies and manage risk while building strong relationships and a loyal investor base.",
+    "phone": "(720) 926-3333",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7900159,
+      "lng": -104.9759683
+    },
+    "allLocations": [
+      {
+        "address": "1719 N Emerson St, Denver, CO 80218",
+        "lat": 39.7900159,
+        "lng": -104.9759683
+      }
+    ]
+  },
+  {
+    "id": 96,
+    "name": "Tryba Architects",
+    "category": "Architecture",
+    "website": "https://trybaarchitects.com/",
+    "address": "1620 Logan St, Denver, CO 80203",
+    "about": "Tryba Architects is an interdisciplinary practice that has spent nearly four decades redefining adaptive reuse and transforming buildings and sites into vibrant places that connect people, nature and the urban environment. The firm's context-driven projects balance continuity and change, promoting sustainable and equitable communities through architecture, planning and landscape design.",
+    "phone": "(303) 831-4010",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7420842,
+      "lng": -104.9819333
+    },
+    "allLocations": [
+      {
+        "address": "1620 Logan St, Denver, CO 80203",
+        "lat": 39.7420842,
+        "lng": -104.9819333
+      }
+    ]
+  },
+  {
+    "id": 97,
+    "name": "Turner Construction (Denver)",
+    "category": "General Contractor",
+    "website": "https://www.turnerconstruction.com/",
+    "address": "1401 Zuni St, Suite 301, Denver, CO 80204",
+    "about": "Turner Construction is a North America-based, international construction services company and the largest general contractor in the United States. A leading builder across healthcare, education, commercial, sports, aviation, pharmaceutical and green building sectors, Turner delivers projects that shape skylines and communities around the world.",
+    "phone": "(303) 753-9600",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7390179,
+      "lng": -105.0162137
+    },
+    "allLocations": [
+      {
+        "address": "1401 Zuni St, Suite 301, Denver, CO 80204",
+        "lat": 39.7390179,
+        "lng": -105.0162137
+      }
+    ]
+  },
+  {
+    "id": 98,
+    "name": "Unique Properties",
+    "category": "Commercial Brokerage",
+    "website": "https://uniqueprop.com/",
+    "address": "400 South Broadway, Denver, CO 80209",
+    "about": "Unique Properties, established in 1974 and privately owned by founder Marc Lippitt, is Colorado's most experienced privately owned commercial real estate brokerage firm. With a team of more than 30 brokers, it offers sales, leasing and property management services and is recognised by CoStar and DMCAR for its brokers' success.",
+    "phone": "(303) 321-5888",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.709212,
+      "lng": -104.987491
+    },
+    "allLocations": [
+      {
+        "address": "400 South Broadway, Denver, CO 80209",
+        "lat": 39.709212,
+        "lng": -104.987491
+      }
+    ]
+  },
+  {
+    "id": 99,
+    "name": "Urban Villages (Colorado)",
+    "category": "Developer",
+    "website": "https://urban-villages.com/",
+    "address": "1530 16th Street Mall, Ste 350, Denver, CO 80202",
+    "about": "Urban Villages is a collective of entrepreneurs, environmentalists, artists, developers and investors united by a vision to create forward-thinking, enduring communities. Inspired by European villages, they develop inclusive, vibrant, walkable neighborhoods that celebrate local culture and sustainability, challenging the status quo of American urban development.",
+    "phone": "(720) 904-0928",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7509583,
+      "lng": -104.9999677
+    },
+    "allLocations": [
+      {
+        "address": "1530 16th Street Mall, Ste 350, Denver, CO 80202",
+        "lat": 39.7509583,
+        "lng": -104.9999677
+      }
+    ]
+  },
+  {
+    "id": 100,
+    "name": "Weifield Group Contracting",
+    "category": "Electrical Contractor",
+    "website": "https://www.weifieldgroup.com/",
+    "address": "6950 S Jordan Rd, Centennial, CO 80112",
+    "about": "Weifield Group Contracting is a privately held, full-service electrical contracting firm with extensive experience across the western United States. Known for its attention to detail and high levels of customer satisfaction, the company provides electrical remodeling, new construction and maintenance services for wholesale, retail, telecom, non-profit and industrial clients.",
+    "phone": "(303) 428-2011",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5903209,
+      "lng": -104.8177892
+    },
+    "allLocations": [
+      {
+        "address": "6950 S Jordan Rd, Centennial, CO 80112",
+        "lat": 39.5903209,
+        "lng": -104.8177892
+      },
+      {
+        "address": "6775 Sherman St, Loveland, CO 80538",
+        "lat": 40.4318121,
+        "lng": -104.9766116
+      },
+      {
+        "address": "4474 Barnes Rd, Colorado Springs, CO 80917",
+        "lat": 38.8970684,
+        "lng": -104.7436728
+      }
+    ]
+  },
+  {
+    "id": 101,
+    "name": "WSP (Denver)",
+    "category": "Engineering",
+    "website": "https://www.wsp.com/",
+    "address": "999 18th St, Denver, CO 80202",
+    "about": "WSP is one of the world's leading professional services firms, bringing together engineers, advisors and scientists to shape communities and advance humanity. Through its Future Ready lens, the company's 83,000 employees help clients across property, transportation, water, energy and federal markets address today's challenges while anticipating future trends.",
+    "phone": "(303) 832-9091",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7492028,
+      "lng": -104.9913592
+    },
+    "allLocations": [
+      {
+        "address": "999 18th St, Denver, CO 80202",
+        "lat": 39.7492028,
+        "lng": -104.9913592
+      },
+      {
+        "address": "6899 N Pecos, Denver, CO 80221",
+        "lat": 39.7626207,
+        "lng": -105.006442
+      },
+      {
+        "address": "2000 S Colorado Blvd, Denver, CO 80222",
+        "lat": 39.6813799,
+        "lng": -104.938977
+      }
+    ]
+  },
+  {
+    "id": 102,
+    "name": "Mendoza Demolition Services",
+    "category": "Demolition Contractor",
+    "website": "",
+    "address": "701 W 64th Ave, Denver, CO 80221",
+    "about": "",
+    "phone": "(303) 427-1201",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.8128654,
+      "lng": -104.7733369
+    },
+    "allLocations": [
+      {
+        "address": "701 W 64th Ave, Denver, CO 80221",
+        "lat": 39.8128654,
+        "lng": -104.7733369
+      }
+    ]
+  },
+  {
+    "id": 103,
+    "name": "Cow Girl Demolotion",
+    "category": "Demolition Contractor",
+    "website": "https://www.cowgirldemolition.com",
+    "address": "80 E 62nd Ave, Suite 101, Denver, CO 80216",
+    "about": "",
+    "phone": "(720) 818-6004",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.8081505,
+      "lng": -104.9851319
+    },
+    "allLocations": [
+      {
+        "address": "80 E 62nd Ave, Suite 101, Denver, CO 80216",
+        "lat": 39.8081505,
+        "lng": -104.9851319
+      }
+    ]
+  },
+  {
+    "id": 104,
+    "name": "scorpion demolition",
+    "category": "Demolition Contractor",
+    "website": "https://www.scorpiondemolition.com",
+    "address": "5790 W 56th Ave, Suite C, Arvada, CO 80002",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7982549,
+      "lng": -105.0603878
+    },
+    "allLocations": [
+      {
+        "address": "5790 W 56th Ave, Suite C, Arvada, CO 80002",
+        "lat": 39.7982549,
+        "lng": -105.0603878
+      }
+    ]
+  },
+  {
+    "id": 105,
+    "name": "colorado excavating",
+    "category": "Excavating Contractor",
+    "website": "https://www.coloradoexcavating.com",
+    "address": "401 N Kuner Rd, Brighton, CO 80601",
+    "about": "",
+    "phone": "(303) 456-6056",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.991164,
+      "lng": -104.823166
+    },
+    "allLocations": [
+      {
+        "address": "401 N Kuner Rd, Brighton, CO 80601",
+        "lat": 39.991164,
+        "lng": -104.823166
+      }
+    ]
+  },
+  {
+    "id": 106,
+    "name": "FIORE AND SONS",
+    "category": "General Contractor",
+    "website": "https://fioreandsons.com",
+    "address": "6300 W 49th Dr, Wheat Ridge, CO 80033",
+    "about": "",
+    "phone": "(303) 429-2275",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.788228,
+      "lng": -105.06593
+    },
+    "allLocations": [
+      {
+        "address": "6300 W 49th Dr, Wheat Ridge, CO 80033",
+        "lat": 39.788228,
+        "lng": -105.06593
+      }
+    ]
+  },
+  {
+    "id": 107,
+    "name": "Alpine Demolition",
+    "category": "Demolition Contractor",
+    "website": "https://www.alpinedemolition.com",
+    "address": "16512 Gilpin St, Thornton, CO 80602",
+    "about": "",
+    "phone": "(303) 421-3366",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.9953712,
+      "lng": -104.9648666
+    },
+    "allLocations": [
+      {
+        "address": "16512 Gilpin St, Thornton, CO 80602",
+        "lat": 39.9953712,
+        "lng": -104.9648666
+      }
+    ]
+  },
+  {
+    "id": 108,
+    "name": "American Demolition",
+    "category": "Demolition Contractor",
+    "website": "https://www.adicolorado.com",
+    "address": "3823 S Golden Ct, Denver, CO 80235",
+    "about": "",
+    "phone": "(303) 467-3366",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6474006,
+      "lng": -105.0607628
+    },
+    "allLocations": [
+      {
+        "address": "3823 S Golden Ct, Denver, CO 80235",
+        "lat": 39.6474006,
+        "lng": -105.0607628
+      }
+    ]
+  },
+  {
+    "id": 109,
+    "name": "All Demolition Excavating Company",
+    "category": "Demolition Contractor",
+    "website": "https://www.alldemolitionexcavatingco.com",
+    "address": "6800 A East 53rd Pl, Commerce City, CO 80022",
+    "about": "",
+    "phone": "(303) 467-3366",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7935481,
+      "lng": -104.903413
+    },
+    "allLocations": [
+      {
+        "address": "6800 A East 53rd Pl, Commerce City, CO 80022",
+        "lat": 39.7935481,
+        "lng": -104.903413
+      }
+    ]
+  },
+  {
+    "id": 110,
+    "name": "Colorado Demolition & Deconstruction",
+    "category": "Demolition Contractor",
+    "website": "https://www.coloradodemolition.com",
+    "address": "16512 Gilpin St, Thornton, CO 80602",
+    "about": "",
+    "phone": "(303) 588-8624",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.9953712,
+      "lng": -104.9648666
+    },
+    "allLocations": [
+      {
+        "address": "16512 Gilpin St, Thornton, CO 80602",
+        "lat": 39.9953712,
+        "lng": -104.9648666
+      }
+    ]
+  },
+  {
+    "id": 112,
+    "name": "Demolition Services Inc.",
+    "category": "Demolition Contractor",
+    "website": "",
+    "address": "5801 E County Line Rd, Highlands Ranch, CO 80126",
+    "about": "",
+    "phone": "(720) 298-0560",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5661138,
+      "lng": -104.9676315
+    },
+    "allLocations": [
+      {
+        "address": "5801 E County Line Rd, Highlands Ranch, CO 80126",
+        "lat": 39.5661138,
+        "lng": -104.9676315
+      }
+    ]
+  },
+  {
+    "id": 113,
+    "name": "Perks Deconstruction Ltd.",
+    "category": "Demolition Contractor",
+    "website": "https://www.perksdeconstruction.com",
+    "address": "10260 W 44th Ave, Wheat Ridge, CO 80033",
+    "about": "Perks Deconstruction Ltd. is a demolition and deconstruction contractor based in Commerce City, CO. They offer deconstruction and demolition services for homes and commercial buildings around the Denver metro region and in Boulder County, focusing on sustainable practices.",
+    "phone": "(720) 588-3740",
+    "email": "anna@perksdeconstruction.com",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7780701,
+      "lng": -105.1127685
+    },
+    "allLocations": [
+      {
+        "address": "10260 W 44th Ave, Wheat Ridge, CO 80033",
+        "lat": 39.7780701,
+        "lng": -105.1127685
+      }
+    ]
+  },
+  {
+    "id": 114,
+    "name": "Robinson Solutions Demolition & Construction",
+    "category": "Demolition Contractor",
+    "website": "https://robinsonsolutionsco.com",
+    "address": "701 W 64th Ave, Denver, CO 80221",
+    "about": "Robinson Solutions Demolition & Construction is a demolition contractor based in Denver, CO. They handle a wide range of demolition projects from complete interior tear-outs for new build-outs to precise removal of walls and fixtures. Available 24 hours.",
+    "phone": "(720) 556-7520",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.8128654,
+      "lng": -104.7733369
+    },
+    "allLocations": [
+      {
+        "address": "701 W 64th Ave, Denver, CO 80221",
+        "lat": 39.8128654,
+        "lng": -104.7733369
+      }
+    ]
+  },
+  {
+    "id": 115,
+    "name": "Gorilla Demolition",
+    "category": "Demolition Contractor",
+    "website": "https://gorillademolition.com",
+    "address": "672 S 36th Ave, Brighton, CO 80601",
+    "about": "Gorilla Demolition is a family-owned demolition company based in Englewood, CO. They provide demolition services including floor removal, heavy duty cutting, millwork removal, and glass demolition, serving Fort Collins, Colorado Springs, Boulder, and Henderson.",
+    "phone": "(303) 697-1325",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 116,
+    "name": "Da Demo LLC",
+    "category": "Demolition Contractor",
+    "website": "http://dademolition.com",
+    "address": null,
+    "about": "Da Demo LLC is a demolition contractor based in Highlands Ranch, CO, providing top-notch demolition services in the Denver metro area. With 7+ years of business, they specialize in residential and commercial demolition projects.",
+    "phone": "(303) 591-5266",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 117,
+    "name": "Consolidated Investment Group",
+    "category": "Developer",
+    "website": "https://www.ciginvest.com",
+    "address": "18 Inverness Place East, Englewood, CO 80112",
+    "about": "Consolidated Investment Group® (CIG) is a leading-edge investment company managing a large, international portfolio. Since its founding in 2003, CIG actively invests in real estate, capital markets, private equity, and philanthropy, with a portfolio that includes investments in more than 70 properties across the U.S.",
+    "phone": "(303) 789-2664",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 118,
+    "name": "Kairoi Residential",
+    "category": "Developer",
+    "website": "https://www.kairoi.com",
+    "address": "711 Navarro Street, Suite 400, San Antonio, TX 78205",
+    "about": "Kairoi Residential is a premier, vertically integrated multifamily investment, development, and property management company headquartered in San Antonio with offices in Austin and Denver. Since 2003, the partnership has transacted on $9.8 billion across 69,000 multifamily units in many cities and states around the country.",
+    "phone": "(210) 352-4764",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 29.4277588,
+      "lng": -98.4898439
+    },
+    "allLocations": [
+      {
+        "address": "711 Navarro Street, Suite 400, San Antonio, TX 78205",
+        "lat": 29.4277588,
+        "lng": -98.4898439
+      }
+    ]
+  },
+  {
+    "id": 119,
+    "name": "Stockdale Capital Partners",
+    "category": "Developer",
+    "website": "https://www.stockdalecapital.com",
+    "address": "8340 Northfield Blvd, Ste. 2600, Denver, CO 80238",
+    "about": "Stockdale Capital Partners is a vertically integrated real estate investment firm headquartered in Los Angeles, CA with a 30-year history of investing in commercial real estate across multiple asset classes throughout the Western U.S. The firm currently manages approximately $2.8 billion in gross assets under management.",
+    "phone": "(303) 375-5484",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7821717,
+      "lng": -104.876734
+    },
+    "allLocations": [
+      {
+        "address": "8340 Northfield Blvd, Ste. 2600, Denver, CO 80238",
+        "lat": 39.7821717,
+        "lng": -104.876734
+      }
+    ]
+  },
+  {
+    "id": 120,
+    "name": "Infinity Properties",
+    "category": "Developer",
+    "website": "https://infinity-denver.com",
+    "address": "7400 E Crestline Circle, Greenwood Village, CO 80111",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6186924,
+      "lng": -104.902091
+    },
+    "allLocations": [
+      {
+        "address": "7400 E Crestline Circle, Greenwood Village, CO 80111",
+        "lat": 39.6186924,
+        "lng": -104.902091
+      }
+    ]
+  },
+  {
+    "id": 121,
+    "name": "Mainspring",
+    "category": "Developer",
+    "website": "https://mainspringco.com",
+    "address": "3070 Blake St, Suite 200, Denver, CO 80205",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7642512,
+      "lng": -104.9809429
+    },
+    "allLocations": [
+      {
+        "address": "3070 Blake St, Suite 200, Denver, CO 80205",
+        "lat": 39.7642512,
+        "lng": -104.9809429
+      }
+    ]
+  },
+  {
+    "id": 122,
+    "name": "Evergreen Real Estate Group",
+    "category": "Developer",
+    "website": "https://www.evergreenreg.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 123,
+    "name": "Century Living",
+    "category": "Developer",
+    "website": "https://www.livecentury.com",
+    "address": "8390 E Crescent Pkwy, Suite 650, Greenwood Village, CO 80111",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6224459,
+      "lng": -104.8905399
+    },
+    "allLocations": [
+      {
+        "address": "8390 E Crescent Pkwy, Suite 650, Greenwood Village, CO 80111",
+        "lat": 39.6224459,
+        "lng": -104.8905399
+      }
+    ]
+  },
+  {
+    "id": 124,
+    "name": "Westside Investment Partners",
+    "category": "Developer",
+    "website": "",
+    "address": "4100 E Mississippi Ave, Suite 500, Denver, CO 80246",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6966603,
+      "lng": -104.9395729
+    },
+    "allLocations": [
+      {
+        "address": "4100 E Mississippi Ave, Suite 500, Denver, CO 80246",
+        "lat": 39.6966603,
+        "lng": -104.9395729
+      }
+    ]
+  },
+  {
+    "id": 125,
+    "name": "PMG",
+    "category": "Developer",
+    "website": "https://www.propertymarketsgroup.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 126,
+    "name": "Greybrook",
+    "category": "Developer",
+    "website": "https://greybrook.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 127,
+    "name": "Broe Group",
+    "category": "Developer",
+    "website": "https://www.broegroup.com",
+    "address": "252 Clayton St, Denver, CO 80206",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.72042,
+      "lng": -104.9555404
+    },
+    "allLocations": [
+      {
+        "address": "252 Clayton St, Denver, CO 80206",
+        "lat": 39.72042,
+        "lng": -104.9555404
+      }
+    ]
+  },
+  {
+    "id": 128,
+    "name": "E5X Management",
+    "category": "Developer",
+    "website": "https://www.e5xmanagement.com",
+    "address": "7353 S Alton Way, Centennial, CO 80112",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.588085,
+      "lng": -104.8838499
+    },
+    "allLocations": [
+      {
+        "address": "7353 S Alton Way, Centennial, CO 80112",
+        "lat": 39.588085,
+        "lng": -104.8838499
+      }
+    ]
+  },
+  {
+    "id": 129,
+    "name": "Zocalo Community Development",
+    "category": "Developer/Nonprofit",
+    "website": "https://www.zocalocommunity.com",
+    "address": "455 Sherman St, Suite 205, Denver, CO 80203",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7235811,
+      "lng": -104.985426
+    },
+    "allLocations": [
+      {
+        "address": "455 Sherman St, Suite 205, Denver, CO 80203",
+        "lat": 39.7235811,
+        "lng": -104.985426
+      }
+    ]
+  },
+  {
+    "id": 130,
+    "name": "New Englewood LLC",
+    "category": "Developer",
+    "website": "",
+    "address": "3501 S Broadway #2, Englewood, CO 80113",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6528733,
+      "lng": -104.9879911
+    },
+    "allLocations": [
+      {
+        "address": "3501 S Broadway #2, Englewood, CO 80113",
+        "lat": 39.6528733,
+        "lng": -104.9879911
+      }
+    ]
+  },
+  {
+    "id": 131,
+    "name": "Monfort Companies",
+    "category": "Developer",
+    "website": "https://monfortcompanies.com",
+    "address": "1962 Blake St, Suite 200, Denver, CO 80202",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7539886,
+      "lng": -104.9942797
+    },
+    "allLocations": [
+      {
+        "address": "1962 Blake St, Suite 200, Denver, CO 80202",
+        "lat": 39.7539886,
+        "lng": -104.9942797
+      }
+    ]
+  },
+  {
+    "id": 132,
+    "name": "Global AI",
+    "category": "Developer",
+    "website": "https://www.globalai.com",
+    "address": "2000 Howard Smith Ave West, Windsor, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 133,
+    "name": "Raptor Civil Engineering",
+    "category": "Civil Engineering",
+    "website": "https://www.raptorce.com",
+    "address": "8620 Wolff Ct, Suite 250, Westminster, CO 80031",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 134,
+    "name": "KTGY",
+    "category": "Architecture",
+    "website": "https://www.ktgy.com",
+    "address": "3660 Blake St, Suite 500, Denver, CO 80205",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7697801,
+      "lng": -104.9739369
+    },
+    "allLocations": [
+      {
+        "address": "3660 Blake St, Suite 500, Denver, CO 80205",
+        "lat": 39.7697801,
+        "lng": -104.9739369
+      }
+    ]
+  },
+  {
+    "id": 135,
+    "name": "Populous",
+    "category": "Architecture",
+    "website": "https://populous.com",
+    "address": "1630 Stout St, Denver, CO 80202",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7460705,
+      "lng": -104.9922738
+    },
+    "allLocations": [
+      {
+        "address": "1630 Stout St, Denver, CO 80202",
+        "lat": 39.7460705,
+        "lng": -104.9922738
+      }
+    ]
+  },
+  {
+    "id": 136,
+    "name": "HDR Engineering",
+    "category": "Engineering",
+    "website": "https://www.hdrinc.com",
+    "address": "369 Inverness Pkwy, Suite 325, Englewood, CO 80112",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.5592732,
+      "lng": -104.8671466
+    },
+    "allLocations": [
+      {
+        "address": "369 Inverness Pkwy, Suite 325, Englewood, CO 80112",
+        "lat": 39.5592732,
+        "lng": -104.8671466
+      }
+    ]
+  },
+  {
+    "id": 137,
+    "name": "Zall Company",
+    "category": "Commercial Brokerage",
+    "website": "https://www.zallco.com",
+    "address": "2946 Larimer St, Suite 340, Denver, CO 80205",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7618466,
+      "lng": -104.9807099
+    },
+    "allLocations": [
+      {
+        "address": "2946 Larimer St, Suite 340, Denver, CO 80205",
+        "lat": 39.7618466,
+        "lng": -104.9807099
+      }
+    ]
+  },
+  {
+    "id": 138,
+    "name": "Dean Callan & Company",
+    "category": "Commercial Brokerage",
+    "website": "https://www.deankallan.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 139,
+    "name": "milehimodern",
+    "category": "Commercial Brokerage",
+    "website": "https://mhmhomes.com",
+    "address": "2015 W 32nd Ave, Denver, CO 80211",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7621109,
+      "lng": -105.0115253
+    },
+    "allLocations": [
+      {
+        "address": "2015 W 32nd Ave, Denver, CO 80211",
+        "lat": 39.7621109,
+        "lng": -105.0115253
+      }
+    ]
+  },
+  {
+    "id": 140,
+    "name": "Brookfield Property Group",
+    "category": "Commercial Real Estate (Owner/Developer)",
+    "website": "https://www.brookfieldproperties.com",
+    "address": "370 17th St, Suite 3800, Denver, CO 80202",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.743496,
+      "lng": -104.9886472
+    },
+    "allLocations": [
+      {
+        "address": "370 17th St, Suite 3800, Denver, CO 80202",
+        "lat": 39.743496,
+        "lng": -104.9886472
+      }
+    ]
+  },
+  {
+    "id": 141,
+    "name": "Wayzata Investment Partners",
+    "category": "Developer / Investor",
+    "website": "https://wayzatacapitalpartners.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 142,
+    "name": "Aardex",
+    "category": "Developer / Investor",
+    "website": "https://aardex.com",
+    "address": "1550 Wewatta St, Suite 200, Denver, CO 80202",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7526187,
+      "lng": -105.002321
+    },
+    "allLocations": [
+      {
+        "address": "1550 Wewatta St, Suite 200, Denver, CO 80202",
+        "lat": 39.7526187,
+        "lng": -105.002321
+      }
+    ]
+  },
+  {
+    "id": 143,
+    "name": "CoreSite",
+    "category": "Data Center / Developer",
+    "website": "https://www.coresite.com",
+    "address": "910 15th St, Denver, CO 80202",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7456639,
+      "lng": -104.995408
+    },
+    "allLocations": [
+      {
+        "address": "910 15th St, Denver, CO 80202",
+        "lat": 39.7456639,
+        "lng": -104.995408
+      }
+    ]
+  },
+  {
+    "id": 144,
+    "name": "Palantir Technologies",
+    "category": "Tech / Office Tenant",
+    "website": "https://www.palantir.com",
+    "address": "205 Detroit St, Denver, CO 80206",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7195773,
+      "lng": -104.954731
+    },
+    "allLocations": [
+      {
+        "address": "205 Detroit St, Denver, CO 80206",
+        "lat": 39.7195773,
+        "lng": -104.954731
+      }
+    ]
+  },
+  {
+    "id": 145,
+    "name": "Swisspod",
+    "category": "Technology",
+    "website": "https://www.swisspod.com",
+    "address": "4171 Sinton Rd, Colorado Springs, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 38.8934754,
+      "lng": -104.8310255
+    },
+    "allLocations": [
+      {
+        "address": "4171 Sinton Rd, Colorado Springs, CO",
+        "lat": 38.8934754,
+        "lng": -104.8310255
+      }
+    ]
+  },
+  {
+    "id": 146,
+    "name": "Simon Property Group",
+    "category": "Commercial Real Estate (Owner/Developer)",
+    "website": "https://www.simon.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 147,
+    "name": "Mercy Housing Mountain Plains",
+    "category": "Nonprofit / Developer",
+    "website": "https://www.mercyhousing.org",
+    "address": "1600 Broadway, Suite 2000, Denver, CO 80202",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7421703,
+      "lng": -104.9870571
+    },
+    "allLocations": [
+      {
+        "address": "1600 Broadway, Suite 2000, Denver, CO 80202",
+        "lat": 39.7421703,
+        "lng": -104.9870571
+      }
+    ]
+  },
+  {
+    "id": 148,
+    "name": "Urban Land Conservancy",
+    "category": "Nonprofit / Developer",
+    "website": "https://urbanlandc.org",
+    "address": "1600 Downing St, Suite 300, Denver, CO 80218",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.741776,
+      "lng": -104.973285
+    },
+    "allLocations": [
+      {
+        "address": "1600 Downing St, Suite 300, Denver, CO 80218",
+        "lat": 39.741776,
+        "lng": -104.973285
+      }
+    ]
+  },
+  {
+    "id": 149,
+    "name": "Good Kid Collective",
+    "category": "Retail / Vintage",
+    "website": "https://goodkidcollective.com",
+    "address": "3460 W 32nd Ave, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7619461,
+      "lng": -105.0337093
+    },
+    "allLocations": [
+      {
+        "address": "3460 W 32nd Ave, Denver, CO",
+        "lat": 39.7619461,
+        "lng": -105.0337093
+      }
+    ]
+  },
+  {
+    "id": 150,
+    "name": "Only Plants",
+    "category": "Retail / Plants",
+    "website": "https://instagram.com/only.plants.co",
+    "address": "1800 Wazee Street, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7532187,
+      "lng": -104.9969469
+    },
+    "allLocations": [
+      {
+        "address": "1800 Wazee Street, Denver, CO",
+        "lat": 39.7532187,
+        "lng": -104.9969469
+      }
+    ]
+  },
+  {
+    "id": 151,
+    "name": "Moodswing",
+    "category": "Entertainment / Food & Beverage",
+    "website": "https://www.mood-swing.com",
+    "address": "3625 E 48th Avenue, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7838658,
+      "lng": -104.9446935
+    },
+    "allLocations": [
+      {
+        "address": "3625 E 48th Avenue, Denver, CO",
+        "lat": 39.7838658,
+        "lng": -104.9446935
+      }
+    ]
+  },
+  {
+    "id": 152,
+    "name": "Ace Padel",
+    "category": "Sports & Recreation",
+    "website": "https://acepadel.com",
+    "address": "82 Inverness Dr E STE A2, Englewood, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 153,
+    "name": "Racket Social Club",
+    "category": "Sports & Recreation",
+    "website": "https://www.racketsocialclub.us",
+    "address": "82 Inverness Dr E STE A2, Englewood, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 154,
+    "name": "Denver Racquets Club",
+    "category": "Sports & Recreation",
+    "website": "https://www.denverrc.com",
+    "address": "6305 W 6th Ave, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7261119,
+      "lng": -105.0652204
+    },
+    "allLocations": [
+      {
+        "address": "6305 W 6th Ave, Denver, CO",
+        "lat": 39.7261119,
+        "lng": -105.0652204
+      }
+    ]
+  },
+  {
+    "id": 155,
+    "name": "Chick N Pickle",
+    "category": "Sports & Recreation",
+    "website": "https://chickennpickle.com/location/thornton/",
+    "address": "14225 Lincoln St, Thornton, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.9552278,
+      "lng": -104.9856781
+    },
+    "allLocations": [
+      {
+        "address": "14225 Lincoln St, Thornton, CO",
+        "lat": 39.9552278,
+        "lng": -104.9856781
+      }
+    ]
+  },
+  {
+    "id": 156,
+    "name": "Jack's Steakhouse",
+    "category": "Restaurant",
+    "website": "https://jacksonpearldenver.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 157,
+    "name": "Dolce Vita",
+    "category": "Restaurant",
+    "website": "https://dolcevitaaurora.com",
+    "address": "6105 S Main St Unit F-104, Aurora, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.6055928,
+      "lng": -104.7093878
+    },
+    "allLocations": [
+      {
+        "address": "6105 S Main St Unit F-104, Aurora, CO",
+        "lat": 39.6055928,
+        "lng": -104.7093878
+      }
+    ]
+  },
+  {
+    "id": 158,
+    "name": "Magic Noodle House",
+    "category": "Restaurant",
+    "website": "https://magicnoodlehouse.com",
+    "address": "1400 E 17th Ave, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7428969,
+      "lng": -104.9692685
+    },
+    "allLocations": [
+      {
+        "address": "1400 E 17th Ave, Denver, CO",
+        "lat": 39.7428969,
+        "lng": -104.9692685
+      }
+    ]
+  },
+  {
+    "id": 159,
+    "name": "Made of Minerals",
+    "category": "Retail",
+    "website": "https://madeofminerals.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 160,
+    "name": "Life Time Wheat Ridge",
+    "category": "Fitness / Health Club",
+    "website": "https://www.lifetime.life/locations/co/denver-west.html",
+    "address": "3501 Clear Creek Dr, Lakewood, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7662062,
+      "lng": -105.1470194
+    },
+    "allLocations": [
+      {
+        "address": "3501 Clear Creek Dr, Lakewood, CO",
+        "lat": 39.7662062,
+        "lng": -105.1470194
+      }
+    ]
+  },
+  {
+    "id": 161,
+    "name": "Life Time Boulder",
+    "category": "Fitness / Health Club",
+    "website": "https://www.lifetime.life/locations/co/boulder.html",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 162,
+    "name": "Ibotta",
+    "category": "Technology / App",
+    "website": "https://ibotta.com",
+    "address": "400 16th St Mall, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7495617,
+      "lng": -104.9978685
+    },
+    "allLocations": [
+      {
+        "address": "400 16th St Mall, Denver, CO",
+        "lat": 39.7495617,
+        "lng": -104.9978685
+      }
+    ]
+  },
+  {
+    "id": 163,
+    "name": "Trybal",
+    "category": "Restaurant / Bar",
+    "website": "https://www.trybalspeakeasy.com",
+    "address": "1670 Champa St, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7470868,
+      "lng": -104.9930445
+    },
+    "allLocations": [
+      {
+        "address": "1670 Champa St, Denver, CO",
+        "lat": 39.7470868,
+        "lng": -104.9930445
+      }
+    ]
+  },
+  {
+    "id": 164,
+    "name": "One8",
+    "category": "Restaurant / Bar",
+    "website": "https://one8denver.kickstartmyfitnessjourney.com",
+    "address": "1401 Zuni St #101, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7390179,
+      "lng": -105.0162137
+    },
+    "allLocations": [
+      {
+        "address": "1401 Zuni St #101, Denver, CO",
+        "lat": 39.7390179,
+        "lng": -105.0162137
+      }
+    ]
+  },
+  {
+    "id": 165,
+    "name": "Wild Taco",
+    "category": "Restaurant",
+    "website": "https://wildtacodenver.com",
+    "address": "5505 W 20th Ave Unit 102, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7475885,
+      "lng": -105.0339941
+    },
+    "allLocations": [
+      {
+        "address": "5505 W 20th Ave Unit 102, Denver, CO",
+        "lat": 39.7475885,
+        "lng": -105.0339941
+      }
+    ]
+  },
+  {
+    "id": 166,
+    "name": "Work & Class",
+    "category": "Restaurant",
+    "website": "https://www.workandclassdenver.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 167,
+    "name": "Wyman's Mercantile",
+    "category": "Retail / Mercantile",
+    "website": "https://wymansmercantile.com",
+    "address": "2200 E Colfax Ave, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7396678,
+      "lng": -104.9605409
+    },
+    "allLocations": [
+      {
+        "address": "2200 E Colfax Ave, Denver, CO",
+        "lat": 39.7396678,
+        "lng": -104.9605409
+      }
+    ]
+  },
+  {
+    "id": 168,
+    "name": "Town Pump Provisions",
+    "category": "Restaurant",
+    "website": "https://townpumpprovisions.com",
+    "address": "2810 E 3rd Ave, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.720894,
+      "lng": -104.9543772
+    },
+    "allLocations": [
+      {
+        "address": "2810 E 3rd Ave, Denver, CO",
+        "lat": 39.720894,
+        "lng": -104.9543772
+      }
+    ]
+  },
+  {
+    "id": 169,
+    "name": "Sundae Artisan Ice Cream",
+    "category": "Restaurant / Dessert",
+    "website": "https://www.sundaeicecream.com",
+    "address": null,
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  },
+  {
+    "id": 170,
+    "name": "Ruby's Good Shoes",
+    "category": "Retail / Shoes",
+    "website": "https://www.rubysgoodshoes.com",
+    "address": "5405 E 33rd Avenue, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": {
+      "lat": 39.7640909,
+      "lng": -104.9242969
+    },
+    "allLocations": [
+      {
+        "address": "5405 E 33rd Avenue, Denver, CO",
+        "lat": 39.7640909,
+        "lng": -104.9242969
+      }
+    ]
+  },
+  {
+    "id": 171,
+    "name": "Jerry's Ace Hardware",
+    "category": "Retail / Hardware",
+    "website": "https://www.acehardware.com/store-details/17892",
+    "address": "2101 N Humboldt Street, Denver, CO",
+    "about": "",
+    "phone": "",
+    "email": "",
+    "nakedProperty": null,
+    "nakedArticle": null,
+    "coordinates": null,
+    "allLocations": []
+  }
+]

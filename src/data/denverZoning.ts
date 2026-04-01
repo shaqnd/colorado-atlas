@@ -1,0 +1,1225 @@
+/**
+ * Denver Zoning Code (DZC) — Zone District Rules
+ *
+ * Covers Denver Zoning Code (2010, continuously amended) and select
+ * Chapter 59 legacy districts that still appear on the official zoning map.
+ *
+ * Source: City and County of Denver, Community Planning and Development
+ * https://www.denvergov.org/Government/Agencies-Departments-Offices/
+ *         Community-Planning-and-Development/Denver-Zoning-Code
+ *
+ * Field values match what Denver's MapServer returns in ZONE_DISTRICT.
+ */
+
+export interface DenverZoneDistrict {
+  code: string;
+  name: string;
+  chapter: 'DZC' | 'Ch59';         // Denver Zoning Code or legacy Chapter 59
+  category:
+    | 'residential-su'              // single-unit
+    | 'residential-tu'              // two-unit
+    | 'residential-rh'              // row house
+    | 'residential-mu'              // multi-unit
+    | 'mixed-use'
+    | 'commercial'
+    | 'industrial'
+    | 'downtown'
+    | 'open-space'
+    | 'campus'
+    | 'pud';
+  context: 'estate' | 'urban' | 'general' | 'suburban' | 'downtown' | 'legacy' | null;
+  summary: string;
+
+  // ── Development standards ──────────────────────────────────────────────────
+  minLotSqft: number;               // 0 = no minimum
+  maxHeightFt: number;              // 0 = per variance/overlay only
+  maxHeightStories: number;
+  maxFAR: number;                   // 0 = not explicitly limited
+  maxLotCoveragePercent: number;    // 0 = not limited
+  setbacks: {
+    primaryStreetFt: number;
+    sideStreetFt: number;
+    sideFt: number;
+    rearFt: number;
+  };
+  maxUnits: number | null;          // null = density-limited by FAR/height
+  aduAllowed: boolean;
+  parkingRequired: boolean;
+
+  // ── Uses ──────────────────────────────────────────────────────────────────
+  permittedByRight: string[];
+  conditionalUses: string[];        // allowed with conditional use review
+  prohibited: string[];
+
+  notes?: string;
+}
+
+// ── Single-Unit Residential — Estate context ──────────────────────────────────
+
+const E_SU_COMMON_PERMITTED = [
+  'Single-family detached home',
+  'Accessory dwelling unit (ADU) — detached carriage house or basement',
+  'Home occupation (no employees or customer visits)',
+  'Parks and open space',
+  'Community garden',
+];
+
+const E_SU_COMMON_CONDITIONAL = [
+  'Place of worship / church',
+  'Small daycare facility (≤6 children)',
+  'Group home (≤8 residents)',
+  'School (primary/secondary)',
+  'Bed & breakfast (owner-occupied)',
+];
+
+const SU_PROHIBITED = [
+  'Multi-family apartment building',
+  'Retail, restaurant, or commercial storefront',
+  'Office (other than home occupation)',
+  'Industrial or manufacturing',
+  'Short-term rental (without license)',
+  'Automobile repair or sales',
+  'Drive-through facility',
+];
+
+// ── Single-Unit Residential — Urban context ───────────────────────────────────
+
+const U_SU_COMMON_PERMITTED = [
+  'Single-family detached home',
+  'Accessory dwelling unit (ADU)',
+  'Detached garage / carriage house',
+  'Home occupation (no employees or customer visits)',
+  'Parks and open space',
+];
+
+export const DENVER_ZONE_DISTRICTS: DenverZoneDistrict[] = [
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SINGLE-UNIT RESIDENTIAL — ESTATE CONTEXT
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'E-SU-A',
+    name: 'Estate, Single Unit A',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'estate',
+    summary: 'Large-lot suburban single-family zone. Minimum 6,000 sq ft lot. One primary dwelling plus ADU allowed.',
+    minLotSqft: 6000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: E_SU_COMMON_PERMITTED,
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'E-SU-B',
+    name: 'Estate, Single Unit B',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'estate',
+    summary: 'Single-family zone with 5,500 sq ft minimum lot. Common in established suburban neighborhoods.',
+    minLotSqft: 5500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: E_SU_COMMON_PERMITTED,
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'E-SU-B1',
+    name: 'Estate, Single Unit B1',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'estate',
+    summary: 'Same as E-SU-B with enhanced ADU-by-right provisions including detached carriage house.',
+    minLotSqft: 5500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: [...E_SU_COMMON_PERMITTED, 'Detached ADU / carriage house by right'],
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+    notes: 'B1 suffix indicates enhanced ADU rights compared to base E-SU-B.',
+  },
+
+  {
+    code: 'E-SU-C',
+    name: 'Estate, Single Unit C',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'estate',
+    summary: 'Smaller estate lots (4,500 sq ft minimum). One unit plus ADU.',
+    minLotSqft: 4500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: E_SU_COMMON_PERMITTED,
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'E-SU-D',
+    name: 'Estate, Single Unit D',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'estate',
+    summary: 'Large-lot zone (6,000 sq ft) allowing attached single-unit forms. Transitional to two-unit areas.',
+    minLotSqft: 6000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 0, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: [...E_SU_COMMON_PERMITTED, 'Attached single-unit (zero-lot-line)'],
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SINGLE-UNIT RESIDENTIAL — URBAN CONTEXT
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'U-SU-A',
+    name: 'Urban, Single Unit A',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'urban',
+    summary: 'Urban single-family, larger lot (6,000 sq ft). Common in established Denver neighborhoods.',
+    minLotSqft: 6000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: U_SU_COMMON_PERMITTED,
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'U-SU-A1',
+    name: 'Urban, Single Unit A1',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'urban',
+    summary: 'U-SU-A with explicit ADU-by-right; detached accessory structures allowed on rear of lot.',
+    minLotSqft: 6000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: [...U_SU_COMMON_PERMITTED, 'Detached ADU / carriage house by right'],
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'U-SU-B',
+    name: 'Urban, Single Unit B',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'urban',
+    summary: 'Standard urban single-family, 3,500 sq ft minimum lot. Very common in Denver.',
+    minLotSqft: 3500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: U_SU_COMMON_PERMITTED,
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'U-SU-B1',
+    name: 'Urban, Single Unit B1',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'urban',
+    summary: 'U-SU-B with enhanced ADU rights. Common in City Park West, West Colfax corridor.',
+    minLotSqft: 3500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: [...U_SU_COMMON_PERMITTED, 'Detached ADU / carriage house by right'],
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'U-SU-C',
+    name: 'Urban, Single Unit C',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'urban',
+    summary: 'Urban single-family, small-lot variant (3,000 sq ft min). Infill-friendly.',
+    minLotSqft: 3000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 60,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 3, rearFt: 15 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: U_SU_COMMON_PERMITTED,
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'U-SU-C1',
+    name: 'Urban, Single Unit C1',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'urban',
+    summary: 'U-SU-C with rear-lot provisions enabling detached ADU on alley parcels.',
+    minLotSqft: 3000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 60,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 3, rearFt: 15 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: [...U_SU_COMMON_PERMITTED, 'Detached ADU by right on alley lots'],
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  {
+    code: 'U-SU-H',
+    name: 'Urban, Single Unit H',
+    chapter: 'DZC',
+    category: 'residential-su',
+    context: 'urban',
+    summary: 'Urban single-family on larger lots (6,000 sq ft). Typical in Highland, Sunnyside.',
+    minLotSqft: 6000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: true,
+    parkingRequired: true,
+    permittedByRight: U_SU_COMMON_PERMITTED,
+    conditionalUses: E_SU_COMMON_CONDITIONAL,
+    prohibited: SU_PROHIBITED,
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TWO-UNIT RESIDENTIAL
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'E-TU-B',
+    name: 'Estate, Two Unit B',
+    chapter: 'DZC',
+    category: 'residential-tu',
+    context: 'estate',
+    summary: 'Two-unit residential on estate-sized lots (5,500 sq ft min). Allows duplex or two detached units.',
+    minLotSqft: 5500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.6,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 2,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family detached home', 'Duplex (side-by-side or stacked)', 'Two detached dwelling units', 'Home occupation', 'Parks and open space'],
+    conditionalUses: ['Place of worship', 'Daycare facility', 'Group home', 'Bed & breakfast'],
+    prohibited: ['Multi-family (3+ units)', 'Commercial retail or restaurant', 'Office', 'Industrial'],
+  },
+
+  {
+    code: 'E-TU-C',
+    name: 'Estate, Two Unit C',
+    chapter: 'DZC',
+    category: 'residential-tu',
+    context: 'estate',
+    summary: 'Two-unit residential, 4,500 sq ft minimum lot.',
+    minLotSqft: 4500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.6,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 2,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family detached home', 'Duplex (side-by-side or stacked)', 'Two detached dwelling units', 'Home occupation'],
+    conditionalUses: ['Place of worship', 'Daycare facility', 'Group home'],
+    prohibited: ['Multi-family (3+ units)', 'Commercial retail or restaurant', 'Office', 'Industrial'],
+  },
+
+  {
+    code: 'U-TU-A',
+    name: 'Urban, Two Unit A',
+    chapter: 'DZC',
+    category: 'residential-tu',
+    context: 'urban',
+    summary: 'Urban two-unit zone, 5,500 sq ft minimum. Common in older Denver neighborhoods.',
+    minLotSqft: 5500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.6,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 2,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family detached home', 'Duplex (side-by-side or stacked)', 'Two detached dwelling units', 'Home occupation'],
+    conditionalUses: ['Place of worship', 'Daycare facility', 'Group home', 'Bed & breakfast'],
+    prohibited: ['Multi-family (3+ units)', 'Commercial', 'Office', 'Industrial'],
+  },
+
+  {
+    code: 'U-TU-B',
+    name: 'Urban, Two Unit B',
+    chapter: 'DZC',
+    category: 'residential-tu',
+    context: 'urban',
+    summary: 'Standard urban two-unit zone, 4,500 sq ft minimum. Very common across Denver.',
+    minLotSqft: 4500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.6,
+    maxLotCoveragePercent: 55,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 2,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family detached home', 'Duplex (side-by-side or stacked)', 'Two detached dwelling units', 'Home occupation'],
+    conditionalUses: ['Place of worship', 'Daycare facility', 'Group home'],
+    prohibited: ['Multi-family (3+ units)', 'Commercial retail', 'Office', 'Industrial'],
+  },
+
+  {
+    code: 'U-TU-C',
+    name: 'Urban, Two Unit C',
+    chapter: 'DZC',
+    category: 'residential-tu',
+    context: 'urban',
+    summary: 'Smaller-lot two-unit zone, 3,500 sq ft minimum. Allows infill duplex development.',
+    minLotSqft: 3500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.6,
+    maxLotCoveragePercent: 60,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 3, rearFt: 15 },
+    maxUnits: 2,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family detached home', 'Duplex (side-by-side or stacked)', 'Two detached dwelling units', 'Home occupation'],
+    conditionalUses: ['Place of worship', 'Daycare facility', 'Group home'],
+    prohibited: ['Multi-family (3+ units)', 'Commercial', 'Industrial'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ROW HOUSE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'RH-2.5',
+    name: 'Row House 2.5',
+    chapter: 'DZC',
+    category: 'residential-rh',
+    context: 'urban',
+    summary: 'Row house zone allowing attached townhomes at 2.5 stories. Urban infill friendly.',
+    minLotSqft: 1500,
+    maxHeightFt: 30,
+    maxHeightStories: 2.5,
+    maxFAR: 1.2,
+    maxLotCoveragePercent: 70,
+    setbacks: { primaryStreetFt: 10, sideStreetFt: 5, sideFt: 0, rearFt: 20 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Row house / townhome (attached)', 'Single-family home', 'Home occupation'],
+    conditionalUses: ['Daycare', 'Place of worship'],
+    prohibited: ['Detached multi-family apartment building', 'Commercial retail or office on ground floor', 'Industrial'],
+  },
+
+  {
+    code: 'RH-3',
+    name: 'Row House 3',
+    chapter: 'DZC',
+    category: 'residential-rh',
+    context: 'urban',
+    summary: 'Row house zone allowing 3-story attached townhomes. Common in infill residential corridors.',
+    minLotSqft: 1500,
+    maxHeightFt: 35,
+    maxHeightStories: 3,
+    maxFAR: 1.5,
+    maxLotCoveragePercent: 70,
+    setbacks: { primaryStreetFt: 10, sideStreetFt: 5, sideFt: 0, rearFt: 15 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Row house / townhome (attached)', 'Single-family home', 'Home occupation'],
+    conditionalUses: ['Daycare', 'Place of worship', 'Small retail (ground floor, main street frontage)'],
+    prohibited: ['Detached apartment building', 'Drive-through', 'Industrial', 'Automotive services'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MULTI-UNIT RESIDENTIAL — ESTABLISHED CONTEXT
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'E-MU-2.5',
+    name: 'Established Multi-Unit 2.5',
+    chapter: 'DZC',
+    category: 'residential-mu',
+    context: 'estate',
+    summary: 'Low-rise multi-unit residential. Up to 2.5 stories. Typical in established residential neighborhoods that allow small apartment buildings.',
+    minLotSqft: 6000,
+    maxHeightFt: 30,
+    maxHeightStories: 2.5,
+    maxFAR: 1.0,
+    maxLotCoveragePercent: 60,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Multi-family residential (unlimited units)', 'Single-family home', 'Duplex', 'Home occupation', 'Group home'],
+    conditionalUses: ['Assisted living facility', 'Place of worship', 'Daycare', 'Bed & breakfast'],
+    prohibited: ['Commercial retail or restaurant', 'Office building', 'Industrial', 'Drive-through'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // MULTI-UNIT RESIDENTIAL — GENERAL CONTEXT
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'G-MU-3',
+    name: 'General Multi-Unit 3',
+    chapter: 'DZC',
+    category: 'residential-mu',
+    context: 'general',
+    summary: '3-story multi-unit residential. Common along Denver\'s inner-ring residential corridors.',
+    minLotSqft: 3000,
+    maxHeightFt: 36,
+    maxHeightStories: 3,
+    maxFAR: 1.5,
+    maxLotCoveragePercent: 70,
+    setbacks: { primaryStreetFt: 10, sideStreetFt: 5, sideFt: 5, rearFt: 15 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Multi-family apartment building', 'Single-family home', 'Duplex / townhome', 'Home occupation', 'Live-work unit'],
+    conditionalUses: ['Ground-floor retail or restaurant (limited)', 'Assisted living', 'Daycare', 'Place of worship'],
+    prohibited: ['Stand-alone commercial (primary use)', 'Drive-through', 'Industrial', 'Automotive sales / repair'],
+  },
+
+  {
+    code: 'G-MU-5',
+    name: 'General Multi-Unit 5',
+    chapter: 'DZC',
+    category: 'residential-mu',
+    context: 'general',
+    summary: '5-story multi-unit residential. Allows substantial density along transit corridors.',
+    minLotSqft: 1500,
+    maxHeightFt: 60,
+    maxHeightStories: 5,
+    maxFAR: 2.5,
+    maxLotCoveragePercent: 80,
+    setbacks: { primaryStreetFt: 5, sideStreetFt: 5, sideFt: 0, rearFt: 10 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Multi-family apartment building', 'Mixed residential/retail building', 'Live-work unit', 'Hotel / extended stay'],
+    conditionalUses: ['Ground-floor retail', 'Restaurant', 'Office', 'Assisted living', 'Daycare'],
+    prohibited: ['Industrial', 'Automotive sales or repair', 'Drive-through', 'Storage facility'],
+  },
+
+  {
+    code: 'G-MU-8',
+    name: 'General Multi-Unit 8',
+    chapter: 'DZC',
+    category: 'residential-mu',
+    context: 'general',
+    summary: '8-story multi-unit residential. High-density apartments along major corridors and near transit.',
+    minLotSqft: 1500,
+    maxHeightFt: 90,
+    maxHeightStories: 8,
+    maxFAR: 4.0,
+    maxLotCoveragePercent: 85,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['High-rise apartment / condo', 'Mixed-use residential + commercial', 'Hotel', 'Live-work unit'],
+    conditionalUses: ['Office building', 'Restaurant / retail (ground floor)', 'Assisted living', 'Daycare'],
+    prohibited: ['Industrial', 'Automotive uses', 'Drive-through', 'Self-storage'],
+  },
+
+  {
+    code: 'G-MU-12',
+    name: 'General Multi-Unit 12',
+    chapter: 'DZC',
+    category: 'residential-mu',
+    context: 'general',
+    summary: '12-story high-density multi-unit. Typically near LRT stations and major employment centers.',
+    minLotSqft: 0,
+    maxHeightFt: 130,
+    maxHeightStories: 12,
+    maxFAR: 6.0,
+    maxLotCoveragePercent: 90,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['High-rise apartment / condo', 'Mixed-use tower', 'Hotel', 'Office'],
+    conditionalUses: ['Retail / restaurant (ground floor)', 'Daycare', 'Assisted living'],
+    prohibited: ['Industrial', 'Single-family home', 'Drive-through', 'Self-storage'],
+  },
+
+  {
+    code: 'G-MU-20',
+    name: 'General Multi-Unit 20',
+    chapter: 'DZC',
+    category: 'residential-mu',
+    context: 'general',
+    summary: 'Up to 20-story high-density residential. Found near major transit nodes and in urban core transition areas.',
+    minLotSqft: 0,
+    maxHeightFt: 200,
+    maxHeightStories: 20,
+    maxFAR: 8.0,
+    maxLotCoveragePercent: 90,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['High-rise residential tower', 'Mixed-use tower', 'Hotel', 'Office tower'],
+    conditionalUses: ['Retail / restaurant (ground floor)', 'Daycare', 'Structured parking garage'],
+    prohibited: ['Industrial', 'Single-family home', 'Drive-through', 'Auto sales'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CORRIDOR MIXED USE (C-MX)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'C-MX-3',
+    name: 'Corridor Mixed Use 3',
+    chapter: 'DZC',
+    category: 'mixed-use',
+    context: 'urban',
+    summary: '3-story corridor mixed-use. Ground-floor commercial with residential above. Typical along Denver\'s neighborhood commercial streets.',
+    minLotSqft: 1500,
+    maxHeightFt: 36,
+    maxHeightStories: 3,
+    maxFAR: 2.0,
+    maxLotCoveragePercent: 80,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 10 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Ground-floor retail, restaurant, or service commercial', 'Residential apartments above ground floor', 'Live-work unit', 'Office', 'Hotel / B&B', 'Daycare', 'Medical clinic'],
+    conditionalUses: ['Drive-through (limited)', 'Automotive repair (minor only)', 'Outdoor entertainment venue'],
+    prohibited: ['Single-family detached home (standalone)', 'Heavy industrial', 'Warehouse / self-storage', 'Junkyard', 'Adult entertainment'],
+    notes: 'Build-to line at primary street required in most sub-areas. Ground-floor transparency standards apply.',
+  },
+
+  {
+    code: 'C-MX-5',
+    name: 'Corridor Mixed Use 5',
+    chapter: 'DZC',
+    category: 'mixed-use',
+    context: 'urban',
+    summary: '5-story mixed-use. High-activity commercial corridors (Colfax, Colorado Blvd, Broadway, etc.).',
+    minLotSqft: 0,
+    maxHeightFt: 60,
+    maxHeightStories: 5,
+    maxFAR: 3.5,
+    maxLotCoveragePercent: 90,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 5 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Retail, restaurant, bar, nightclub (ground floor)', 'Residential apartments / condos', 'Office', 'Hotel', 'Live-work', 'Medical / dental clinic', 'Daycare', 'Personal services'],
+    conditionalUses: ['Drive-through (very limited)', 'Outdoor entertainment', 'Assisted living'],
+    prohibited: ['Single-family detached home', 'Heavy industrial', 'Warehouse', 'Automobile dealership', 'Drive-through (most sub-areas)'],
+  },
+
+  {
+    code: 'C-MX-8',
+    name: 'Corridor Mixed Use 8',
+    chapter: 'DZC',
+    category: 'mixed-use',
+    context: 'urban',
+    summary: '8-story mixed-use along high-intensity corridors and LRT station areas.',
+    minLotSqft: 0,
+    maxHeightFt: 90,
+    maxHeightStories: 8,
+    maxFAR: 5.0,
+    maxLotCoveragePercent: 90,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Retail / restaurant / entertainment', 'Residential tower', 'Office', 'Hotel', 'Live-work', 'Medical', 'Daycare', 'Structured parking'],
+    conditionalUses: ['Drive-through (extremely limited)', 'Outdoor entertainment'],
+    prohibited: ['Single-family home', 'Industrial', 'Warehouse', 'Auto dealership'],
+  },
+
+  {
+    code: 'C-MX-12',
+    name: 'Corridor Mixed Use 12',
+    chapter: 'DZC',
+    category: 'mixed-use',
+    context: 'urban',
+    summary: '12-story mixed-use. Highest-density corridor designation outside downtown.',
+    minLotSqft: 0,
+    maxHeightFt: 130,
+    maxHeightStories: 12,
+    maxFAR: 6.0,
+    maxLotCoveragePercent: 95,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Retail / restaurant / entertainment', 'High-rise residential', 'Office tower', 'Hotel', 'Medical / hospital'],
+    conditionalUses: ['Outdoor entertainment', 'Daycare'],
+    prohibited: ['Single-family home', 'Industrial', 'Warehouse', 'Auto-dependent uses'],
+  },
+
+  {
+    code: 'C-MX-20',
+    name: 'Corridor Mixed Use 20',
+    chapter: 'DZC',
+    category: 'mixed-use',
+    context: 'urban',
+    summary: '20-story mixed-use. Rare designation for highest-intensity urban corridors.',
+    minLotSqft: 0,
+    maxHeightFt: 200,
+    maxHeightStories: 20,
+    maxFAR: 8.0,
+    maxLotCoveragePercent: 95,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Mixed-use tower', 'High-rise residential', 'Office', 'Hotel', 'Retail / entertainment'],
+    conditionalUses: ['Outdoor venue', 'Daycare'],
+    prohibited: ['Single-family home', 'Industrial', 'Warehouse', 'Auto-dependent uses'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CORRIDOR MAIN STREET (C-MS) — ground floor commercial required
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'C-MS-3',
+    name: 'Corridor Main Street 3',
+    chapter: 'DZC',
+    category: 'commercial',
+    context: 'urban',
+    summary: '3-story main street zone requiring active ground-floor commercial. Strong pedestrian orientation. Typical on historic commercial strips.',
+    minLotSqft: 0,
+    maxHeightFt: 36,
+    maxHeightStories: 3,
+    maxFAR: 2.0,
+    maxLotCoveragePercent: 90,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 5 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Retail (REQUIRED on ground floor)', 'Restaurant / café / bar', 'Personal services', 'Office (upper floors)', 'Residential apartments (upper floors)', 'Live-work unit', 'Daycare', 'Medical clinic'],
+    conditionalUses: ['Outdoor dining / entertainment', 'Hotel'],
+    prohibited: ['Drive-through', 'Auto repair or sales', 'Industrial', 'Warehouse', 'Residential on ground floor (primary use)', 'Stand-alone parking lot'],
+    notes: 'Ground-floor transparency (window glazing) requirements apply. Commercial use required on primary street frontage.',
+  },
+
+  {
+    code: 'C-MS-5',
+    name: 'Corridor Main Street 5',
+    chapter: 'DZC',
+    category: 'commercial',
+    context: 'urban',
+    summary: '5-story main street zone with mandatory active ground floor commercial.',
+    minLotSqft: 0,
+    maxHeightFt: 60,
+    maxHeightStories: 5,
+    maxFAR: 3.5,
+    maxLotCoveragePercent: 90,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Retail / restaurant / bar (REQUIRED ground floor)', 'Office', 'Residential apartments (upper)', 'Hotel', 'Medical / dental clinic', 'Daycare'],
+    conditionalUses: ['Entertainment venue', 'Outdoor dining / bar'],
+    prohibited: ['Drive-through', 'Auto sales / repair', 'Industrial', 'Residential-only ground floor'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // DOWNTOWN
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'D-MX',
+    name: 'Downtown Mixed Use',
+    chapter: 'DZC',
+    category: 'downtown',
+    context: 'downtown',
+    summary: 'Primary downtown zone. No height limit in most sub-areas. Virtually all urban uses are permitted.',
+    minLotSqft: 0,
+    maxHeightFt: 0,
+    maxHeightStories: 0,
+    maxFAR: 0,
+    maxLotCoveragePercent: 100,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Office tower', 'Residential high-rise', 'Hotel', 'Retail / restaurant / entertainment', 'Cultural institution / museum', 'Medical / hospital', 'Structured parking garage', 'Mixed-use development of any scale'],
+    conditionalUses: ['Industrial (limited)', 'Drive-through (limited sub-areas)'],
+    prohibited: ['Heavy industrial', 'Auto salvage / junkyard', 'Self-storage (stand-alone)', 'Kennel'],
+    notes: 'Height governed by FAA limits and design standards, not a fixed story cap. Individual sub-districts may apply height overlays.',
+  },
+
+  {
+    code: 'D-TD',
+    name: 'Downtown Theater District',
+    chapter: 'DZC',
+    category: 'downtown',
+    context: 'downtown',
+    summary: 'Theater / entertainment sub-district of downtown. Encourages performing arts, nightlife, and mixed-use.',
+    minLotSqft: 0,
+    maxHeightFt: 0,
+    maxHeightStories: 0,
+    maxFAR: 0,
+    maxLotCoveragePercent: 100,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Theater / performing arts venue', 'Restaurant / bar / nightclub', 'Hotel', 'Office', 'Residential', 'Retail', 'Entertainment venue'],
+    conditionalUses: ['Outdoor entertainment'],
+    prohibited: ['Heavy industrial', 'Drive-through'],
+    notes: 'Special design standards to support entertainment-oriented ground-floor activity.',
+  },
+
+  {
+    code: 'D-LD',
+    name: 'Downtown Lower Downtown (LoDo) Historic',
+    chapter: 'DZC',
+    category: 'downtown',
+    context: 'downtown',
+    summary: 'LoDo Historic District. Mixed-use with height and design standards preserving historic 19th-century warehouse character.',
+    minLotSqft: 0,
+    maxHeightFt: 85,
+    maxHeightStories: 8,
+    maxFAR: 4.0,
+    maxLotCoveragePercent: 100,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Retail / restaurant / bar', 'Office (including creative/tech)', 'Residential loft / condo', 'Hotel / boutique hotel', 'Gallery / arts venue'],
+    conditionalUses: ['New construction (design review required)', 'Roof additions'],
+    prohibited: ['Heavy industrial', 'Drive-through', 'Suburban-style development'],
+    notes: 'Design review by Denver Landmark Preservation Commission required for all exterior changes and new construction.',
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // INDUSTRIAL MIXED USE (I-MX)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'I-MX-3',
+    name: 'Industrial Mixed Use 3',
+    chapter: 'DZC',
+    category: 'industrial',
+    context: 'urban',
+    summary: '3-story light industrial zone allowing commercial and residential uses alongside production. Common in RiNo, River North.',
+    minLotSqft: 0,
+    maxHeightFt: 36,
+    maxHeightStories: 3,
+    maxFAR: 2.0,
+    maxLotCoveragePercent: 85,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 5 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Light manufacturing / maker space', 'Warehouse / flex space', 'Brewery / distillery / winery', 'Retail (including taproom)', 'Restaurant / food hall', 'Office / creative office', 'Residential apartments (above ground floor)', 'Live-work unit', 'Art studio / gallery'],
+    conditionalUses: ['Heavy equipment storage', 'Auto repair (minor)', 'Contractor storage yard'],
+    prohibited: ['Heavy industrial (polluting / noxious)', 'Junkyard / salvage', 'Hazardous materials storage', 'Single-family home (standalone)'],
+    notes: 'Ground-floor residential discouraged but not prohibited. Intended for creative industry, production, and mixed employment.',
+  },
+
+  {
+    code: 'I-MX-5',
+    name: 'Industrial Mixed Use 5',
+    chapter: 'DZC',
+    category: 'industrial',
+    context: 'urban',
+    summary: '5-story industrial mixed-use. Higher-density version of I-MX-3 along major industrial corridors.',
+    minLotSqft: 0,
+    maxHeightFt: 60,
+    maxHeightStories: 5,
+    maxFAR: 3.5,
+    maxLotCoveragePercent: 90,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Light manufacturing', 'Warehouse / distribution (limited)', 'Brewery / distillery', 'Retail / restaurant', 'Office', 'Residential apartments', 'Hotel', 'Live-work unit'],
+    conditionalUses: ['Auto repair', 'Contractor yard', 'Heavy equipment storage'],
+    prohibited: ['Heavy industrial (noxious / hazardous)', 'Junkyard', 'Single-family home'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // INDUSTRIAL — HEAVY
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'I-A',
+    name: 'Industrial A (Heavy Industrial)',
+    chapter: 'DZC',
+    category: 'industrial',
+    context: null,
+    summary: 'Heavy industrial zone. No height limit. Reserved for intensive industrial operations. Residential and most commercial uses NOT permitted.',
+    minLotSqft: 0,
+    maxHeightFt: 0,
+    maxHeightStories: 0,
+    maxFAR: 0,
+    maxLotCoveragePercent: 100,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: 0,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Heavy manufacturing / processing', 'Warehouse / bulk storage / distribution', 'Contractor yard / equipment storage', 'Recycling processing facility', 'Utility / infrastructure plant', 'Auto salvage yard', 'Truck terminal'],
+    conditionalUses: ['Office (accessory to industrial use)', 'Retail (accessory sales only)'],
+    prohibited: ['Residential (any type)', 'Hotel / lodging', 'Restaurant / retail (stand-alone)', 'School / daycare', 'Medical clinic', 'Place of worship'],
+    notes: 'No height limit. Performance standards apply for noise, vibration, odor, and emissions.',
+  },
+
+  {
+    code: 'I-B',
+    name: 'Industrial B (Light Industrial)',
+    chapter: 'DZC',
+    category: 'industrial',
+    context: null,
+    summary: 'Light industrial zone. 50 ft height limit. Light manufacturing, warehousing, and limited commercial. No residential.',
+    minLotSqft: 0,
+    maxHeightFt: 50,
+    maxHeightStories: 4,
+    maxFAR: 2.0,
+    maxLotCoveragePercent: 85,
+    setbacks: { primaryStreetFt: 10, sideStreetFt: 10, sideFt: 0, rearFt: 0 },
+    maxUnits: 0,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Light manufacturing', 'Warehouse / distribution', 'Flex industrial / office', 'Contractor yard', 'Vehicle repair (all types)', 'Self-storage facility', 'Utility', 'Wholesale / showroom'],
+    conditionalUses: ['Limited retail or restaurant (accessory)', 'Office park (primary use)'],
+    prohibited: ['Residential (any type)', 'Hotel', 'School / daycare', 'Medical clinic (stand-alone)', 'Heavy industrial (noxious)'],
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // OPEN SPACE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'OS-A',
+    name: 'Open Space A (Parks & Recreation)',
+    chapter: 'DZC',
+    category: 'open-space',
+    context: null,
+    summary: 'Public parks, recreational facilities, and open space. Very limited development allowed.',
+    minLotSqft: 0,
+    maxHeightFt: 35,
+    maxHeightStories: 2,
+    maxFAR: 0.1,
+    maxLotCoveragePercent: 10,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 20, sideFt: 10, rearFt: 20 },
+    maxUnits: 0,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Park / playground / recreation area', 'Athletic field / sports facility', 'Golf course', 'Trail / path', 'Small accessory structures (restrooms, shelters)', 'Community garden', 'Natural area / wildlife habitat'],
+    conditionalUses: ['Recreation center / community building', 'Concession stand / café (accessory)', 'Event venue (accessory to park)'],
+    prohibited: ['Residential', 'Commercial retail or office', 'Industrial', 'Parking lot (primary use)'],
+  },
+
+  {
+    code: 'OS-B',
+    name: 'Open Space B (Natural/Conservation)',
+    chapter: 'DZC',
+    category: 'open-space',
+    context: null,
+    summary: 'Sensitive natural areas, floodplain, conservation land. Minimal development permitted.',
+    minLotSqft: 0,
+    maxHeightFt: 20,
+    maxHeightStories: 1,
+    maxFAR: 0.05,
+    maxLotCoveragePercent: 5,
+    setbacks: { primaryStreetFt: 30, sideStreetFt: 30, sideFt: 30, rearFt: 30 },
+    maxUnits: 0,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Natural area preservation', 'Trail / boardwalk', 'Environmental restoration'],
+    conditionalUses: ['Small interpretive facility'],
+    prohibited: ['Any residential or commercial development', 'Industrial', 'Parking lot'],
+    notes: 'Development highly restricted due to environmental sensitivity, floodplain, or conservation easement.',
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CHAPTER 59 LEGACY DISTRICTS (still mapped in parts of Denver)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    code: 'R-1',
+    name: 'Residential 1 (Chapter 59, legacy)',
+    chapter: 'Ch59',
+    category: 'residential-su',
+    context: 'legacy',
+    summary: 'Legacy single-family residential zone from Chapter 59 code. Similar to DZC U-SU-B/C. One unit per lot.',
+    minLotSqft: 6000,
+    maxHeightFt: 30,
+    maxHeightStories: 2,
+    maxFAR: 0.45,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 25, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 1,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family detached home', 'Home occupation (no employees/customers)', 'Parks'],
+    conditionalUses: ['Church', 'School', 'Small daycare', 'Group home'],
+    prohibited: ['Duplex or multi-family', 'Commercial', 'Industrial'],
+    notes: 'Legacy Chapter 59 zoning. New development may still require DZC compliance review.',
+  },
+
+  {
+    code: 'R-2',
+    name: 'Residential 2 (Chapter 59, legacy)',
+    chapter: 'Ch59',
+    category: 'residential-tu',
+    context: 'legacy',
+    summary: 'Legacy two-family residential. Allows single-family and duplex.',
+    minLotSqft: 6000,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 25, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 2,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family home', 'Duplex', 'Home occupation'],
+    conditionalUses: ['Church', 'School', 'Group home'],
+    prohibited: ['Multi-family (3+)', 'Commercial', 'Industrial'],
+    notes: 'Legacy Chapter 59 zoning.',
+  },
+
+  {
+    code: 'R-2-A',
+    name: 'Residential 2-A (Chapter 59, legacy)',
+    chapter: 'Ch59',
+    category: 'residential-tu',
+    context: 'legacy',
+    summary: 'Legacy R-2 variant with slightly modified standards.',
+    minLotSqft: 5500,
+    maxHeightFt: 35,
+    maxHeightStories: 2.5,
+    maxFAR: 0.5,
+    maxLotCoveragePercent: 50,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: 2,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Single-family home', 'Duplex', 'Home occupation'],
+    conditionalUses: ['Church', 'School', 'Group home'],
+    prohibited: ['Multi-family (3+)', 'Commercial', 'Industrial'],
+    notes: 'Legacy Chapter 59 zoning.',
+  },
+
+  {
+    code: 'R-3',
+    name: 'Residential 3 (Chapter 59, legacy)',
+    chapter: 'Ch59',
+    category: 'residential-mu',
+    context: 'legacy',
+    summary: 'Legacy multi-family residential zone. Allows apartment buildings up to moderate height.',
+    minLotSqft: 6000,
+    maxHeightFt: 45,
+    maxHeightStories: 3,
+    maxFAR: 1.5,
+    maxLotCoveragePercent: 60,
+    setbacks: { primaryStreetFt: 20, sideStreetFt: 10, sideFt: 5, rearFt: 20 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Multi-family apartments', 'Duplex', 'Single-family home', 'Home occupation'],
+    conditionalUses: ['Church', 'School', 'Assisted living', 'Group home'],
+    prohibited: ['Commercial retail (standalone)', 'Office (standalone)', 'Industrial'],
+    notes: 'Legacy Chapter 59 zoning.',
+  },
+
+  {
+    code: 'B-2',
+    name: 'Business 2 (Chapter 59, legacy)',
+    chapter: 'Ch59',
+    category: 'commercial',
+    context: 'legacy',
+    summary: 'Legacy neighborhood commercial zone. Retail, restaurants, and office on commercial corridors.',
+    minLotSqft: 0,
+    maxHeightFt: 50,
+    maxHeightStories: 4,
+    maxFAR: 2.0,
+    maxLotCoveragePercent: 80,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 10 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Retail store / shop', 'Restaurant / café', 'Office', 'Personal services', 'Bank', 'Medical clinic', 'Residential apartments (upper floors)'],
+    conditionalUses: ['Auto service (minor)', 'Drive-through (limited)', 'Tavern / bar'],
+    prohibited: ['Heavy industrial', 'Auto salvage', 'Junkyard', 'Adult entertainment'],
+    notes: 'Legacy Chapter 59 zoning. Common on older commercial strips that predate DZC.',
+  },
+
+  {
+    code: 'B-4',
+    name: 'Business 4 (Chapter 59, legacy)',
+    chapter: 'Ch59',
+    category: 'commercial',
+    context: 'legacy',
+    summary: 'Legacy general commercial zone. Broad range of commercial uses including auto-oriented.',
+    minLotSqft: 0,
+    maxHeightFt: 0,
+    maxHeightStories: 0,
+    maxFAR: 0,
+    maxLotCoveragePercent: 100,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Retail', 'Restaurant', 'Auto dealership', 'Auto repair', 'Drive-through', 'Hotel / motel', 'Office', 'Shopping center'],
+    conditionalUses: ['Industrial (limited)', 'Outdoor storage'],
+    prohibited: ['Heavy industrial', 'Junkyard', 'Residential (most sub-areas)'],
+    notes: 'Legacy Chapter 59 zoning.',
+  },
+
+  {
+    code: 'I-1',
+    name: 'Industrial 1 (Chapter 59, legacy)',
+    chapter: 'Ch59',
+    category: 'industrial',
+    context: 'legacy',
+    summary: 'Legacy light industrial zone. Manufacturing, warehouse, limited commercial. No residential.',
+    minLotSqft: 0,
+    maxHeightFt: 50,
+    maxHeightStories: 4,
+    maxFAR: 1.5,
+    maxLotCoveragePercent: 80,
+    setbacks: { primaryStreetFt: 10, sideStreetFt: 10, sideFt: 0, rearFt: 0 },
+    maxUnits: 0,
+    aduAllowed: false,
+    parkingRequired: true,
+    permittedByRight: ['Light manufacturing', 'Warehouse / distribution', 'Wholesale', 'Auto repair', 'Contractor yard', 'Self-storage'],
+    conditionalUses: ['Office (accessory)', 'Retail (accessory)'],
+    prohibited: ['Residential', 'Hotel', 'School', 'Daycare', 'Heavy industrial (noxious)'],
+    notes: 'Legacy Chapter 59 zoning.',
+  },
+
+  {
+    code: 'PUD',
+    name: 'Planned Unit Development',
+    chapter: 'DZC',
+    category: 'pud',
+    context: null,
+    summary: 'Custom zoning approved by ordinance. Standards are project-specific — must review the individual PUD document for permitted uses, heights, and setbacks.',
+    minLotSqft: 0,
+    maxHeightFt: 0,
+    maxHeightStories: 0,
+    maxFAR: 0,
+    maxLotCoveragePercent: 0,
+    setbacks: { primaryStreetFt: 0, sideStreetFt: 0, sideFt: 0, rearFt: 0 },
+    maxUnits: null,
+    aduAllowed: false,
+    parkingRequired: false,
+    permittedByRight: ['Per PUD document — use the PUD ordinance number to look up the specific approved plan'],
+    conditionalUses: [],
+    prohibited: ['Any use not approved in the PUD ordinance'],
+    notes: 'Search Denver\'s PUD ordinance by PUD number via Denver Community Planning and Development.',
+  },
+];
+
+// ── Lookup by code ─────────────────────────────────────────────────────────────
+
+export const DENVER_ZONES_BY_CODE: Record<string, DenverZoneDistrict> =
+  Object.fromEntries(DENVER_ZONE_DISTRICTS.map(d => [d.code, d]));
+
+export function getDenverZoneDistrict(code: string): DenverZoneDistrict | null {
+  if (!code) return null;
+  // Direct match
+  if (DENVER_ZONES_BY_CODE[code]) return DENVER_ZONES_BY_CODE[code];
+  // Try uppercase
+  const up = code.toUpperCase();
+  if (DENVER_ZONES_BY_CODE[up]) return DENVER_ZONES_BY_CODE[up];
+  return null;
+}
+
+// ── Category labels ────────────────────────────────────────────────────────────
+
+export const DENVER_CATEGORY_LABELS: Record<DenverZoneDistrict['category'], string> = {
+  'residential-su': 'Single-Unit Residential',
+  'residential-tu': 'Two-Unit Residential',
+  'residential-rh': 'Row House',
+  'residential-mu': 'Multi-Unit Residential',
+  'mixed-use':      'Mixed Use',
+  'commercial':     'Commercial',
+  'industrial':     'Industrial',
+  'downtown':       'Downtown',
+  'open-space':     'Open Space',
+  'campus':         'Campus / Institutional',
+  'pud':            'Planned Unit Development',
+};
