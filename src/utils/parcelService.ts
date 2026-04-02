@@ -127,6 +127,7 @@ interface NominatimReverseResult {
 // ── Denver official zoning lookup ─────────────────────────────────────────────
 
 const DENVER_ZONING_API = '/api/denver-zoning/1/query';
+const DENVER_ZONING_POINT_API = '/api/denver-zoning-point';
 const DENVER_BUILDING_API = '/api/denver-building';
 const DOUGLAS_PARCELS_API = '/api/douglas-parcels/query';
 const DOUGLAS_DETAIL_API = '/api/douglas-detail';
@@ -146,6 +147,21 @@ export interface DenverZoningRaw {
   pudDocument: string | null;
   ordNum: number | null;
   ordYear: number | null;
+}
+
+function buildDenverParidCandidates(parid: string): string[] {
+  const trimmed = parid.trim();
+  const digitsOnly = trimmed.replace(/\D/g, '');
+  const candidates = new Set<string>();
+
+  if (trimmed) candidates.add(trimmed);
+  if (digitsOnly) {
+    candidates.add(digitsOnly);
+    if (digitsOnly.length === 12) candidates.add(`${digitsOnly}0`);
+    if (digitsOnly.length === 13 && digitsOnly.endsWith('0')) candidates.add(digitsOnly.slice(0, -1));
+  }
+
+  return Array.from(candidates);
 }
 
 interface DenverBuildingApiResponse {
@@ -193,6 +209,36 @@ export async function queryDenverNeighborhoodBoundaries(): Promise<GeoJSON.Featu
   return await res.json() as GeoJSON.FeatureCollection;
 }
 
+export async function queryParcelsInBounds(
+  west: number,
+  south: number,
+  east: number,
+  north: number,
+  resultRecordCount = 700,
+): Promise<GeoJSON.FeatureCollection> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({
+      xmin: west,
+      ymin: south,
+      xmax: east,
+      ymax: north,
+      spatialReference: { wkid: 4326 },
+    }),
+    geometryType: 'esriGeometryEnvelope',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    where: '1=1',
+    outFields: 'parcel_id,situsAdd,sitAddCty,countyName,landSqft,landAcres',
+    returnGeometry: 'true',
+    resultRecordCount: String(resultRecordCount),
+    f: 'geojson',
+  });
+
+  const res = await fetch(`${PARCEL_API}?${params}`);
+  if (!res.ok) throw new Error(`Visible parcels query returned ${res.status}`);
+  return await res.json() as GeoJSON.FeatureCollection;
+}
+
 /**
  * Query Denver's official zoning MapServer for the zone district at a lat/lng.
  * Returns null if outside Denver or if the service is unavailable.
@@ -233,12 +279,29 @@ export async function queryDenverZoning(lat: number, lng: number): Promise<Denve
       ordYear:        n('ORD_YEAR'),
     };
   } catch {
+    const pointParams = new URLSearchParams({
+      lat: String(lat),
+      lng: String(lng),
+    });
+
+    try {
+      const pointRes = await fetch(`${DENVER_ZONING_POINT_API}?${pointParams}`);
+      if (pointRes.ok) {
+        const pointJson = await pointRes.json() as { data?: DenverZoningRaw | null };
+        if (pointJson.data?.zoneDistrict) return pointJson.data;
+      }
+    } catch {
+      // no-op
+    }
+
     return null;
   }
 }
 
 export async function queryDenverBuilding(parid: string): Promise<DenverBuildingData | null> {
   if (!parid) return null;
+  const publicTableResult = await queryDenverBuildingFromPublicTables(parid);
+  if (publicTableResult) return publicTableResult;
 
   const params = new URLSearchParams({ parid });
 
@@ -249,10 +312,10 @@ export async function queryDenverBuilding(parid: string): Promise<DenverBuilding
       return data.data ?? null;
     }
   } catch {
-    // Fall through to public-table lookup below.
+    // no-op
   }
 
-  return queryDenverBuildingFromPublicTables(parid);
+  return null;
 }
 
 export async function queryDouglasParcelData(
@@ -373,9 +436,9 @@ export async function queryDenverBuildings(parids: string[]): Promise<Map<string
   const normalizedParids = Array.from(
     new Set(
       parids
-        .map((parid) => parid.trim())
+        .map((parid) => buildDenverParidCandidates(parid))
+        .flat()
         .filter(Boolean)
-        .flatMap((parid) => [parid, parid.replace(/\D/g, '')])
     )
   );
 
@@ -471,10 +534,7 @@ export async function queryDenverBuildings(parids: string[]): Promise<Map<string
 }
 
 async function queryDenverBuildingFromPublicTables(parid: string): Promise<DenverBuildingData | null> {
-  const candidates = Array.from(new Set([
-    parid.trim(),
-    parid.replace(/\D/g, ''),
-  ].filter(Boolean)));
+  const candidates = buildDenverParidCandidates(parid);
 
   if (candidates.length === 0) return null;
 

@@ -24,6 +24,7 @@ import type { ParcelState, GeoJSONGeometry, DenverBuildingData, DouglasParcelDat
 import {
   geocodeAddress,
   queryParcelByPoint,
+  queryParcelsInBounds,
   reverseGeocodeNeighborhood,
   queryDenverZoning,
   queryDenverBuilding,
@@ -33,7 +34,7 @@ import {
   queryDenverNeighborhoodBoundaries,
 } from '../utils/parcelService';
 import type { DenverZoningRaw } from '../utils/parcelService';
-import { ParcelPanel } from './ParcelPanel';
+import { ParcelPanel, type BoundarySelectionSummary } from './ParcelPanel';
 import { NAKED_DENVER_ARTICLES, NAKED_DENVER_MAPPED_ARTICLES, type NakedDenverArticle } from '../data/nakedDenverArticles';
 
 // Business directory data — pre-geocoded at build time
@@ -78,6 +79,9 @@ const FEMA_FLOOD_TILES = '/api/fema-nfhl/export?bbox={bbox-epsg-3857}&bboxSR=385
  * Resolution: 270m. Coverage: contiguous US.
  */
 const WILDFIRE_TILES = '/api/wildfire/exportImage?bbox={bbox-epsg-3857}&bboxSR=3857&size=256,256&imageSR=3857&format=png&transparent=true&f=image';
+const PARCEL_PREVIEW_MIN_ZOOM = 14;
+
+const BOUNDARY_SELECTION_MAX_ZOOM = 13.5;
 
 // Colorado geographic center
 const CO_INITIAL: { longitude: number; latitude: number; zoom: number } = {
@@ -167,6 +171,14 @@ function getCountyDisplayName(feature: BoundaryFeature | null | undefined): stri
   const name = getBoundaryName(feature);
   if (!name) return null;
   return /county$/i.test(name) || /city and county/i.test(name) ? name : `${name} County`;
+}
+
+function getBaseCountyName(value: string | null | undefined): string | null {
+  if (!value) return null;
+  return value
+    .replace(/^city and county of\s+/i, '')
+    .replace(/\s+county$/i, '')
+    .trim() || null;
 }
 
 function getGeometryCenter(geometry: GeoJSON.Geometry): [number, number] {
@@ -561,6 +573,78 @@ const HOVERED_SUB_BOUNDARY_LINE_LAYER = {
   paint: {
     'line-color': '#0f766e',
     'line-width': 3.2,
+    'line-opacity': 1,
+  },
+};
+
+const SELECTED_SUB_BOUNDARY_FILL_LAYER = {
+  id: 'selected-sub-boundary-fill',
+  type: 'fill' as const,
+  paint: {
+    'fill-color': '#14b8a6',
+    'fill-opacity': 0.18,
+  },
+};
+
+const SELECTED_SUB_BOUNDARY_LINE_LAYER = {
+  id: 'selected-sub-boundary-line',
+  type: 'line' as const,
+  paint: {
+    'line-color': '#0f766e',
+    'line-width': 2.6,
+    'line-opacity': 0.95,
+  },
+};
+
+const PARCEL_PREVIEW_FILL_LAYER = {
+  id: 'parcel-preview-fill',
+  type: 'fill' as const,
+  minzoom: PARCEL_PREVIEW_MIN_ZOOM,
+  paint: {
+    'fill-color': '#2563eb',
+    'fill-opacity': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 0.035, 15, 0.055, 17, 0.075] as unknown as number,
+  },
+};
+
+const PARCEL_PREVIEW_HALO_LINE_LAYER = {
+  id: 'parcel-preview-halo-line',
+  type: 'line' as const,
+  minzoom: PARCEL_PREVIEW_MIN_ZOOM,
+  paint: {
+    'line-color': 'rgba(255,255,255,0.92)',
+    'line-width': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 1.4, 16, 2.2, 18, 2.8] as unknown as number,
+    'line-opacity': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 0.72, 16, 0.9] as unknown as number,
+  },
+};
+
+const PARCEL_PREVIEW_LINE_LAYER = {
+  id: 'parcel-preview-line',
+  type: 'line' as const,
+  minzoom: PARCEL_PREVIEW_MIN_ZOOM,
+  paint: {
+    'line-color': 'rgba(29,78,216,0.98)',
+    'line-width': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 0.9, 16, 1.4, 18, 1.9] as unknown as number,
+    'line-opacity': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 0.8, 17, 0.98] as unknown as number,
+  },
+};
+
+const HOVERED_PARCEL_PREVIEW_FILL_LAYER = {
+  id: 'hovered-parcel-preview-fill',
+  type: 'fill' as const,
+  minzoom: PARCEL_PREVIEW_MIN_ZOOM,
+  paint: {
+    'fill-color': '#0ea5e9',
+    'fill-opacity': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 0.12, 16, 0.16, 18, 0.2] as unknown as number,
+  },
+};
+
+const HOVERED_PARCEL_PREVIEW_LINE_LAYER = {
+  id: 'hovered-parcel-preview-line',
+  type: 'line' as const,
+  minzoom: PARCEL_PREVIEW_MIN_ZOOM,
+  paint: {
+    'line-color': '#0284c7',
+    'line-width': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 2.2, 16, 2.8, 18, 3.3] as unknown as number,
     'line-opacity': 1,
   },
 };
@@ -1263,6 +1347,10 @@ function MultiSelectPanel({ parcels, loading, onRemove, onClear }: MultiSelectPa
 
 export function ParcelMap() {
   const mapRef = useRef<MapRef>(null);
+  const emptyFeatureCollection: GeoJSON.FeatureCollection = useMemo(
+    () => ({ type: 'FeatureCollection', features: [] }),
+    []
+  );
 
   const [parcelState, setParcelState] = useState<ParcelState>({ status: 'idle' });
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
@@ -1282,9 +1370,20 @@ export function ParcelMap() {
   const [municipalBoundaries, setMunicipalBoundaries] = useState<GeoJSON.FeatureCollection | null>(null);
   const [denverNeighborhoodBoundaries, setDenverNeighborhoodBoundaries] = useState<GeoJSON.FeatureCollection | null>(null);
   const [selectedCountyName, setSelectedCountyName] = useState<string | null>(null);
+  const [selectedSubdivisionName, setSelectedSubdivisionName] = useState<string | null>(null);
+  const [selectedBoundary, setSelectedBoundary] = useState<BoundarySelectionSummary | null>(null);
   const [hoveredCountyName, setHoveredCountyName] = useState<string | null>(null);
   const [hoveredSubdivisionName, setHoveredSubdivisionName] = useState<string | null>(null);
   const [mapCursor, setMapCursor] = useState<'crosshair' | 'pointer'>('crosshair');
+  const [viewZoom, setViewZoom] = useState(CO_INITIAL.zoom);
+  const [parcelPreviewBounds, setParcelPreviewBounds] = useState<string | null>(null);
+  const [parcelPreviewGeoJSON, setParcelPreviewGeoJSON] = useState<GeoJSON.FeatureCollection>(emptyFeatureCollection);
+  const [hoveredParcelPreviewGeoJSON, setHoveredParcelPreviewGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [hoveredParcelPreviewMeta, setHoveredParcelPreviewMeta] = useState<{
+    address: string | null;
+    apn: string | null;
+    lotSize: string | null;
+  } | null>(null);
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showWildfireRisk, setShowWildfireRisk] = useState(false);
   const [showBusinessDir, setShowBusinessDir] = useState(false);
@@ -1302,7 +1401,8 @@ export function ParcelMap() {
   const [selectedParcels, setSelectedParcels] = useState<ParcelFeature[]>([]);
   const [multiSelectLoading, setMultiSelectLoading] = useState(false);
 
-  const panelOpen = !multiSelectMode && (parcelState.status === 'loaded' || parcelState.status === 'not_found');
+  const boundaryPanelOpen = !multiSelectMode && !!selectedBoundary;
+  const panelOpen = !multiSelectMode && (parcelState.status === 'loaded' || parcelState.status === 'not_found' || boundaryPanelOpen);
   const leftPanelOpen = multiSelectMode || panelOpen;
   const leftPanelWidth = multiSelectMode ? 300 : 380;
   const feature = parcelState.status === 'loaded' ? parcelState.feature : null;
@@ -1339,6 +1439,96 @@ export function ParcelMap() {
       setSelectedCountyName(feature.location.county);
     }
   }, [feature?.location.county]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function hydrateSelectedParcel() {
+      if (!feature) return;
+
+      const [centerLng, centerLat] = getGeometryCenter(feature.geometry as GeoJSON.Geometry);
+
+      if (feature.location.county.trim().toLowerCase() === 'denver') {
+        try {
+          const [zoning, building] = await Promise.all([
+            queryDenverZoning(centerLat, centerLng),
+            queryDenverBuilding(feature.identity.apn),
+          ]);
+
+          if (!cancelled) {
+            setDenverZoning(zoning?.zoneDistrict ? zoning : null);
+            setDenverBuilding(building);
+          }
+        } catch {
+          if (!cancelled) {
+            setDenverZoning(null);
+            setDenverBuilding(null);
+          }
+        }
+        return;
+      }
+
+      if (feature.location.county.trim().toLowerCase() === 'douglas') {
+        try {
+          const douglasData = await queryDouglasParcelData(centerLng, centerLat);
+          if (!cancelled) {
+            setDouglasParcelData(douglasData);
+          }
+        } catch {
+          if (!cancelled) {
+            setDouglasParcelData(null);
+          }
+        }
+      }
+    }
+
+    void hydrateSelectedParcel();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [feature]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadVisibleParcels() {
+      if (feature || !parcelPreviewBounds || viewZoom < PARCEL_PREVIEW_MIN_ZOOM) {
+        setParcelPreviewGeoJSON(emptyFeatureCollection);
+        return;
+      }
+
+      const [west, south, east, north] = parcelPreviewBounds.split(',').map(Number);
+      if ([west, south, east, north].some((value) => Number.isNaN(value))) return;
+
+      try {
+        const visibleParcels = await queryParcelsInBounds(west, south, east, north, 260);
+        if (!cancelled) {
+          setParcelPreviewGeoJSON(
+            Array.isArray(visibleParcels?.features) ? visibleParcels : emptyFeatureCollection
+          );
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[ParcelMap] visible parcel preview failed:', error);
+          setParcelPreviewGeoJSON(emptyFeatureCollection);
+        }
+      }
+    }
+
+    void loadVisibleParcels();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [emptyFeatureCollection, feature, parcelPreviewBounds, viewZoom]);
+
+  useEffect(() => {
+    if (feature || multiSelectMode || viewZoom < PARCEL_PREVIEW_MIN_ZOOM) {
+      setHoveredParcelPreviewGeoJSON(null);
+      setHoveredParcelPreviewMeta(null);
+    }
+  }, [feature, multiSelectMode, viewZoom]);
 
   const nearbyArticles = useMemo(() => {
     if (!feature) return [];
@@ -1423,13 +1613,6 @@ export function ParcelMap() {
     [activeCountySubdivisionGeoJSON]
   );
 
-  const hoveredBoundaryLabel = hoveredSubdivisionName ?? hoveredCountyName;
-  const hoveredBoundaryContext = hoveredSubdivisionName
-    ? (normalizeCountyName(selectedCountyName) === 'denver' ? 'Neighborhood' : 'Town')
-    : hoveredCountyName
-    ? 'County'
-    : null;
-
   const hoveredSubdivisionFeature = useMemo(() => {
     if (!activeCountySubdivisionGeoJSON || !hoveredSubdivisionName) return null;
     const normalized = hoveredSubdivisionName.trim().toLowerCase();
@@ -1447,6 +1630,30 @@ export function ParcelMap() {
     };
   }, [hoveredSubdivisionFeature]);
 
+  const selectedSubdivisionFeature = useMemo(() => {
+    if (!activeCountySubdivisionGeoJSON || !selectedSubdivisionName) return null;
+    const normalized = selectedSubdivisionName.trim().toLowerCase();
+    return activeCountySubdivisionGeoJSON.features.find((feature): feature is BoundaryFeature => {
+      const name = getBoundaryName(feature as BoundaryFeature);
+      return !!name && name.trim().toLowerCase() === normalized;
+    }) ?? null;
+  }, [activeCountySubdivisionGeoJSON, selectedSubdivisionName]);
+
+  const selectedSubdivisionGeoJSON = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (!selectedSubdivisionFeature) return null;
+    return {
+      type: 'FeatureCollection',
+      features: [selectedSubdivisionFeature],
+    };
+  }, [selectedSubdivisionFeature]);
+
+  const hoveredBoundaryLabel = hoveredSubdivisionName ?? selectedSubdivisionName ?? hoveredCountyName;
+  const hoveredBoundaryContext = hoveredSubdivisionName || selectedSubdivisionName
+    ? (normalizeCountyName(selectedCountyName) === 'denver' ? 'Neighborhood' : 'Town')
+    : hoveredCountyName
+    ? 'County'
+    : null;
+
   const totalDistanceM = useMemo(() => {
     if (measurePoints.length < 2) return 0;
     let d = 0;
@@ -1460,6 +1667,16 @@ export function ParcelMap() {
   );
 
   const measuringActive = measureMode !== 'off';
+
+  const clearParcelSelection = useCallback(() => {
+    setParcelState({ status: 'idle' });
+    setMarkerPos(null);
+    setNeighbourhood(null);
+    setDenverZoning(null);
+    setDenverBuilding(null);
+    setDouglasParcelData(null);
+    setShowHint(true);
+  }, []);
 
   // ── Fetch parcel for multi-select ────────────────────────────────────────
 
@@ -1483,6 +1700,7 @@ export function ParcelMap() {
   // ── Fetch parcel for a lat/lng ────────────────────────────────────────────
 
   const fetchParcel = useCallback(async (lng: number, lat: number, addr?: string) => {
+    setSelectedBoundary(null);
     setShowHint(false);
     setMarkerPos({ lng, lat });
     setParcelState({ status: 'loading', lat, lng });
@@ -1501,29 +1719,17 @@ export function ParcelMap() {
     });
 
     try {
-      // Run parcel lookup, reverse geocode, and Denver zoning all in parallel
-      const [parcelResult, nbResult, denverResult] = await Promise.allSettled([
+      // First find the parcel and nearby neighborhood context.
+      const [parcelResult, nbResult] = await Promise.allSettled([
         queryParcelByPoint(lng, lat),
         reverseGeocodeNeighborhood(lat, lng),
-        queryDenverZoning(lat, lng),
       ]);
 
       const parcel = parcelResult.status === 'fulfilled' ? parcelResult.value : null;
       const nb = nbResult.status === 'fulfilled' ? nbResult.value : null;
-      const dz = denverResult.status === 'fulfilled' ? denverResult.value : null;
       setNeighbourhood(nb);
-      // Only store Denver zoning if it returned a real zone code
-      setDenverZoning(dz?.zoneDistrict ? dz : null);
 
       if (parcel) {
-        if (parcel.location.county.toLowerCase() === 'denver') {
-          const building = await queryDenverBuilding(parcel.identity.apn);
-          setDenverBuilding(building);
-        }
-        if (parcel.location.county.toLowerCase() === 'douglas') {
-          const douglasData = await queryDouglasParcelData(lng, lat);
-          setDouglasParcelData(douglasData);
-        }
         setParcelState({ status: 'loaded', feature: parcel });
       } else {
         setParcelState({ status: 'not_found', lat, lng, address: addr });
@@ -1596,27 +1802,111 @@ export function ParcelMap() {
     }
     if (showCountyBoundaries) {
       const point: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      const currentZoom = mapRef.current?.getZoom() ?? CO_INITIAL.zoom;
       const subdivisionHit = findBoundaryFeatureAtPoint(activeCountySubdivisionGeoJSON, point);
-      if (subdivisionHit && normalizeCountyName(selectedCountyName) === 'denver') {
-        setHoveredSubdivisionName(getBoundaryName(subdivisionHit));
+      const countyHit = findBoundaryFeatureAtPoint(countyBoundaries, point);
+
+      if (currentZoom <= BOUNDARY_SELECTION_MAX_ZOOM && (subdivisionHit || countyHit)) {
+        const countyLabel = countyHit ? getBoundaryName(countyHit) : selectedCountyName;
+        const countyBaseName = getBaseCountyName(countyLabel) ?? getBaseCountyName(selectedCountyName) ?? null;
+
+        if (countyHit) {
+          if (countyLabel) {
+            setSelectedCountyName(countyLabel);
+          }
+        }
+
+        if (subdivisionHit) {
+          const subdivisionName = getBoundaryName(subdivisionHit);
+          if (subdivisionName && countyBaseName) {
+            setSelectedSubdivisionName(subdivisionName);
+            setHoveredSubdivisionName(subdivisionName);
+            setSelectedBoundary({
+              type: normalizeCountyName(countyBaseName) === 'denver' ? 'neighborhood' : 'town',
+              name: subdivisionName,
+              countyName: countyBaseName,
+            });
+          }
+        } else {
+          setSelectedSubdivisionName(null);
+          if (countyLabel && countyBaseName) {
+            setSelectedBoundary({
+              type: 'county',
+              name: getCountyDisplayName(countyHit) ?? countyLabel,
+              countyName: countyBaseName,
+            });
+          }
+        }
+
+        setSelectedBiz(null);
+        setSelectedArticle(null);
+        clearParcelSelection();
+        return;
       }
 
-      const countyHit = findBoundaryFeatureAtPoint(countyBoundaries, point);
       if (countyHit) {
         const countyName = getBoundaryName(countyHit);
         if (countyName) {
           setSelectedCountyName(countyName);
         }
       }
+
+      setSelectedSubdivisionName(null);
     }
     setSelectedBiz(null);
     setSelectedArticle(null);
+    setSelectedBoundary(null);
     fetchParcel(e.lngLat.lng, e.lngLat.lat);
-  }, [activeCountySubdivisionGeoJSON, countyBoundaries, fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, selectedCountyName, showBusinessDir, showCountyBoundaries, showNDArticles]);
+  }, [activeCountySubdivisionGeoJSON, clearParcelSelection, countyBoundaries, fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, selectedCountyName, showBusinessDir, showCountyBoundaries, showNDArticles]);
 
   const handleMapMouseMove = useCallback((e: MapLayerMouseEvent) => {
     let nextCursor: 'crosshair' | 'pointer' = 'crosshair';
     const point: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+
+    if (!feature && !multiSelectMode && viewZoom >= PARCEL_PREVIEW_MIN_ZOOM && mapRef.current && parcelPreviewGeoJSON.features.length > 0) {
+      const parcelFeatures = mapRef.current.queryRenderedFeatures(e.point, {
+        layers: ['parcel-preview-fill', 'parcel-preview-line'],
+      });
+
+      const parcelFeature = parcelFeatures.find((feature) => feature.geometry?.type === 'Polygon' || feature.geometry?.type === 'MultiPolygon');
+      if (parcelFeature?.geometry) {
+        setHoveredParcelPreviewGeoJSON({
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            geometry: parcelFeature.geometry as GeoJSON.Geometry,
+            properties: parcelFeature.properties ?? {},
+          }],
+        });
+        const address = typeof parcelFeature.properties?.situsAdd === 'string' ? parcelFeature.properties.situsAdd : null;
+        const apn = typeof parcelFeature.properties?.parcel_id === 'string' ? parcelFeature.properties.parcel_id : null;
+        const landSqft = typeof parcelFeature.properties?.landSqft === 'number'
+          ? parcelFeature.properties.landSqft
+          : typeof parcelFeature.properties?.landSqft === 'string'
+          ? Number(parcelFeature.properties.landSqft)
+          : null;
+        const landAcres = typeof parcelFeature.properties?.landAcres === 'number'
+          ? parcelFeature.properties.landAcres
+          : typeof parcelFeature.properties?.landAcres === 'string'
+          ? Number(parcelFeature.properties.landAcres)
+          : null;
+        const lotSize = Number.isFinite(landSqft) && landSqft
+          ? `${Number(landSqft).toLocaleString()} sf`
+          : Number.isFinite(landAcres) && landAcres
+          ? `${Number(landAcres).toFixed(3)} ac`
+          : null;
+
+        setHoveredParcelPreviewMeta({ address, apn, lotSize });
+        setHoveredSubdivisionName(null);
+        setHoveredCountyName(null);
+        nextCursor = 'pointer';
+        setMapCursor(nextCursor);
+        return;
+      }
+    }
+
+    setHoveredParcelPreviewGeoJSON(null);
+    setHoveredParcelPreviewMeta(null);
 
     if (showCountyBoundaries && activeCountySubdivisionGeoJSON?.features.length) {
       const subdivisionHit = findBoundaryFeatureAtPoint(activeCountySubdivisionGeoJSON, point);
@@ -1648,21 +1938,17 @@ export function ParcelMap() {
     }
 
     setMapCursor(nextCursor);
-  }, [activeCountySubdivisionGeoJSON, countyBoundaries, showCountyBoundaries]);
+  }, [activeCountySubdivisionGeoJSON, countyBoundaries, feature, multiSelectMode, parcelPreviewGeoJSON.features.length, showCountyBoundaries, viewZoom]);
 
   // ── Close panel ───────────────────────────────────────────────────────────
 
   const handleClose = useCallback(() => {
-    setParcelState({ status: 'idle' });
-    setMarkerPos(null);
-    setNeighbourhood(null);
-    setDenverZoning(null);
-    setDenverBuilding(null);
-    setDouglasParcelData(null);
+    clearParcelSelection();
+    setSelectedBoundary(null);
+    setSelectedSubdivisionName(null);
     setHoveredSubdivisionName(null);
     setHoveredCountyName(null);
-    setShowHint(true);
-  }, []);
+  }, [clearParcelSelection]);
 
   const closeBusinessDirectory = useCallback(() => {
     setShowBusinessDir(false);
@@ -1827,6 +2113,21 @@ export function ParcelMap() {
         cursor={mapCursor}
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
+        onMove={(event) => {
+          setViewZoom(event.viewState.zoom);
+        }}
+        onMoveEnd={() => {
+          const bounds = mapRef.current?.getBounds();
+          if (!bounds) return;
+          setParcelPreviewBounds(
+            [
+              bounds.getWest(),
+              bounds.getSouth(),
+              bounds.getEast(),
+              bounds.getNorth(),
+            ].join(',')
+          );
+        }}
         attributionControl={false}
       >
         {showCountyBoundaries && countyBoundaries && (
@@ -1877,6 +2178,13 @@ export function ParcelMap() {
           </Source>
         )}
 
+        {showCountyBoundaries && selectedSubdivisionGeoJSON && (
+          <Source id="selected-county-subdivision" type="geojson" data={selectedSubdivisionGeoJSON}>
+            <Layer {...SELECTED_SUB_BOUNDARY_FILL_LAYER} />
+            <Layer {...SELECTED_SUB_BOUNDARY_LINE_LAYER} />
+          </Source>
+        )}
+
         {showCountyBoundaries && hoveredSubdivisionGeoJSON && (
           <Source id="hovered-county-subdivision" type="geojson" data={hoveredSubdivisionGeoJSON}>
             <Layer {...HOVERED_SUB_BOUNDARY_FILL_LAYER} />
@@ -1901,6 +2209,21 @@ export function ParcelMap() {
                 'text-halo-width': 1,
               }}
             />
+          </Source>
+        )}
+
+        {!feature && !multiSelectMode && parcelPreviewGeoJSON && parcelPreviewGeoJSON.features.length > 0 && (
+          <Source id="parcel-preview" type="geojson" data={parcelPreviewGeoJSON}>
+            <Layer {...PARCEL_PREVIEW_FILL_LAYER} />
+            <Layer {...PARCEL_PREVIEW_HALO_LINE_LAYER} />
+            <Layer {...PARCEL_PREVIEW_LINE_LAYER} />
+          </Source>
+        )}
+
+        {!feature && !multiSelectMode && hoveredParcelPreviewGeoJSON && (
+          <Source id="hovered-parcel-preview" type="geojson" data={hoveredParcelPreviewGeoJSON}>
+            <Layer {...HOVERED_PARCEL_PREVIEW_FILL_LAYER} />
+            <Layer {...HOVERED_PARCEL_PREVIEW_LINE_LAYER} />
           </Source>
         )}
 
@@ -2117,8 +2440,60 @@ export function ParcelMap() {
           denverBuilding={denverBuilding}
           douglasParcelData={douglasParcelData}
           nearbyArticles={nearbyArticles}
+          boundarySelection={selectedBoundary}
           onClose={handleClose}
         />
+      )}
+
+      {viewZoom >= PARCEL_PREVIEW_MIN_ZOOM && !feature && !multiSelectMode && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 92,
+            left: leftPanelOpen ? leftPanelWidth + 18 : 18,
+            zIndex: 12,
+            padding: '8px 12px',
+            borderRadius: 12,
+            background: 'rgba(255,255,255,0.94)',
+            border: '1px solid rgba(37,99,235,0.18)',
+            boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
+            fontSize: 12,
+            color: '#0f3f75',
+            fontWeight: 600,
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            pointerEvents: 'none',
+          }}
+        >
+          Parcel boundaries are active. Click any outlined parcel to inspect it.
+        </div>
+      )}
+
+      {hoveredParcelPreviewMeta && !feature && !multiSelectMode && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 128,
+            left: leftPanelOpen ? leftPanelWidth + 18 : 18,
+            zIndex: 12,
+            padding: '10px 12px',
+            borderRadius: 12,
+            background: 'rgba(14,165,233,0.96)',
+            color: '#fff',
+            fontSize: 12,
+            boxShadow: '0 8px 24px rgba(14,165,233,0.28)',
+            pointerEvents: 'none',
+            maxWidth: 320,
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {hoveredParcelPreviewMeta.address || hoveredParcelPreviewMeta.apn || 'Parcel'}
+          </div>
+          <div style={{ marginTop: 4, fontSize: 11, color: 'rgba(255,255,255,0.92)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {hoveredParcelPreviewMeta.apn && <span>APN: {hoveredParcelPreviewMeta.apn}</span>}
+            {hoveredParcelPreviewMeta.lotSize && <span>Lot: {hoveredParcelPreviewMeta.lotSize}</span>}
+          </div>
+        </div>
       )}
 
       {showCountyBoundaries && hoveredBoundaryLabel && hoveredBoundaryContext && (

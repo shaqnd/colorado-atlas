@@ -258,7 +258,11 @@ function buildParidWhereClause(rawParid: string): string {
   if (trimmed) candidates.add(trimmed);
 
   const digitsOnly = trimmed.replace(/\D/g, '');
-  if (digitsOnly) candidates.add(digitsOnly);
+  if (digitsOnly) {
+    candidates.add(digitsOnly);
+    if (digitsOnly.length === 12) candidates.add(`${digitsOnly}0`);
+    if (digitsOnly.length === 13 && digitsOnly.endsWith('0')) candidates.add(digitsOnly.slice(0, -1));
+  }
 
   return Array.from(candidates)
     .map((candidate) => `PARID = '${candidate.replace(/'/g, "''")}'`)
@@ -393,6 +397,78 @@ app.get('/api/denver-neighborhoods', async (_req, res) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown proxy error';
     res.status(502).json({ error: `Denver neighborhoods upstream unreachable: ${message}` });
+  }
+});
+
+app.get('/api/denver-zoning-point', async (req, res) => {
+  const lat = typeof req.query.lat === 'string' ? Number(req.query.lat) : NaN;
+  const lng = typeof req.query.lng === 'string' ? Number(req.query.lng) : NaN;
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    res.status(400).json({ error: 'lat and lng query params are required' });
+    return;
+  }
+
+  const upstreamUrl = new URL('https://denvergov.org/maps/data/Zoning/MapServer/1/query');
+  upstreamUrl.search = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONE_DISTRICT,ZONE_DESCRIPTION,ZONE_DIST_TYPE,NBHD_CONTEXT,OVERLAY_DISTRICT,ADU,HEIGHT_STORIES,PUD_NUM,PUD_DOCUMENT,ORD_NUM,ORD_YEAR',
+    returnGeometry: 'false',
+    f: 'json',
+  }).toString();
+
+  try {
+    const upstream = await fetch(upstreamUrl, {
+      headers: { accept: 'application/json,text/plain,*/*' },
+    });
+
+    if (!upstream.ok) {
+      res.status(upstream.status).json({ error: `Denver zoning upstream returned ${upstream.status}` });
+      return;
+    }
+
+    const json = await upstream.json() as { features?: Array<{ attributes?: Record<string, unknown> }>; error?: { message?: string } };
+    if (json.error) {
+      res.status(502).json({ error: json.error.message ?? 'Denver zoning lookup failed' });
+      return;
+    }
+
+    const attributes = json.features?.[0]?.attributes;
+    if (!attributes) {
+      res.json({ data: null });
+      return;
+    }
+
+    const s = (key: string) => {
+      const value = attributes[key];
+      return value === null || value === undefined || value === '' ? null : String(value).trim() || null;
+    };
+    const n = (key: string) => {
+      const value = Number(attributes[key]);
+      return Number.isFinite(value) ? value : null;
+    };
+
+    res.json({
+      data: {
+        zoneDistrict: s('ZONE_DISTRICT'),
+        zoneDescription: s('ZONE_DESCRIPTION'),
+        zoneDistType: s('ZONE_DIST_TYPE'),
+        nbhdContext: s('NBHD_CONTEXT'),
+        overlayDistrict: s('OVERLAY_DISTRICT'),
+        aduAllowed: s('ADU'),
+        heightStories: n('HEIGHT_STORIES'),
+        pudNum: s('PUD_NUM'),
+        pudDocument: s('PUD_DOCUMENT'),
+        ordNum: n('ORD_NUM'),
+        ordYear: n('ORD_YEAR'),
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown Denver zoning lookup error';
+    res.status(502).json({ error: `Denver zoning lookup failed: ${message}` });
   }
 });
 

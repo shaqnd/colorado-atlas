@@ -5,10 +5,18 @@
 
 import { useEffect, useState } from 'react';
 import type { ParcelFeature, DenverBuildingData, DouglasParcelData } from '../data/parcelTypes';
-import { formatCurrency, formatNumber, formatDate, queryDenverBuildings, queryParcelsNearby } from '../utils/parcelService';
+import {
+  formatCurrency,
+  formatNumber,
+  formatDate,
+  queryDenverBuilding,
+  queryDenverBuildings,
+  queryDenverZoning,
+  queryParcelsNearby,
+} from '../utils/parcelService';
 import { runHBUAnalysis } from '../utils/hbuAnalysis';
 import { zoneDistrictsByCode } from '../data/zoneDistricts';
-import { ALL_COMMUNITIES } from '../data/communities';
+import { ALL_COMMUNITIES, getCommunitiesByCounty } from '../data/communities';
 import { getDenverZoneDistrict, DENVER_CATEGORY_LABELS } from '../data/denverZoning';
 import type { DenverZoningRaw } from '../utils/parcelService';
 import type { Community } from '../data/communities';
@@ -51,6 +59,37 @@ function fmtSqft(value: number | null): string {
   return value === null ? '—' : `${formatNumber(value)} sf`;
 }
 
+function getGeometryCenter(geometry: GeoJSON.Geometry | null | undefined): [number, number] | null {
+  if (!geometry || !('coordinates' in geometry)) return null;
+  const coords: [number, number][] = [];
+
+  const collect = (value: unknown) => {
+    if (!Array.isArray(value)) return;
+    if (value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') {
+      coords.push([value[0], value[1]]);
+      return;
+    }
+    for (const child of value) collect(child);
+  };
+
+  collect((geometry as { coordinates?: unknown }).coordinates);
+  if (coords.length === 0) return null;
+
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+
+  for (const [lng, lat] of coords) {
+    minLng = Math.min(minLng, lng);
+    minLat = Math.min(minLat, lat);
+    maxLng = Math.max(maxLng, lng);
+    maxLat = Math.max(maxLat, lat);
+  }
+
+  return [(minLng + maxLng) / 2, (minLat + maxLat) / 2];
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface ParcelPanelProps {
   feature: ParcelFeature | null;
@@ -61,7 +100,14 @@ interface ParcelPanelProps {
   denverBuilding: DenverBuildingData | null;
   douglasParcelData: DouglasParcelData | null;
   nearbyArticles: (NakedDenverArticle & { distanceMiles: number })[];
+  boundarySelection: BoundarySelectionSummary | null;
   onClose: () => void;
+}
+
+export interface BoundarySelectionSummary {
+  type: 'county' | 'town' | 'neighborhood';
+  name: string;
+  countyName: string;
 }
 
 // ── Helper sub-components ─────────────────────────────────────────────────────
@@ -264,6 +310,104 @@ function findCommunity(f: ParcelFeature, neighbourhood?: string | null): Communi
   }
 
   return null;
+}
+
+function findBoundaryCommunity(boundary: BoundarySelectionSummary): Community | null {
+  const targetName = boundary.name.trim().toLowerCase();
+  const countyName = boundary.countyName.trim().toLowerCase();
+
+  return (
+    ALL_COMMUNITIES.find((community) => {
+      if (community.county.trim().toLowerCase() !== countyName) return false;
+      if (community.name.trim().toLowerCase() !== targetName) return false;
+      if (boundary.type === 'neighborhood') return community.type === 'Neighborhood';
+      if (boundary.type === 'town') return community.type !== 'Neighborhood';
+      return true;
+    }) ?? null
+  );
+}
+
+function CountyBoundaryCard({ countyName }: { countyName: string }) {
+  const communities = getCommunitiesByCounty(countyName);
+  const incorporatedCount = communities.filter((community) => community.incorporated).length;
+  const neighborhoodCount = communities.filter((community) => community.type === 'Neighborhood').length;
+  const unincorporatedCount = communities.filter(
+    (community) => !community.incorporated && community.type !== 'Neighborhood'
+  ).length;
+  const largestCommunity = communities
+    .filter((community) => typeof community.population2020 === 'number')
+    .sort((a, b) => (b.population2020 ?? 0) - (a.population2020 ?? 0))[0] ?? null;
+
+  return (
+    <>
+      <Section title="Overview">
+        <Row label="Boundary Type" value="County" />
+        <Row label="County" value={`${countyName} County`} />
+        <Row label="Tracked Communities" value={communities.length > 0 ? communities.length : '—'} />
+        <Row label="Incorporated Places" value={incorporatedCount > 0 ? incorporatedCount : '—'} />
+        <Row label="Neighborhoods / Unincorporated Areas" value={neighborhoodCount + unincorporatedCount > 0 ? neighborhoodCount + unincorporatedCount : '—'} />
+        {largestCommunity && (
+          <Row
+            label="Largest Place"
+            value={`${largestCommunity.name}${largestCommunity.population2020 ? ` · ${formatNumber(largestCommunity.population2020)}` : ''}`}
+          />
+        )}
+      </Section>
+
+      {communities.length > 0 && (
+        <Section title="County Snapshot">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div style={{ borderRadius: 10, border: '1px solid var(--ap-sep)', background: 'rgba(0,0,0,0.02)', padding: '10px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Incorporated
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--ap-t1)', marginTop: 4 }}>{incorporatedCount}</div>
+            </div>
+            <div style={{ borderRadius: 10, border: '1px solid var(--ap-sep)', background: 'rgba(0,0,0,0.02)', padding: '10px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Neighborhoods / Areas
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--ap-t1)', marginTop: 4 }}>{neighborhoodCount + unincorporatedCount}</div>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(0,113,227,0.06)', color: '#0f3f75', fontSize: 12, lineHeight: 1.55 }}>
+        This is a boundary-level selection. Zoom in further and click an individual parcel to see parcel ownership, zoning, tax, and building detail.
+      </div>
+    </>
+  );
+}
+
+function BoundaryTab({ boundarySelection }: { boundarySelection: BoundarySelectionSummary }) {
+  const community = boundarySelection.type === 'county' ? null : findBoundaryCommunity(boundarySelection);
+
+  return (
+    <>
+      <Section title="Overview">
+        <Row label="Boundary Type" value={boundarySelection.type === 'neighborhood' ? 'Neighborhood' : boundarySelection.type === 'town' ? 'Town / Place' : 'County'} />
+        <Row label={boundarySelection.type === 'county' ? 'County' : 'Parent County'} value={`${boundarySelection.countyName} County`} />
+      </Section>
+
+      {boundarySelection.type === 'county' ? (
+        <CountyBoundaryCard countyName={boundarySelection.countyName} />
+      ) : community ? (
+        <>
+          <Section title="Community">
+            <CommunityCard community={community} />
+          </Section>
+          <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(0,113,227,0.06)', color: '#0f3f75', fontSize: 12, lineHeight: 1.55 }}>
+            You&apos;re viewing a {boundarySelection.type} boundary. Zoom in and select an individual parcel when you want parcel-level zoning, tax, building, or owner detail.
+          </div>
+        </>
+      ) : (
+        <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.03)', color: 'var(--ap-t2)', fontSize: 12, lineHeight: 1.55 }}>
+          Boundary selected: {boundarySelection.name}. We have the geometry active on the map, but this place doesn&apos;t yet have a richer community profile in the local reference dataset.
+        </div>
+      )}
+    </>
+  );
 }
 
 // ── HBU mini-display ──────────────────────────────────────────────────────────
@@ -657,10 +801,11 @@ function ZoningTab({
 }) {
   const z = f.zoning;
   const dzDistrict = denverZoning?.zoneDistrict ? getDenverZoneDistrict(denverZoning.zoneDistrict) : null;
-  const isDenver = !!denverZoning?.zoneDistrict;
+  const isDenverCounty = f.location.county.trim().toLowerCase() === 'denver';
+  const isDenver = isDenverCounty;
   const isDouglas = f.location.county.toLowerCase() === 'douglas' && !!douglasParcelData;
   const effectiveZoneCode = isDenver
-    ? denverZoning!.zoneDistrict
+    ? denverZoning?.zoneDistrict ?? z.code
     : douglasParcelData?.zoningCode ?? z.code;
 
   // For HBU: prefer Denver zone code, fall back to ESRI
@@ -706,10 +851,10 @@ function ZoningTab({
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
               <div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: '#0051b3', letterSpacing: '-0.01em' }}>
-                  {denverZoning!.zoneDistrict}
+                  {denverZoning?.zoneDistrict ?? z.code ?? 'Denver zoning'}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--ap-t2)', marginTop: 2 }}>
-                  {dzDistrict?.name ?? denverZoning!.zoneDescription ?? '—'}
+                  {dzDistrict?.name ?? denverZoning?.zoneDescription ?? z.description ?? '—'}
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -721,9 +866,9 @@ function ZoningTab({
                     {DENVER_CATEGORY_LABELS[dzDistrict.category]}
                   </span>
                 )}
-                {denverZoning!.nbhdContext && (
+                {denverZoning?.nbhdContext && (
                   <div style={{ fontSize: 11, color: 'var(--ap-t3)', marginTop: 4 }}>
-                    {denverZoning!.nbhdContext} context
+                    {denverZoning.nbhdContext} context
                   </div>
                 )}
               </div>
@@ -744,7 +889,7 @@ function ZoningTab({
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {[
-                  ['Max Height', dzDistrict.maxHeightFt > 0 ? `${dzDistrict.maxHeightFt} ft (${dzDistrict.maxHeightStories} stories)` : denverZoning!.heightStories ? `${denverZoning!.heightStories} stories` : 'No fixed limit'],
+                  ['Max Height', dzDistrict.maxHeightFt > 0 ? `${dzDistrict.maxHeightFt} ft (${dzDistrict.maxHeightStories} stories)` : denverZoning?.heightStories ? `${denverZoning.heightStories} stories` : 'No fixed limit'],
                   ['Min Lot Size', dzDistrict.minLotSqft > 0 ? `${dzDistrict.minLotSqft.toLocaleString()} sq ft` : 'None'],
                   ['Max FAR', dzDistrict.maxFAR > 0 ? String(dzDistrict.maxFAR) : 'N/A'],
                   ['Current Building Size', denverBuilding?.totalBuildingSqft ? `${formatNumber(denverBuilding.totalBuildingSqft)} sq ft` : 'N/A'],
@@ -752,7 +897,7 @@ function ZoningTab({
                   ['Front Setback', `${dzDistrict.setbacks.primaryStreetFt} ft`],
                   ['Side Setback', `${dzDistrict.setbacks.sideFt} ft`],
                   ['Rear Setback', `${dzDistrict.setbacks.rearFt} ft`],
-                  ['ADU Allowed', dzDistrict.aduAllowed ? 'Yes' : (denverZoning!.aduAllowed === 'Yes' ? 'Yes' : 'No')],
+                  ['ADU Allowed', dzDistrict.aduAllowed ? 'Yes' : (denverZoning?.aduAllowed === 'Yes' ? 'Yes' : 'No')],
                   ['Max Units', dzDistrict.maxUnits != null ? (dzDistrict.maxUnits === 0 ? 'None (no residential)' : String(dzDistrict.maxUnits)) : 'Density-based'],
                   ['Parking', dzDistrict.parkingRequired ? 'Required' : 'Not required by zone'],
                 ].map(([label, val]) => (
@@ -766,19 +911,28 @@ function ZoningTab({
           )}
 
           {/* Overlays / special conditions */}
-          {(denverZoning!.overlayDistrict || denverZoning!.pudNum) && (
+          {(denverZoning?.overlayDistrict || denverZoning?.pudNum) && (
             <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)', marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', marginBottom: 4 }}>Overlays & Special Conditions</div>
-              {denverZoning!.overlayDistrict && <div style={{ fontSize: 12, color: '#92400e' }}>Overlay: {denverZoning!.overlayDistrict}</div>}
-              {denverZoning!.pudNum && (
+              {denverZoning?.overlayDistrict && <div style={{ fontSize: 12, color: '#92400e' }}>Overlay: {denverZoning.overlayDistrict}</div>}
+              {denverZoning?.pudNum && (
                 <div style={{ fontSize: 12, color: '#92400e' }}>
-                  PUD #{denverZoning!.pudNum}
-                  {denverZoning!.pudDocument && (
-                    <> · <a href={denverZoning!.pudDocument} target="_blank" rel="noopener noreferrer" style={{ color: '#0051b3' }}>View PUD Document ↗</a></>
+                  PUD #{denverZoning.pudNum}
+                  {denverZoning.pudDocument && (
+                    <> · <a href={denverZoning.pudDocument} target="_blank" rel="noopener noreferrer" style={{ color: '#0051b3' }}>View PUD Document ↗</a></>
                   )}
                 </div>
               )}
-              {denverZoning!.ordNum && <div style={{ fontSize: 11, color: '#b45309', marginTop: 2 }}>Ordinance {denverZoning!.ordNum} ({denverZoning!.ordYear})</div>}
+              {denverZoning?.ordNum && <div style={{ fontSize: 11, color: '#b45309', marginTop: 2 }}>Ordinance {denverZoning.ordNum} ({denverZoning.ordYear})</div>}
+            </div>
+          )}
+
+          {!denverZoning?.zoneDistrict && (
+            <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,159,10,0.08)', border: '1px solid rgba(255,159,10,0.18)', marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#b25a00', marginBottom: 4 }}>Denver official zoning retry still pending</div>
+              <div style={{ fontSize: 12, color: '#b25a00', lineHeight: 1.5 }}>
+                Using the statewide parcel zoning code <strong>{z.code || '—'}</strong> as a temporary fallback for this view while the official Denver zoning lookup resolves.
+              </div>
             </div>
           )}
 
@@ -860,7 +1014,7 @@ function ZoningTab({
               {!isDenver && !z.code
                 ? 'No zone code available.'
                 : !zoneCodeForHbu
-                ? `Zone "${isDenver ? denverZoning!.zoneDistrict : z.code}" not yet in the HBU rules engine — use the Zoning & HBU tab.`
+                ? `Zone "${isDenver ? (denverZoning?.zoneDistrict ?? z.code ?? 'unknown') : z.code}" not yet in the HBU rules engine — use the Zoning & HBU tab.`
                 : !mappedUse
                 ? 'Land use could not be inferred from parcel data.'
                 : 'Lot size required for analysis.'}
@@ -1028,7 +1182,7 @@ function TaxTab({
   douglasParcelData?: DouglasParcelData | null;
 }) {
   const v = f.valuation;
-  const isDenver = !!denverZoning?.zoneDistrict;
+  const isDenver = f.location.county.trim().toLowerCase() === 'denver';
   const isDouglas = f.location.county.toLowerCase() === 'douglas' && !!douglasParcelData;
   const zoneCode = denverZoning?.zoneDistrict ?? f.zoning.code ?? '';
   const propertyClass = classifyPropertyType(zoneCode, f.zoning.landUseDescription, f.zoning.landUseCode);
@@ -1713,10 +1867,85 @@ function ActivityTab({ f, nearbyArticles }: { f: ParcelFeature; nearbyArticles: 
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, denverBuilding, douglasParcelData, nearbyArticles, onClose }: ParcelPanelProps) {
+export function ParcelPanel({
+  feature,
+  open,
+  address,
+  neighbourhood,
+  denverZoning,
+  denverBuilding,
+  douglasParcelData,
+  nearbyArticles,
+  boundarySelection,
+  onClose,
+}: ParcelPanelProps) {
   const [activeTab, setActiveTab] = useState<PanelTab>('parcel');
+  const [resolvedDenverZoning, setResolvedDenverZoning] = useState<DenverZoningRaw | null>(denverZoning);
+  const [resolvedDenverBuilding, setResolvedDenverBuilding] = useState<DenverBuildingData | null>(denverBuilding);
+  const boundaryMode = !feature && !!boundarySelection;
 
   const panelW = 380;
+
+  useEffect(() => {
+    setActiveTab('parcel');
+  }, [feature?.identity.apn, boundarySelection?.name, boundarySelection?.type]);
+
+  useEffect(() => {
+    setResolvedDenverZoning(denverZoning);
+  }, [denverZoning]);
+
+  useEffect(() => {
+    setResolvedDenverBuilding(denverBuilding);
+  }, [denverBuilding]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function hydrateDenverSidebar() {
+      if (!feature || feature.location.county.trim().toLowerCase() !== 'denver') return;
+
+      const center = getGeometryCenter(feature.geometry as GeoJSON.Geometry);
+      const candidatePoints: Array<[number, number]> = [
+        ...(center ? [center] : []),
+        [feature.location.lng, feature.location.lat],
+      ].filter(([lng, lat], index, arr) =>
+        Number.isFinite(lng) &&
+        Number.isFinite(lat) &&
+        arr.findIndex(([otherLng, otherLat]) => otherLng === lng && otherLat === lat) === index
+      );
+
+      if (!resolvedDenverZoning?.zoneDistrict) {
+        for (const [candidateLng, candidateLat] of candidatePoints) {
+          try {
+            const zoning = await queryDenverZoning(candidateLat, candidateLng);
+            if (!cancelled && zoning?.zoneDistrict) {
+              setResolvedDenverZoning(zoning);
+              break;
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+
+      if (!resolvedDenverBuilding) {
+        try {
+          const building = await queryDenverBuilding(feature.identity.apn);
+          if (!cancelled && building) {
+            setResolvedDenverBuilding(building);
+          }
+        } catch {
+          // keep null and let parcel fallback render
+        }
+      }
+    }
+
+    void hydrateDenverSidebar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [feature, resolvedDenverBuilding, resolvedDenverZoning?.zoneDistrict]);
 
   return (
     <div
@@ -1745,14 +1974,25 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ap-t1)', lineHeight: 1.3, wordBreak: 'break-word' }}>
-              {feature?.location.situsAddress || address || 'Selected Location'}
+              {feature?.location.situsAddress || boundarySelection?.name || address || 'Selected Location'}
             </div>
-            {(feature?.location.city || feature?.location.county) && (
+            {(feature?.location.city || feature?.location.county || boundarySelection?.countyName) && (
               <div style={{ fontSize: 12, color: 'var(--ap-t3)', marginTop: 2 }}>
-                {neighbourhood
-                  ? [neighbourhood, feature.location.city, feature.location.county + ' County', 'CO'].filter(Boolean).join(', ')
-                  : [feature.location.city, feature.location.county + ' County', 'CO'].filter(Boolean).join(', ')
-                }
+                {feature
+                  ? (neighbourhood
+                      ? [neighbourhood, feature.location.city, feature.location.county + ' County', 'CO'].filter(Boolean).join(', ')
+                      : [feature.location.city, feature.location.county + ' County', 'CO'].filter(Boolean).join(', '))
+                  : boundarySelection
+                  ? [
+                      boundarySelection.type === 'county'
+                        ? 'County boundary'
+                        : boundarySelection.type === 'neighborhood'
+                        ? 'Neighborhood boundary'
+                        : 'Town boundary',
+                      boundarySelection.countyName + ' County',
+                      'CO',
+                    ].join(', ')
+                  : null}
               </div>
             )}
           </div>
@@ -1786,12 +2026,12 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
                 {formatNumber(feature.identity.sqft)} sf
               </span>
             )}
-            {denverZoning?.zoneDistrict && (
+            {resolvedDenverZoning?.zoneDistrict && (
               <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'rgba(0,113,227,0.10)', color: '#0051b3', fontWeight: 700 }}>
-                {denverZoning.zoneDistrict}
+                {resolvedDenverZoning.zoneDistrict}
               </span>
             )}
-            {!denverZoning?.zoneDistrict && douglasParcelData?.zoningCode && (
+            {!resolvedDenverZoning?.zoneDistrict && douglasParcelData?.zoningCode && (
               <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'rgba(0,113,227,0.10)', color: '#0051b3', fontWeight: 700 }}>
                 {douglasParcelData.zoningCode}
               </span>
@@ -1804,48 +2044,63 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
           </div>
         )}
 
+        {boundaryMode && boundarySelection && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12, marginTop: 6 }}>
+            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'rgba(0,113,227,0.10)', color: '#0051b3', fontWeight: 700 }}>
+              {boundarySelection.type === 'county' ? 'County' : boundarySelection.type === 'neighborhood' ? 'Neighborhood' : 'Town'}
+            </span>
+            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'rgba(0,0,0,0.06)', color: 'var(--ap-t2)', fontWeight: 500 }}>
+              {boundarySelection.countyName} County
+            </span>
+          </div>
+        )}
+
         {/* Tab bar */}
-        <div
-          style={{
-            display: 'flex',
-            borderBottom: '1px solid var(--ap-sep)',
-            marginLeft: -18,
-            marginRight: -18,
-            paddingLeft: 18,
-            overflowX: 'auto',
-            gap: 0,
-          }}
-        >
-          {TABS.map(tab => {
-            const active = tab.id === activeTab;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: '8px 14px',
-                  fontSize: 13,
-                  fontWeight: active ? 600 : 400,
-                  color: active ? 'var(--ap-blue)' : 'var(--ap-t3)',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  borderBottom: active ? '2px solid var(--ap-blue)' : '2px solid transparent',
-                  marginBottom: -1,
-                  whiteSpace: 'nowrap',
-                  transition: 'color 150ms, border-color 150ms',
-                }}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
+        {!boundaryMode && (
+          <div
+            style={{
+              display: 'flex',
+              borderBottom: '1px solid var(--ap-sep)',
+              marginLeft: -18,
+              marginRight: -18,
+              paddingLeft: 18,
+              overflowX: 'auto',
+              gap: 0,
+            }}
+          >
+            {TABS.map(tab => {
+              const active = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '8px 14px',
+                    fontSize: 13,
+                    fontWeight: active ? 600 : 400,
+                    color: active ? 'var(--ap-blue)' : 'var(--ap-t3)',
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    borderBottom: active ? '2px solid var(--ap-blue)' : '2px solid transparent',
+                    marginBottom: -1,
+                    whiteSpace: 'nowrap',
+                    transition: 'color 150ms, border-color 150ms',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── Scrollable content ── */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 24px' }}>
-        {!feature ? (
+        {boundaryMode && boundarySelection ? (
+          <BoundaryTab boundarySelection={boundarySelection} />
+        ) : !feature ? (
           <div style={{ padding: '32px 0', textAlign: 'center' }}>
             <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,113,227,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -1860,9 +2115,9 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
           </div>
         ) : (
           <>
-            {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} denverBuilding={denverBuilding} douglasParcelData={douglasParcelData} />}
-            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} denverBuilding={denverBuilding} douglasParcelData={douglasParcelData} />}
-            {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={denverZoning} denverBuilding={denverBuilding} douglasParcelData={douglasParcelData} />}
+            {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} />}
+            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} />}
+            {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} />}
             {activeTab === 'council'  && <CouncilTab f={feature} />}
             {activeTab === 'activity' && <ActivityTab f={feature} nearbyArticles={nearbyArticles} />}
           </>
