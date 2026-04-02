@@ -138,9 +138,19 @@ export interface HBUSignal {
 export interface HBUResult {
   verdict: 'underutilized' | 'optimal';
   signals: HBUSignal[];
+  recommendation: {
+    currentUseLabel: string;
+    likelyInterimUse: string;
+    likelyUltimateUse: string;
+    rationale: string[];
+    support: string[];
+  };
   districtDetail: ZoneDistrict & {
     maxBuildingArea: number;
     maxDwellingUnits: number;
+    currentFAR: number;
+    farUtilization: number;
+    densityUtilization: number;
   };
 }
 

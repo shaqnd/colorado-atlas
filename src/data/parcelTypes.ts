@@ -99,6 +99,86 @@ export interface ParcelValuation {
   lastSalePrice: number | null;
 }
 
+export interface DenverBuildingData {
+  source: 'residential' | 'commercial';
+  parid: string;
+  neighborhoodName: string | null;
+  propertyClass: string | null;
+  totalBuildingSqft: number | null;
+  aboveGradeSqft: number | null;
+  basementSqft: number | null;
+  finishedBasementSqft: number | null;
+  grossAreaSqft: number | null;
+  netAreaSqft: number | null;
+  groundFloorSqft: number | null;
+  floors: number | null;
+  units: number | null;
+  yearBuilt: number | null;
+  remodelYear: number | null;
+  style: string | null;
+  buildingName: string | null;
+}
+
+export interface DouglasBuildingData {
+  propertyType: string | null;
+  totalBuildingSqft: number | null;
+  basementSqft: number | null;
+  floors: number | null;
+  units: number | null;
+  yearBuilt: number | null;
+  remodelYear: number | null;
+  style: string | null;
+  useDescription: string | null;
+  constructionDescription: string | null;
+}
+
+export interface DouglasTaxReportData {
+  taxYear: number | null;
+  totalActualValue: number | null;
+  legislativeAdjustment: number | null;
+  taxableActualValue: number | null;
+  taxableAssessedValue: number | null;
+  millLevy: number | null;
+  taxRatePercent: number | null;
+  estimatedTaxes: number | null;
+  estimatedRefund: number | null;
+  sourceUrl: string | null;
+}
+
+export interface DouglasParcelData {
+  accountNumber: string;
+  stateParcelNumber: string | null;
+  parcelType: string | null;
+  accountSubtypeCode: string | null;
+  locationAddress: string | null;
+  cityName: string | null;
+  ownerName: string | null;
+  mailingAddress: string | null;
+  legalDescription: string | null;
+  subdivision: string | null;
+  zoningCode: string | null;
+  zoningCodeDescription: string | null;
+  taxDistrictNumber: string | null;
+  totalActualValue: number | null;
+  totalAssessedValue: number | null;
+  reducedMillLevy: number | null;
+  fullMillLevy: number | null;
+  estimatedAnnualTax: number | null;
+  accountType: string | null;
+  appraisalType: string | null;
+  propertyType: string | null;
+  isVacant: boolean;
+  neighborhoodCodes: string[];
+  primaryBuilding: DouglasBuildingData | null;
+  buildingPermitAuthorityName: string | null;
+  buildingPermitAuthorityPhone: string | null;
+  latestTaxReport: DouglasTaxReportData | null;
+  detailUrl: string;
+  estimatedTaxesUrl: string;
+  neighborhoodInfoUrl: string;
+  neighborhoodSalesUrl: string;
+}
+
 // ── Top-level feature ─────────────────────────────────────────────────────────
 export interface ParcelFeature {
   /** Stable ID for React keys and dedup */

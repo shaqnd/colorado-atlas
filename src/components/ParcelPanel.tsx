@@ -3,9 +3,9 @@
  * Floats over the left edge of the map; matches Apple design tokens.
  */
 
-import { useState } from 'react';
-import type { ParcelFeature } from '../data/parcelTypes';
-import { formatCurrency, formatNumber, formatDate } from '../utils/parcelService';
+import { useEffect, useState } from 'react';
+import type { ParcelFeature, DenverBuildingData, DouglasParcelData } from '../data/parcelTypes';
+import { formatCurrency, formatNumber, formatDate, queryDenverBuildings, queryParcelsNearby } from '../utils/parcelService';
 import { runHBUAnalysis } from '../utils/hbuAnalysis';
 import { zoneDistrictsByCode } from '../data/zoneDistricts';
 import { ALL_COMMUNITIES } from '../data/communities';
@@ -13,6 +13,7 @@ import { getDenverZoneDistrict, DENVER_CATEGORY_LABELS } from '../data/denverZon
 import type { DenverZoningRaw } from '../utils/parcelService';
 import type { Community } from '../data/communities';
 import type { HBUResult } from '../data/types';
+import type { NakedDenverArticle } from '../data/nakedDenverArticles';
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 type PanelTab = 'parcel' | 'zoning' | 'tax' | 'council' | 'activity';
@@ -24,6 +25,32 @@ const TABS: { id: PanelTab; label: string }[] = [
   { id: 'activity', label: 'Activity' },
 ];
 
+type ComparableProperty = {
+  feature: ParcelFeature;
+  building: DenverBuildingData;
+  propertyType: string;
+  estimatedTax: number;
+  taxPerBuildingSqft: number | null;
+  distanceMiles: number;
+};
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function fmtCurrencyCompact(value: number | null): string {
+  return value === null ? '—' : formatCurrency(value);
+}
+
+function fmtSqft(value: number | null): string {
+  return value === null ? '—' : `${formatNumber(value)} sf`;
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface ParcelPanelProps {
   feature: ParcelFeature | null;
@@ -31,6 +58,9 @@ interface ParcelPanelProps {
   address: string;
   neighbourhood: string | null;
   denverZoning: DenverZoningRaw | null;
+  denverBuilding: DenverBuildingData | null;
+  douglasParcelData: DouglasParcelData | null;
+  nearbyArticles: (NakedDenverArticle & { distanceMiles: number })[];
   onClose: () => void;
 }
 
@@ -109,6 +139,87 @@ function inferUseCode(landUseDsc: string | null, landUseCde: string | null): str
   if (/school|church|hospital|civic|government|institutional/.test(text)) return 'institutional';
   if (/resid/.test(text)) return 'single_family';
   return null;
+}
+
+function normalizePropertyType(
+  f: ParcelFeature,
+  denverBuilding?: DenverBuildingData | null,
+  douglasParcelData?: DouglasParcelData | null
+): string {
+  const douglasType = douglasParcelData?.propertyType?.toLowerCase() ?? douglasParcelData?.accountType?.toLowerCase() ?? '';
+  if (douglasType) {
+    if (/condo|townhome|rowhome/.test(douglasType)) return 'Condo / Townhome';
+    if (/single|residential|duplex/.test(douglasType)) return 'Single Family';
+    if (/multi|apartment|multiple unit/.test(douglasType)) return 'Multifamily';
+    if (/industrial|warehouse|manufact/.test(douglasType)) return 'Industrial';
+    if (/agri|farm|ranch/.test(douglasType)) return 'Agricultural';
+    if (/vacant|exempt/.test(douglasType) && douglasParcelData?.isVacant) return 'Vacant';
+    if (/commercial|retail|office/.test(douglasType)) return 'Commercial';
+  }
+
+  const denverClass = denverBuilding?.propertyClass?.toLowerCase() ?? '';
+  if (denverClass) {
+    if (/condo|rowhome|townhome/.test(denverClass)) return 'Condo / Townhome';
+    if (/single|sfr|detached/.test(denverClass)) return 'Single Family';
+    if (/apartment|multi|duplex|triplex|fourplex/.test(denverClass)) return 'Multifamily';
+    if (/industrial|warehouse|manufact/.test(denverClass)) return 'Industrial';
+    if (/vacant/.test(denverClass)) return 'Vacant';
+    if (/office|retail|commercial|store|mixed/.test(denverClass)) return 'Commercial';
+  }
+
+  const use = inferUseCode(f.zoning.landUseDescription, f.zoning.landUseCode);
+  switch (use) {
+    case 'single_family': return 'Single Family';
+    case 'duplex':
+    case 'large_multifamily': return 'Multifamily';
+    case 'mixed_use':
+    case 'retail':
+    case 'office': return 'Commercial';
+    case 'light_industrial': return 'Industrial';
+    case 'agricultural': return 'Agricultural';
+    case 'vacant': return 'Vacant';
+    case 'institutional': return 'Institutional';
+    default: return 'Unknown';
+  }
+}
+
+function getBuildingSize(
+  denverBuilding?: DenverBuildingData | null,
+  douglasParcelData?: DouglasParcelData | null
+): number | null {
+  return denverBuilding?.totalBuildingSqft ?? douglasParcelData?.primaryBuilding?.totalBuildingSqft ?? null;
+}
+
+function getBuildingUnits(
+  denverBuilding?: DenverBuildingData | null,
+  douglasParcelData?: DouglasParcelData | null
+): number | null {
+  return denverBuilding?.units ?? douglasParcelData?.primaryBuilding?.units ?? null;
+}
+
+function getBuildingYearBuilt(
+  denverBuilding?: DenverBuildingData | null,
+  douglasParcelData?: DouglasParcelData | null
+): number | null {
+  return denverBuilding?.yearBuilt ?? douglasParcelData?.primaryBuilding?.yearBuilt ?? null;
+}
+
+function haversineMiles(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const R = 3958.7613;
+  const dLat = ((bLat - aLat) * Math.PI) / 180;
+  const dLng = ((bLng - aLng) * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((aLat * Math.PI) / 180) *
+      Math.cos((bLat * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function parseComparableSaleDate(value: string | null): number | null {
+  if (!value) return null;
+  const time = Date.parse(value);
+  return Number.isFinite(time) ? time : null;
 }
 
 /**
@@ -203,6 +314,54 @@ function HBUMini({ result, zoneCode, useCode }: { result: HBUResult; zoneCode: s
             {result.signals.filter(s => s.severity === 'high').length} high ·{' '}
             {result.signals.filter(s => s.severity === 'medium').length} medium ·{' '}
             {result.signals.filter(s => s.severity === 'info').length} info signals
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 10 }}>
+        <div style={{ borderRadius: 10, border: '1px solid var(--ap-sep)', background: 'rgba(0,0,0,0.02)', padding: '10px 12px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>
+            HBU Recommendation
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6 }}>
+            {[
+              ['Current Use', result.recommendation.currentUseLabel],
+              ['Likely Interim HBU', result.recommendation.likelyInterimUse],
+              ['Likely Ultimate HBU', result.recommendation.likelyUltimateUse],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, paddingBottom: 6, borderBottom: '1px solid var(--ap-sep)' }}>
+                <div style={{ fontSize: 11, color: 'var(--ap-t3)', fontWeight: 600 }}>{label}</div>
+                <div style={{ fontSize: 12, color: 'var(--ap-t1)', fontWeight: 700, textAlign: 'right' }}>{value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ borderRadius: 10, border: '1px solid var(--ap-sep)', background: 'rgba(0,0,0,0.02)', padding: '10px 12px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6 }}>
+              Why
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {result.recommendation.rationale.map((item, i) => (
+                <div key={i} style={{ fontSize: 11, color: 'var(--ap-t2)', lineHeight: 1.45 }}>
+                  • {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ borderRadius: 10, border: '1px solid var(--ap-sep)', background: 'rgba(0,0,0,0.02)', padding: '10px 12px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6 }}>
+              Zoning Support
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {result.recommendation.support.slice(0, 4).map((item, i) => (
+                <div key={i} style={{ fontSize: 11, color: 'var(--ap-t2)', lineHeight: 1.45 }}>
+                  • {item}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -323,15 +482,28 @@ function CommunityCard({ community }: { community: Community }) {
 
 // ── Tab content ───────────────────────────────────────────────────────────────
 
-function ParcelTab({ f, neighbourhood }: { f: ParcelFeature; neighbourhood?: string | null }) {
+function ParcelTab({
+  f,
+  neighbourhood,
+  denverBuilding,
+  douglasParcelData,
+}: {
+  f: ParcelFeature;
+  neighbourhood?: string | null;
+  denverBuilding?: DenverBuildingData | null;
+  douglasParcelData?: DouglasParcelData | null;
+}) {
   const sqftLabel = f.identity.sqft ? `${formatNumber(f.identity.sqft)} sf` : '—';
   const acreLabel = f.identity.acreage ? `${f.identity.acreage.toFixed(3)} ac` : '—';
   const community = findCommunity(f, neighbourhood);
+  const buildingSize = getBuildingSize(denverBuilding, douglasParcelData);
+  const isDouglas = f.location.county.toLowerCase() === 'douglas' && !!douglasParcelData;
 
   return (
     <>
       <Section title="Identity">
         <Row label="Parcel ID"     value={f.identity.apn} />
+        {douglasParcelData?.accountNumber && <Row label="Account Number" value={douglasParcelData.accountNumber} />}
         <Row label="Owner"         value={f.owner.name} />
         <Row label="County"        value={f.location.county || '—'} />
         <Row label="Subdivision"   value={f.identity.subdivision || '—'} />
@@ -340,14 +512,112 @@ function ParcelTab({ f, neighbourhood }: { f: ParcelFeature; neighbourhood?: str
       <Section title="Site">
         <Row label="Address"       value={f.location.situsAddress || '—'} />
         <Row label="City"          value={f.location.city || '—'} />
+        {(denverBuilding || douglasParcelData?.primaryBuilding) && (
+          <Row
+            label="Building Size"
+            value={buildingSize ? `${formatNumber(buildingSize)} sf` : '—'}
+          />
+        )}
         <Row label="Lot Size"      value={`${sqftLabel} · ${acreLabel}`} />
         <Row label="Coordinates"   value={`${f.location.lat.toFixed(5)}, ${f.location.lng.toFixed(5)}`} />
       </Section>
 
-      {f.identity.legalDescription && (
+      {denverBuilding && (
+        <Section title="Denver Building Size">
+          {denverBuilding.source === 'residential' && (
+            <p style={{ fontSize: 11, color: 'var(--ap-t3)', lineHeight: 1.5, margin: '0 0 8px' }}>
+              Denver residential records expose exact component areas. Total building size here is calculated from the assessor&apos;s above-grade and basement fields.
+            </p>
+          )}
+          <Row label="Data Source" value={denverBuilding.source === 'residential' ? 'Denver residential characteristics' : 'Denver apartment/commercial characteristics'} />
+          {denverBuilding.aboveGradeSqft !== null && (
+            <Row label="Above Grade" value={`${formatNumber(denverBuilding.aboveGradeSqft)} sf`} />
+          )}
+          {denverBuilding.groundFloorSqft !== null && (
+            <Row label="Ground Floor" value={`${formatNumber(denverBuilding.groundFloorSqft)} sf`} />
+          )}
+          {denverBuilding.grossAreaSqft !== null && (
+            <Row label="Gross Area" value={`${formatNumber(denverBuilding.grossAreaSqft)} sf`} />
+          )}
+          {denverBuilding.netAreaSqft !== null && (
+            <Row label="Net Area" value={`${formatNumber(denverBuilding.netAreaSqft)} sf`} />
+          )}
+          {denverBuilding.basementSqft !== null && (
+            <Row label="Basement" value={`${formatNumber(denverBuilding.basementSqft)} sf`} />
+          )}
+          {denverBuilding.finishedBasementSqft !== null && (
+            <Row label="Finished Basement" value={`${formatNumber(denverBuilding.finishedBasementSqft)} sf`} />
+          )}
+          {denverBuilding.floors !== null && (
+            <Row label="Floors" value={denverBuilding.floors} />
+          )}
+          {denverBuilding.units !== null && (
+            <Row label="Units" value={denverBuilding.units} />
+          )}
+          {(denverBuilding.yearBuilt !== null || denverBuilding.remodelYear !== null) && (
+            <Row
+              label="Year Built / Remodel"
+              value={[
+                denverBuilding.yearBuilt ?? '—',
+                denverBuilding.remodelYear ?? '—',
+              ].join(' / ')}
+            />
+          )}
+          {denverBuilding.propertyClass && (
+            <Row label="Property Class" value={denverBuilding.propertyClass} />
+          )}
+          {denverBuilding.style && (
+            <Row label="Style / Class" value={denverBuilding.style} />
+          )}
+          {denverBuilding.buildingName && (
+            <Row label="Building Name" value={denverBuilding.buildingName} />
+          )}
+        </Section>
+      )}
+
+      {isDouglas && (
+        <Section title="Douglas Assessor Detail">
+          <Row label="Parcel Type" value={douglasParcelData.parcelType || '—'} />
+          <Row label="Account Type" value={douglasParcelData.accountType || '—'} />
+          {douglasParcelData.primaryBuilding?.propertyType && (
+            <Row label="Property Type" value={douglasParcelData.primaryBuilding.propertyType} />
+          )}
+          {douglasParcelData.primaryBuilding?.style && (
+            <Row label="Style" value={douglasParcelData.primaryBuilding.style} />
+          )}
+          {douglasParcelData.primaryBuilding?.useDescription && (
+            <Row label="Primary Use" value={douglasParcelData.primaryBuilding.useDescription} />
+          )}
+          {douglasParcelData.primaryBuilding?.constructionDescription && (
+            <Row label="Construction" value={douglasParcelData.primaryBuilding.constructionDescription} />
+          )}
+          {douglasParcelData.primaryBuilding?.floors !== null && (
+            <Row label="Floors" value={douglasParcelData.primaryBuilding?.floors ?? '—'} />
+          )}
+          {douglasParcelData.primaryBuilding?.units !== null && (
+            <Row label="Units" value={douglasParcelData.primaryBuilding?.units ?? '—'} />
+          )}
+          {getBuildingYearBuilt(null, douglasParcelData) !== null && (
+            <Row label="Year Built" value={getBuildingYearBuilt(null, douglasParcelData) ?? '—'} />
+          )}
+          {douglasParcelData.buildingPermitAuthorityName && (
+            <Row label="Permit Authority" value={douglasParcelData.buildingPermitAuthorityName} />
+          )}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+            <a href={douglasParcelData.detailUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#0051b3', textDecoration: 'none', fontWeight: 600 }}>
+              Douglas Assessor Record ↗
+            </a>
+            <a href={douglasParcelData.neighborhoodInfoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: '#0051b3', textDecoration: 'none', fontWeight: 600 }}>
+              Neighborhood Info ↗
+            </a>
+          </div>
+        </Section>
+      )}
+
+      {(douglasParcelData?.legalDescription || f.identity.legalDescription) && (
         <Section title="Legal Description">
           <p style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, margin: 0 }}>
-            {f.identity.legalDescription}
+            {douglasParcelData?.legalDescription || f.identity.legalDescription}
           </p>
         </Section>
       )}
@@ -368,24 +638,46 @@ function ParcelTab({ f, neighbourhood }: { f: ParcelFeature; neighbourhood?: str
       )}
 
       <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.03)', fontSize: 11, color: 'var(--ap-t3)' }}>
-        Source: Colorado Statewide Parcels · ESRI REST Service
+        Source: {isDouglas ? 'Douglas County Assessor + Colorado Statewide Parcels' : 'Colorado Statewide Parcels · ESRI REST Service'}
       </div>
     </>
   );
 }
 
-function ZoningTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZoningRaw | null }) {
+function ZoningTab({
+  f,
+  denverZoning,
+  denverBuilding,
+  douglasParcelData,
+}: {
+  f: ParcelFeature;
+  denverZoning?: DenverZoningRaw | null;
+  denverBuilding?: DenverBuildingData | null;
+  douglasParcelData?: DouglasParcelData | null;
+}) {
   const z = f.zoning;
   const dzDistrict = denverZoning?.zoneDistrict ? getDenverZoneDistrict(denverZoning.zoneDistrict) : null;
   const isDenver = !!denverZoning?.zoneDistrict;
+  const isDouglas = f.location.county.toLowerCase() === 'douglas' && !!douglasParcelData;
+  const effectiveZoneCode = isDenver
+    ? denverZoning!.zoneDistrict
+    : douglasParcelData?.zoningCode ?? z.code;
 
   // For HBU: prefer Denver zone code, fall back to ESRI
-  const zoneCodeForHbu = isDenver ? inferZoneCode(denverZoning!.zoneDistrict) : inferZoneCode(z.code);
+  const zoneCodeForHbu = inferZoneCode(effectiveZoneCode ?? null);
   const mappedUse = inferUseCode(z.landUseDescription, z.landUseCode);
   const sqft = f.identity.sqft ?? 0;
+  const normalizedPropertyType = normalizePropertyType(f, denverBuilding, douglasParcelData);
   const hbuResult: HBUResult | null =
     zoneCodeForHbu && mappedUse && sqft > 0
-      ? runHBUAnalysis({ zoneCode: zoneCodeForHbu, currentUseCode: mappedUse, lotSizeSqft: sqft })
+      ? runHBUAnalysis({
+          zoneCode: zoneCodeForHbu,
+          currentUseCode: mappedUse,
+          lotSizeSqft: sqft,
+          buildingSizeSqft: getBuildingSize(denverBuilding, douglasParcelData),
+          unitCount: getBuildingUnits(denverBuilding, douglasParcelData),
+          propertyTypeLabel: normalizedPropertyType,
+        })
       : null;
 
   return (
@@ -455,6 +747,7 @@ function ZoningTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: Denve
                   ['Max Height', dzDistrict.maxHeightFt > 0 ? `${dzDistrict.maxHeightFt} ft (${dzDistrict.maxHeightStories} stories)` : denverZoning!.heightStories ? `${denverZoning!.heightStories} stories` : 'No fixed limit'],
                   ['Min Lot Size', dzDistrict.minLotSqft > 0 ? `${dzDistrict.minLotSqft.toLocaleString()} sq ft` : 'None'],
                   ['Max FAR', dzDistrict.maxFAR > 0 ? String(dzDistrict.maxFAR) : 'N/A'],
+                  ['Current Building Size', denverBuilding?.totalBuildingSqft ? `${formatNumber(denverBuilding.totalBuildingSqft)} sq ft` : 'N/A'],
                   ['Max Lot Coverage', dzDistrict.maxLotCoveragePercent > 0 ? `${dzDistrict.maxLotCoveragePercent}%` : 'N/A'],
                   ['Front Setback', `${dzDistrict.setbacks.primaryStreetFt} ft`],
                   ['Side Setback', `${dzDistrict.setbacks.sideFt} ft`],
@@ -511,12 +804,15 @@ function ZoningTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: Denve
       {/* ── Statewide ESRI zoning (fallback / supplement) ── */}
       {!isDenver && (
         <>
-          {(z.code || z.description || z.landUseCode || z.landUseDescription) ? (
+          {(douglasParcelData?.zoningCode || douglasParcelData?.zoningCodeDescription || z.code || z.description || z.landUseCode || z.landUseDescription) ? (
             <Section title="Zoning (Statewide Layer)">
-              <Row label="Zone Code"     value={z.code || '—'} />
-              <Row label="Description"   value={z.description || '—'} />
+              <Row label="Zone Code"     value={douglasParcelData?.zoningCode || z.code || '—'} />
+              <Row label="Description"   value={douglasParcelData?.zoningCodeDescription || z.description || '—'} />
               <Row label="Land Use Code" value={z.landUseCode || '—'} />
               <Row label="Land Use"      value={z.landUseDescription || '—'} />
+              {isDouglas && douglasParcelData?.propertyType && (
+                <Row label="Douglas Property Type" value={douglasParcelData.propertyType} />
+              )}
             </Section>
           ) : (
             <>
@@ -535,7 +831,29 @@ function ZoningTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: Denve
       {/* ── HBU Auto-Analysis ── */}
       <Section title="Highest &amp; Best Use — Auto-Calculated">
         {hbuResult ? (
-          <HBUMini result={hbuResult} zoneCode={zoneCodeForHbu!} useCode={mappedUse!} />
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 10 }}>
+              <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: 7, padding: '6px 8px', border: '1px solid var(--ap-sep)' }}>
+                <div style={{ fontSize: 10, color: 'var(--ap-t3)' }}>Current FAR</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ap-t1)', marginTop: 1 }}>
+                  {hbuResult.districtDetail.currentFAR > 0 ? hbuResult.districtDetail.currentFAR.toFixed(2) : '—'}
+                </div>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: 7, padding: '6px 8px', border: '1px solid var(--ap-sep)' }}>
+                <div style={{ fontSize: 10, color: 'var(--ap-t3)' }}>FAR Utilization</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ap-t1)', marginTop: 1 }}>
+                  {hbuResult.districtDetail.farUtilization > 0 ? `${(hbuResult.districtDetail.farUtilization * 100).toFixed(0)}%` : '—'}
+                </div>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.03)', borderRadius: 7, padding: '6px 8px', border: '1px solid var(--ap-sep)' }}>
+                <div style={{ fontSize: 10, color: 'var(--ap-t3)' }}>Density Utilization</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ap-t1)', marginTop: 1 }}>
+                  {hbuResult.districtDetail.densityUtilization > 0 ? `${(hbuResult.districtDetail.densityUtilization * 100).toFixed(0)}%` : '—'}
+                </div>
+              </div>
+            </div>
+            <HBUMini result={hbuResult} zoneCode={zoneCodeForHbu!} useCode={mappedUse!} />
+          </>
         ) : (
           <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(0,0,0,0.03)', border: '1px dashed var(--ap-sep)' }}>
             <div style={{ fontSize: 12, color: 'var(--ap-t3)', lineHeight: 1.5 }}>
@@ -698,25 +1016,427 @@ function estimateDenverTax(assessedValue: number | null, propertyClass: Property
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZoningRaw | null }) {
+function TaxTab({
+  f,
+  denverZoning,
+  denverBuilding,
+  douglasParcelData,
+}: {
+  f: ParcelFeature;
+  denverZoning?: DenverZoningRaw | null;
+  denverBuilding?: DenverBuildingData | null;
+  douglasParcelData?: DouglasParcelData | null;
+}) {
   const v = f.valuation;
   const isDenver = !!denverZoning?.zoneDistrict;
+  const isDouglas = f.location.county.toLowerCase() === 'douglas' && !!douglasParcelData;
   const zoneCode = denverZoning?.zoneDistrict ?? f.zoning.code ?? '';
   const propertyClass = classifyPropertyType(zoneCode, f.zoning.landUseDescription, f.zoning.landUseCode);
-  const taxEstimate = isDenver ? estimateDenverTax(v.assessedValue ?? v.improvementValue ?? null, propertyClass) : null;
+  const denverTaxEstimate = isDenver ? estimateDenverTax(v.assessedValue ?? v.improvementValue ?? null, propertyClass) : null;
+  const douglasTaxableAssessedValue = douglasParcelData?.latestTaxReport?.taxableAssessedValue ?? douglasParcelData?.totalAssessedValue ?? null;
+  const douglasActualValueForRate =
+    douglasParcelData?.latestTaxReport?.taxableActualValue ??
+    douglasParcelData?.latestTaxReport?.totalActualValue ??
+    douglasParcelData?.totalActualValue ??
+    null;
+  const taxEstimate = isDouglas
+    ? {
+        assessedValue: douglasTaxableAssessedValue ?? 0,
+        inferredActualValue: douglasActualValueForRate,
+        assessmentRate:
+          douglasActualValueForRate && douglasTaxableAssessedValue
+            ? douglasTaxableAssessedValue / douglasActualValueForRate
+            : 0,
+        millLevy: douglasParcelData.fullMillLevy ?? douglasParcelData.reducedMillLevy ?? 0,
+        estimatedTax:
+          douglasParcelData.estimatedAnnualTax ??
+          (douglasTaxableAssessedValue && (douglasParcelData.fullMillLevy ?? douglasParcelData.reducedMillLevy)
+            ? Math.round((douglasTaxableAssessedValue * (douglasParcelData.fullMillLevy ?? douglasParcelData.reducedMillLevy ?? 0)) / 1000)
+            : 0),
+        propertyClass: douglasParcelData.accountType ?? normalizePropertyType(f, denverBuilding, douglasParcelData),
+      }
+    : denverTaxEstimate;
+  const buildingSizeForTax = getBuildingSize(denverBuilding, douglasParcelData);
+  const unitCountForTax = getBuildingUnits(denverBuilding, douglasParcelData);
+  const normalizedPropertyType = normalizePropertyType(f, denverBuilding, douglasParcelData);
+  const taxPerBuildingSqft =
+    taxEstimate && buildingSizeForTax && buildingSizeForTax > 0
+      ? taxEstimate.estimatedTax / buildingSizeForTax
+      : null;
+  const taxPerUnit =
+    taxEstimate && unitCountForTax && unitCountForTax > 0 && normalizedPropertyType === 'Multifamily'
+      ? taxEstimate.estimatedTax / unitCountForTax
+      : null;
+  const [comparables, setComparables] = useState<ComparableProperty[]>([]);
+  const [comparablesLoading, setComparablesLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadComparables() {
+      if (!isDenver || !taxEstimate || !denverBuilding?.totalBuildingSqft) {
+        setComparables([]);
+        return;
+      }
+
+      setComparablesLoading(true);
+      try {
+        const nearby = await queryParcelsNearby(f.location.lng, f.location.lat, 0.25, 80);
+        const candidates = nearby.filter((candidate) => candidate.identity.apn !== f.identity.apn);
+
+        const nearbyLimited = candidates
+          .map((candidate) => ({
+            feature: candidate,
+            distanceMiles: haversineMiles(
+              f.location.lat,
+              f.location.lng,
+              candidate.location.lat,
+              candidate.location.lng,
+            ),
+          }))
+          .sort((a, b) => a.distanceMiles - b.distanceMiles)
+          .slice(0, 30)
+          .map((item) => item.feature);
+
+        const buildingMap = await queryDenverBuildings(nearbyLimited.map((candidate) => candidate.identity.apn));
+        const candidateBuildings = nearbyLimited.map((candidate) => ({
+          feature: candidate,
+          building: buildingMap.get(candidate.identity.apn) ?? null,
+        }));
+
+        const now = Date.now();
+        const ranked = candidateBuildings
+          .filter((item): item is { feature: ParcelFeature; building: DenverBuildingData } => !!item.building)
+          .map((item) => {
+            const compPropertyType = normalizePropertyType(item.feature, item.building);
+            const compTaxEstimate = estimateDenverTax(
+              item.feature.valuation.assessedValue ?? item.feature.valuation.improvementValue ?? null,
+              classifyPropertyType(
+                item.feature.zoning.code ?? '',
+                item.feature.zoning.landUseDescription,
+                item.feature.zoning.landUseCode,
+              )
+            );
+            const distanceMiles = haversineMiles(
+              f.location.lat,
+              f.location.lng,
+              item.feature.location.lat,
+              item.feature.location.lng,
+            );
+            const buildingSqft = item.building.totalBuildingSqft ?? 0;
+            const sizeDelta = Math.abs(buildingSqft - denverBuilding.totalBuildingSqft!) / denverBuilding.totalBuildingSqft!;
+            const sameNeighborhood =
+              !!denverBuilding.neighborhoodName &&
+              !!item.building.neighborhoodName &&
+              denverBuilding.neighborhoodName.trim().toLowerCase() === item.building.neighborhoodName.trim().toLowerCase();
+            const saleTime = parseComparableSaleDate(item.feature.valuation.lastSaleDate);
+            const soldWithinThreeYears = !!saleTime && now - saleTime <= 3 * 365 * 24 * 60 * 60 * 1000;
+
+            return {
+              feature: item.feature,
+              building: item.building,
+              propertyType: compPropertyType,
+              estimatedTax: compTaxEstimate?.estimatedTax ?? 0,
+              taxPerBuildingSqft:
+                compTaxEstimate?.estimatedTax && buildingSqft > 0
+                  ? compTaxEstimate.estimatedTax / buildingSqft
+                  : null,
+              distanceMiles,
+              sizeDelta,
+              sameNeighborhood,
+              saleTime,
+              soldWithinThreeYears,
+            };
+          })
+          .filter((item) =>
+            item.propertyType === normalizedPropertyType &&
+            item.building.totalBuildingSqft &&
+            item.sizeDelta <= 0.10 &&
+            (item.sameNeighborhood || item.distanceMiles <= 0.05) &&
+            item.estimatedTax > 0
+          )
+          .sort((a, b) => {
+            if (a.soldWithinThreeYears !== b.soldWithinThreeYears) return a.soldWithinThreeYears ? -1 : 1;
+            if ((b.saleTime ?? 0) !== (a.saleTime ?? 0)) return (b.saleTime ?? 0) - (a.saleTime ?? 0);
+            if (a.sameNeighborhood !== b.sameNeighborhood) return a.sameNeighborhood ? -1 : 1;
+            if (a.sizeDelta !== b.sizeDelta) return a.sizeDelta - b.sizeDelta;
+            return a.distanceMiles - b.distanceMiles;
+          })
+          .slice(0, 5)
+          .map(({ sizeDelta: _sizeDelta, sameNeighborhood: _sameNeighborhood, saleTime: _saleTime, soldWithinThreeYears: _soldWithinThreeYears, ...rest }) => rest);
+
+        if (!cancelled) {
+          setComparables(ranked);
+        }
+      } catch {
+        if (!cancelled) {
+          setComparables([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setComparablesLoading(false);
+        }
+      }
+    }
+
+    void loadComparables();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [denverBuilding, denverZoning?.zoneDistrict, f, isDenver, normalizedPropertyType, taxEstimate]);
+
+  const averageCompTaxPerSf =
+    comparables.length > 0
+      ? comparables.reduce((sum, comp) => sum + (comp.taxPerBuildingSqft ?? 0), 0) /
+        comparables.filter((comp) => comp.taxPerBuildingSqft !== null).length
+      : null;
+  const projectedTaxLiability =
+    averageCompTaxPerSf !== null && buildingSizeForTax
+      ? averageCompTaxPerSf * buildingSizeForTax
+      : null;
+  const projectedAssessedValue =
+    projectedTaxLiability !== null
+      ? (projectedTaxLiability * 1000) / DENVER_TOTAL_MILL_LEVY
+      : null;
+
+  const handleExportPdf = () => {
+    if (!taxEstimate) return;
+
+    const mapCanvas = document.querySelector('canvas.maplibregl-canvas') as HTMLCanvasElement | null;
+    let mapImage = '';
+    try {
+      mapImage = mapCanvas?.toDataURL('image/png') ?? '';
+    } catch {
+      mapImage = '';
+    }
+
+    const compRows = comparables.map((comp) => `
+      <tr>
+        <td>${escapeHtml(comp.feature.location.situsAddress || comp.feature.identity.apn)}</td>
+        <td>${escapeHtml(fmtSqft(comp.feature.identity.sqft))}</td>
+        <td>${escapeHtml(fmtSqft(comp.building.totalBuildingSqft))}</td>
+        <td>${escapeHtml(fmtCurrencyCompact(comp.estimatedTax))}</td>
+        <td>${escapeHtml(comp.taxPerBuildingSqft !== null ? `$${comp.taxPerBuildingSqft.toFixed(2)}` : '—')}</td>
+      </tr>
+    `).join('');
+
+    const conclusion = projectedTaxLiability !== null
+      ? `Based on the selected comparable properties, the subject's indicated tax liability is approximately ${formatCurrency(Math.round(projectedTaxLiability))}, or ${averageCompTaxPerSf ? `$${averageCompTaxPerSf.toFixed(2)} per building square foot` : '—'}. This estimate is intended as a market-supported reference point and should be considered alongside current assessed value, future reassessment timing, and any exemptions or special district adjustments.`
+      : `Comparable properties were reviewed to benchmark the subject's current tax position. Additional market data or a broader comp set may be needed to develop a projected tax liability conclusion.`;
+
+    const reportWindow = window.open('', '_blank', 'width=1100,height=900');
+    if (!reportWindow) return;
+
+    const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Tax Report - ${escapeHtml(f.location.situsAddress || f.identity.apn)}</title>
+    <style>
+      body { font-family: Georgia, 'Times New Roman', serif; color: #1d1d1f; margin: 0; background: #fff; }
+      .page { padding: 28px 40px; max-width: 980px; margin: 0 auto; }
+      h1 { font-size: 36px; line-height: 1.05; color: #0c5b4f; margin: 0 0 12px; font-weight: 500; }
+      h2 { font-size: 22px; color: #6b8790; margin: 20px 0 8px; font-family: Arial, sans-serif; font-weight: 700; }
+      h3 { font-size: 16px; color: #6b8790; margin: 14px 0 6px; font-family: Arial, sans-serif; }
+      p, li, td, th, div { font-family: Arial, sans-serif; }
+      p { font-size: 13px; line-height: 1.45; margin: 0 0 9px; }
+      ul { margin: 0 0 8px 18px; }
+      li { margin: 3px 0; font-size: 13px; }
+      .formula { text-align: center; font-weight: 700; margin: 10px 0; font-size: 16px; }
+      .map-wrap { margin: 12px auto 16px; border: 1px solid #d6d6d6; padding: 8px; width: 58%; max-width: 440px; }
+      .map-wrap img { width: 100%; max-height: 250px; object-fit: cover; height: auto; display: block; }
+      .caption { font-size: 10px; color: #666; margin-top: 5px; }
+      table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 12px; }
+      th, td { border-bottom: 1px solid #d9d9d9; padding: 6px 6px; text-align: left; vertical-align: top; }
+      th { background: #f5f7f8; color: #45626a; font-weight: 700; }
+      .hero { border: 1px solid #d8e6e1; background: #f5fbf9; padding: 12px 14px; margin: 10px 0 12px; }
+      .hero-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px 18px; margin-top: 6px; }
+      .label { color: #667085; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+      .value { color: #111827; font-size: 15px; font-weight: 700; margin-top: 1px; }
+      .footer-note { color: #667085; font-size: 10px; margin-top: 12px; }
+      .compact-section { page-break-inside: avoid; break-inside: avoid; }
+      @media print {
+        @page { size: letter portrait; margin: 0.45in; }
+        .page { padding: 0; max-width: none; }
+        h1 { font-size: 32px; }
+        h2 { font-size: 20px; margin-top: 16px; }
+        .map-wrap { width: 52%; max-width: 380px; margin-bottom: 12px; }
+        .map-wrap img { max-height: 210px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1>Tax and Assessment Data</h1>
+      <p>
+        The following summarizes the local assessor's estimate of the subject's market value, assessed value, and
+        taxes and presents a market-supported tax comparison based on nearby comparable properties. The report is
+        intended to show current tax position, an estimated current liability, and an indicated projected liability
+        based on comparable tax burdens.
+      </p>
+
+      ${mapImage ? `
+        <div class="map-wrap">
+          <img src="${mapImage}" alt="Subject parcel map" />
+          <div class="caption">Subject parcel map at time of export with selected parcel boundary outlined.</div>
+        </div>
+      ` : ''}
+
+      <div class="compact-section">
+      <h2>Colorado Real Estate Tax Overview</h2>
+      <p>Colorado property taxes are generally calculated using three core components:</p>
+      <ul>
+        <li>Assessor's actual value</li>
+        <li>Assessment rate</li>
+        <li>Mill levy</li>
+      </ul>
+
+      <h3>Assessor's Actual Value</h3>
+      <p>
+        Under Colorado law, real property is revalued on a recurring statutory cycle. The county assessor estimates
+        actual value using market evidence and recognized appraisal methods. The resulting actual value is not itself
+        the taxable base; it is the starting point for assessment.
+      </p>
+
+      <h3>Assessment Rate and Assessed Value</h3>
+      <p>
+        Colorado applies an assessment rate to actual value to derive assessed value. The assessed value is the tax
+        base used for property tax calculations and varies by property class under state law.
+      </p>
+      <div class="formula">Assessor's Actual Value × Assessment Rate = Assessed Value</div>
+
+      <h3>Tax Rate / Mill Levy</h3>
+      <p>
+        The mill levy is established by taxing authorities and represents the amount of tax due per $1,000 of
+        assessed value. Once assessed value is determined, the annual property tax liability is calculated by
+        applying the applicable mill levy.
+      </p>
+      <div class="formula">Assessed Value × Mill Levy = Property Tax Due</div>
+      </div>
+
+      <div class="compact-section">
+      <h2>Current Tax Assessment and Liability</h2>
+      <div class="hero">
+        <div><strong>Subject Property:</strong> ${escapeHtml(f.location.situsAddress || f.identity.apn)}</div>
+        <div class="hero-grid">
+          <div><div class="label">Property Type</div><div class="value">${escapeHtml(normalizedPropertyType)}</div></div>
+          <div><div class="label">Building Size</div><div class="value">${escapeHtml(fmtSqft(buildingSizeForTax))}</div></div>
+          <div><div class="label">Inferred Market Value</div><div class="value">${escapeHtml(fmtCurrencyCompact(taxEstimate.inferredActualValue))}</div></div>
+          <div><div class="label">Assessed Value</div><div class="value">${escapeHtml(fmtCurrencyCompact(taxEstimate.assessedValue))}</div></div>
+          <div><div class="label">Mill Levy</div><div class="value">${taxEstimate.millLevy.toFixed(3)} mills</div></div>
+          <div><div class="label">Current Tax Liability</div><div class="value">${escapeHtml(fmtCurrencyCompact(taxEstimate.estimatedTax))}</div></div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Assessed Value</td><td>${escapeHtml(fmtCurrencyCompact(taxEstimate.assessedValue))}</td></tr>
+          <tr><td>Estimated Annual Tax</td><td>${escapeHtml(fmtCurrencyCompact(taxEstimate.estimatedTax))}</td></tr>
+          <tr><td>Tax Liability per Building SF</td><td>${escapeHtml(taxPerBuildingSqft !== null ? `$${taxPerBuildingSqft.toFixed(2)}` : '—')}</td></tr>
+          <tr><td>Tax Liability per Unit</td><td>${escapeHtml(taxPerUnit !== null ? fmtCurrencyCompact(Math.round(taxPerUnit)) : '—')}</td></tr>
+          <tr><td>Property Class Used for Estimate</td><td>${escapeHtml(taxEstimate.propertyClass)}</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="compact-section">
+      <h2>Projected Tax Liability with Comparable Properties</h2>
+      <p>
+        To benchmark the subject's tax burden, comparable parcels were selected from the same neighborhood or within
+        a 0.05-mile radius, matched by property type, and screened to remain within 10% of the subject's building
+        size. Recent sales were prioritized in the ranking where available.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Address</th>
+            <th>Lot Size</th>
+            <th>Building Size</th>
+            <th>Tax Liability</th>
+            <th>Tax Liability / SF</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${compRows || '<tr><td colspan="5">No qualifying comparable properties were available at the time of export.</td></tr>'}
+        </tbody>
+      </table>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Projected Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Average Comparable Tax / SF</td><td>${escapeHtml(averageCompTaxPerSf !== null ? `$${averageCompTaxPerSf.toFixed(2)}` : '—')}</td></tr>
+          <tr><td>Projected Assessed Value</td><td>${escapeHtml(projectedAssessedValue !== null ? fmtCurrencyCompact(Math.round(projectedAssessedValue)) : '—')}</td></tr>
+          <tr><td>Projected Tax Liability</td><td>${escapeHtml(projectedTaxLiability !== null ? fmtCurrencyCompact(Math.round(projectedTaxLiability)) : '—')}</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="compact-section">
+      <h2>Conclusion</h2>
+      <p>${escapeHtml(conclusion)}</p>
+      </div>
+
+      <div class="footer-note">
+        Prepared from Colorado parcel data, Denver assessor data, and in-app comparable screening. Exported ${escapeHtml(new Date().toLocaleString())}.
+      </div>
+    </div>
+  </body>
+</html>`;
+
+    reportWindow.document.open();
+    reportWindow.document.write(html);
+    reportWindow.document.close();
+    reportWindow.focus();
+    reportWindow.onload = () => {
+      setTimeout(() => reportWindow.print(), 200);
+    };
+  };
 
   return (
     <>
       {/* ── Denver Tax Estimate ── */}
-      {isDenver && (
+      {(isDenver || isDouglas) && (
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Estimated Annual Tax
+              {isDouglas ? 'Douglas County Tax Position' : 'Estimated Annual Tax'}
             </div>
             <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(52,199,89,0.12)', color: '#166534', fontWeight: 600 }}>
-              Denver 2025 · Payable 2026
+              {isDouglas
+                ? `Douglas Assessor · ${douglasParcelData?.latestTaxReport?.taxYear ?? new Date().getFullYear()} live`
+                : 'Denver 2025 · Payable 2026'}
             </span>
+            {isDenver && (
+              <button
+                onClick={handleExportPdf}
+                style={{
+                  marginLeft: 'auto',
+                  padding: '7px 10px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(0,113,227,0.18)',
+                  background: 'rgba(0,113,227,0.06)',
+                  color: '#0051b3',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                PDF Tax Report
+              </button>
+            )}
           </div>
 
           {taxEstimate ? (
@@ -738,6 +1458,19 @@ function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZo
                 <div style={{ fontSize: 11, color: 'var(--ap-t3)', marginTop: 2 }}>
                   {taxEstimate.propertyClass} · {taxEstimate.millLevy.toFixed(3)} mills total
                 </div>
+                <div style={{ fontSize: 11, color: 'var(--ap-t3)', marginTop: 4 }}>
+                  Property Type: {normalizedPropertyType}
+                </div>
+                {taxPerBuildingSqft !== null && (
+                  <div style={{ fontSize: 12, color: '#0051b3', fontWeight: 600, marginTop: 6 }}>
+                    ${taxPerBuildingSqft.toFixed(2)} per building sf
+                  </div>
+                )}
+                {taxPerUnit !== null && (
+                  <div style={{ fontSize: 12, color: '#0051b3', fontWeight: 600, marginTop: 4 }}>
+                    {formatCurrency(Math.round(taxPerUnit))} per unit
+                  </div>
+                )}
               </div>
 
               {/* Inferred market value note */}
@@ -746,7 +1479,9 @@ function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZo
                   <span style={{ fontSize: 11, color: 'var(--ap-t3)' }}>Inferred Market Value</span>
                   <span style={{ fontSize: 11, color: 'var(--ap-t2)', fontWeight: 600 }}>
                     ~{formatCurrency(taxEstimate.inferredActualValue)}
-                    <span style={{ fontWeight: 400, color: 'var(--ap-t3)' }}> (assessed ÷ {(taxEstimate.assessmentRate * 100).toFixed(2)}%)</span>
+                    {taxEstimate.assessmentRate > 0 && (
+                      <span style={{ fontWeight: 400, color: 'var(--ap-t3)' }}> (assessed ÷ {(taxEstimate.assessmentRate * 100).toFixed(2)}%)</span>
+                    )}
                   </span>
                 </div>
               )}
@@ -755,6 +1490,15 @@ function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZo
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
                 {([
                   ['Assessed Value (County Assessor)', formatCurrency(taxEstimate.assessedValue)],
+                  ...(isDouglas && douglasParcelData?.latestTaxReport?.taxableActualValue
+                    ? [['Taxable Actual Value', formatCurrency(douglasParcelData.latestTaxReport.taxableActualValue)]]
+                    : []),
+                  ...(taxPerBuildingSqft !== null
+                    ? [['Tax per Building SF', `$${taxPerBuildingSqft.toFixed(2)}/sf`]]
+                    : []),
+                  ...(taxPerUnit !== null
+                    ? [['Tax per Unit', formatCurrency(Math.round(taxPerUnit))]]
+                    : []),
                   ['Total Mill Levy', `${taxEstimate.millLevy.toFixed(3)} mills`],
                   ['Estimated Annual Tax', formatCurrency(taxEstimate.estimatedTax)],
                 ] as [string, string][]).map(([label, val], i, arr) => (
@@ -774,7 +1518,45 @@ function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZo
                 ))}
               </div>
 
+              {isDenver && (
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Comparable Properties
+                </div>
+                {comparablesLoading ? (
+                  <div style={{ fontSize: 12, color: 'var(--ap-t3)', padding: '8px 0' }}>
+                    Loading comparable properties…
+                  </div>
+                ) : comparables.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {comparables.map((comp) => (
+                      <div key={comp.feature.id} style={{ borderRadius: 10, border: '1px solid var(--ap-sep)', background: 'rgba(0,0,0,0.02)', padding: '10px 12px' }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ap-t1)' }}>
+                          {comp.feature.location.situsAddress || comp.feature.identity.apn}
+                        </div>
+                        <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 2 }}>
+                          {comp.building.neighborhoodName ?? comp.feature.location.city} · {comp.distanceMiles.toFixed(2)} mi away
+                          {comp.feature.valuation.lastSaleDate ? ` · Sold ${formatDate(comp.feature.valuation.lastSaleDate)}` : ''}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 8 }}>
+                          <div style={{ fontSize: 11, color: 'var(--ap-t3)' }}>Lot Size<br /><span style={{ fontSize: 12, color: 'var(--ap-t1)', fontWeight: 600 }}>{comp.feature.identity.sqft ? `${formatNumber(comp.feature.identity.sqft)} sf` : '—'}</span></div>
+                          <div style={{ fontSize: 11, color: 'var(--ap-t3)' }}>Building Size<br /><span style={{ fontSize: 12, color: 'var(--ap-t1)', fontWeight: 600 }}>{comp.building.totalBuildingSqft ? `${formatNumber(comp.building.totalBuildingSqft)} sf` : '—'}</span></div>
+                          <div style={{ fontSize: 11, color: 'var(--ap-t3)' }}>Tax Liability<br /><span style={{ fontSize: 12, color: 'var(--ap-t1)', fontWeight: 600 }}>{formatCurrency(comp.estimatedTax)}</span></div>
+                          <div style={{ fontSize: 11, color: 'var(--ap-t3)' }}>Tax Liability / SF<br /><span style={{ fontSize: 12, color: 'var(--ap-t1)', fontWeight: 600 }}>{comp.taxPerBuildingSqft !== null ? `$${comp.taxPerBuildingSqft.toFixed(2)}/sf` : '—'}</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: 'var(--ap-t3)', padding: '8px 0' }}>
+                    No comparable Denver parcels met the current filters for type, neighborhood or radius, and building size.
+                  </div>
+                )}
+              </div>
+              )}
+
               {/* Mill levy breakdown */}
+              {isDenver && (
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>
                   Mill Levy Breakdown
@@ -790,6 +1572,27 @@ function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZo
                   ))}
                 </div>
               </div>
+              )}
+
+              {isDouglas && douglasParcelData && (
+                <div style={{ marginBottom: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(0,0,0,0.02)', border: '1px solid var(--ap-sep)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+                    Douglas Assessor Sources
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <a href={douglasParcelData.detailUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#0051b3', textDecoration: 'none', fontWeight: 600 }}>
+                      Property Detail Record ↗
+                    </a>
+                    <a href={douglasParcelData.estimatedTaxesUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#0051b3', textDecoration: 'none', fontWeight: 600 }}>
+                      Estimated Taxes Report ↗
+                    </a>
+                    <div style={{ fontSize: 11, color: 'var(--ap-t3)', marginTop: 2 }}>
+                      Tax District {douglasParcelData.taxDistrictNumber || '—'} · Full mill levy {douglasParcelData.fullMillLevy?.toFixed(3) ?? '—'}
+                      {douglasParcelData.reducedMillLevy !== null ? ` · Reduced levy ${douglasParcelData.reducedMillLevy.toFixed(3)}` : ''}
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(0,0,0,0.03)', border: '1px dashed var(--ap-sep)', fontSize: 12, color: 'var(--ap-t3)', lineHeight: 1.5 }}>
@@ -817,6 +1620,8 @@ function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZo
       <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(255,159,10,0.07)', fontSize: 12, color: '#b25a00', lineHeight: 1.5 }}>
         {isDenver
           ? `Estimate = County Assessed Value × ${DENVER_BASE_MILL_LEVY} mills (City 26.328 + DPS 52.274 + Urban Drainage 1.000) + RTD/SCFD (~0.9 mills). 2025 rates per Denver Abstract of Assessment (taxes payable 2026). No value subtractions in 2025 (SB24-233 exemptions expired). Actual tax may vary with senior/veteran exemptions, TIF redirections, metro district levies, or special improvement districts. Source: denvergov.org/assessor.`
+          : isDouglas
+          ? `Douglas County values and improvement detail are sourced from the county parcel view and live assessor detail JSON. The app now prefers the latest Douglas estimated-tax report for tax year, taxable assessed value, full mill levy, and estimated taxes, and falls back to live tax-authority totals only if the report is unavailable.`
           : `Assessment values from ${v.taxYear ?? 'the parcel service'}. Actual tax may vary with exemptions, abatements, and mill levy changes.`
         }
       </div>
@@ -846,11 +1651,54 @@ function CouncilTab({ f }: { f: ParcelFeature }) {
   );
 }
 
-function ActivityTab({ f }: { f: ParcelFeature }) {
+function ActivityTab({ f, nearbyArticles }: { f: ParcelFeature; nearbyArticles: (NakedDenverArticle & { distanceMiles: number })[] }) {
   return (
     <>
       <Section title="Development Activity">
         <EmptyBadge label="No recent permit or application activity on file." />
+      </Section>
+      <Section title="Naked Denver Context">
+        {nearbyArticles.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {nearbyArticles.slice(0, 5).map((article) => (
+              <a
+                key={article.id}
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block',
+                  textDecoration: 'none',
+                  borderRadius: 10,
+                  border: '1px solid var(--ap-sep)',
+                  background: 'rgba(245,158,11,0.05)',
+                  padding: '10px 12px',
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ap-t1)', lineHeight: 1.4 }}>
+                  {article.title}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--ap-t3)', marginTop: 3 }}>
+                  {(article.address || article.neighborhood || 'Denver article location') + ' · ' + `${article.distanceMiles.toFixed(2)} mi away`}
+                </div>
+                {(article.publishedAt || article.developmentType) && (
+                  <div style={{ fontSize: 11, color: 'var(--ap-t3)', marginTop: 4 }}>
+                    {[article.publishedAt ? formatDate(article.publishedAt) : null, article.developmentType].filter(Boolean).join(' · ')}
+                  </div>
+                )}
+                {article.summary && (
+                  <div style={{ fontSize: 11, color: 'var(--ap-t2)', lineHeight: 1.5, marginTop: 6 }}>
+                    {article.summary}
+                  </div>
+                )}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(0,0,0,0.03)', border: '1px dashed var(--ap-sep)', fontSize: 12, color: 'var(--ap-t3)', lineHeight: 1.5 }}>
+            No Naked Denver article points are loaded nearby yet. Once articles are added to the local article dataset, nearby development coverage will appear here automatically.
+          </div>
+        )}
       </Section>
       <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(52,199,89,0.07)', fontSize: 12, lineHeight: 1.6 }}>
         <div style={{ fontWeight: 600, color: '#1a7c35', marginBottom: 4 }}>Coming Soon</div>
@@ -865,7 +1713,7 @@ function ActivityTab({ f }: { f: ParcelFeature }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, onClose }: ParcelPanelProps) {
+export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, denverBuilding, douglasParcelData, nearbyArticles, onClose }: ParcelPanelProps) {
   const [activeTab, setActiveTab] = useState<PanelTab>('parcel');
 
   const panelW = 380;
@@ -943,6 +1791,11 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
                 {denverZoning.zoneDistrict}
               </span>
             )}
+            {!denverZoning?.zoneDistrict && douglasParcelData?.zoningCode && (
+              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'rgba(0,113,227,0.10)', color: '#0051b3', fontWeight: 700 }}>
+                {douglasParcelData.zoningCode}
+              </span>
+            )}
             {feature._source === 'esri' && (
               <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 99, background: 'rgba(52,199,89,0.10)', color: '#1a7c35', fontWeight: 500 }}>
                 ESRI Live
@@ -1007,11 +1860,11 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
           </div>
         ) : (
           <>
-            {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} />}
-            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} />}
-            {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={denverZoning} />}
+            {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} denverBuilding={denverBuilding} douglasParcelData={douglasParcelData} />}
+            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} denverBuilding={denverBuilding} douglasParcelData={douglasParcelData} />}
+            {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={denverZoning} denverBuilding={denverBuilding} douglasParcelData={douglasParcelData} />}
             {activeTab === 'council'  && <CouncilTab f={feature} />}
-            {activeTab === 'activity' && <ActivityTab f={feature} />}
+            {activeTab === 'activity' && <ActivityTab f={feature} nearbyArticles={nearbyArticles} />}
           </>
         )}
       </div>

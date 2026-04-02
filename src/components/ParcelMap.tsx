@@ -11,7 +11,7 @@
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import Map, {
   Source,
   Layer,
@@ -20,10 +20,21 @@ import Map, {
 } from 'react-map-gl/maplibre';
 import type { MapRef, MapLayerMouseEvent } from 'react-map-gl/maplibre';
 
-import type { ParcelState, GeoJSONGeometry } from '../data/parcelTypes';
-import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning } from '../utils/parcelService';
+import type { ParcelState, GeoJSONGeometry, DenverBuildingData, DouglasParcelData } from '../data/parcelTypes';
+import {
+  geocodeAddress,
+  queryParcelByPoint,
+  reverseGeocodeNeighborhood,
+  queryDenverZoning,
+  queryDenverBuilding,
+  queryDouglasParcelData,
+  queryCountyBoundaries,
+  queryMunicipalBoundaries,
+  queryDenverNeighborhoodBoundaries,
+} from '../utils/parcelService';
 import type { DenverZoningRaw } from '../utils/parcelService';
 import { ParcelPanel } from './ParcelPanel';
+import { NAKED_DENVER_ARTICLES, NAKED_DENVER_MAPPED_ARTICLES, type NakedDenverArticle } from '../data/nakedDenverArticles';
 
 // Business directory data — pre-geocoded at build time
 import businessDirectoryRaw from '../data/businessDirectory.json';
@@ -119,6 +130,153 @@ function fmtArea(m2: number): string {
   const acres = m2 / 4046.86;
   if (acres < 1) return `${Math.round(sqft).toLocaleString()} sq ft  (${acres.toFixed(3)} ac)`;
   return `${acres.toFixed(2)} acres  (${Math.round(sqft).toLocaleString()} sq ft)`;
+}
+
+type BoundaryFeature = GeoJSON.Feature<GeoJSON.Geometry, Record<string, unknown>>;
+
+function normalizeCountyName(value: string | null | undefined): string | null {
+  if (!value) return null;
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/^city and county of\s+/i, '')
+    .replace(/\s+county$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim() || null;
+}
+
+function getBoundaryName(feature: BoundaryFeature | null | undefined): string | null {
+  if (!feature?.properties) return null;
+  const candidates = [
+    feature.properties.name,
+    feature.properties.NAME,
+    feature.properties.NAME10,
+    feature.properties.nbrhd_name,
+    feature.properties.NBHD_NAME,
+    feature.properties.neighborhood,
+    feature.properties.NAMELSAD10,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+  }
+  return null;
+}
+
+function getCountyDisplayName(feature: BoundaryFeature | null | undefined): string | null {
+  const name = getBoundaryName(feature);
+  if (!name) return null;
+  return /county$/i.test(name) || /city and county/i.test(name) ? name : `${name} County`;
+}
+
+function getGeometryCenter(geometry: GeoJSON.Geometry): [number, number] {
+  const coords: [number, number][] = [];
+
+  const collect = (value: unknown) => {
+    if (!Array.isArray(value)) return;
+    if (value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') {
+      coords.push([value[0], value[1]]);
+      return;
+    }
+    for (const child of value) collect(child);
+  };
+
+  collect((geometry as { coordinates?: unknown }).coordinates);
+
+  if (coords.length === 0) return CO_INITIAL ? [CO_INITIAL.longitude, CO_INITIAL.latitude] : [-105.55, 39.0];
+
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+
+  for (const [lng, lat] of coords) {
+    minLng = Math.min(minLng, lng);
+    minLat = Math.min(minLat, lat);
+    maxLng = Math.max(maxLng, lng);
+    maxLat = Math.max(maxLat, lat);
+  }
+
+  return [(minLng + maxLng) / 2, (minLat + maxLat) / 2];
+}
+
+function pointInRing(point: [number, number], ring: number[][]): boolean {
+  const [x, y] = point;
+  let inside = false;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i]?.[0];
+    const yi = ring[i]?.[1];
+    const xj = ring[j]?.[0];
+    const yj = ring[j]?.[1];
+    if ([xi, yi, xj, yj].some((value) => typeof value !== 'number')) continue;
+
+    const intersects =
+      ((yi > y) !== (yj > y)) &&
+      (x < ((xj - xi) * (y - yi)) / (((yj - yi) || Number.EPSILON)) + xi);
+
+    if (intersects) inside = !inside;
+  }
+
+  return inside;
+}
+
+function geometryContainsPoint(geometry: GeoJSON.Geometry, point: [number, number]): boolean {
+  if (geometry.type === 'Polygon') {
+    const [outerRing, ...holes] = geometry.coordinates;
+    if (!outerRing || !pointInRing(point, outerRing)) return false;
+    return !holes.some((ring) => pointInRing(point, ring));
+  }
+
+  if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.some(([outerRing, ...holes]) => {
+      if (!outerRing || !pointInRing(point, outerRing)) return false;
+      return !holes.some((ring) => pointInRing(point, ring));
+    });
+  }
+
+  return false;
+}
+
+function findBoundaryFeatureAtPoint(
+  featureCollection: GeoJSON.FeatureCollection | null,
+  point: [number, number]
+): BoundaryFeature | null {
+  if (!featureCollection) return null;
+
+  for (const feature of featureCollection.features) {
+    if (!feature?.geometry) continue;
+    if (geometryContainsPoint(feature.geometry as GeoJSON.Geometry, point)) {
+      return feature as BoundaryFeature;
+    }
+  }
+
+  return null;
+}
+
+function buildLabelPoints(
+  featureCollection: GeoJSON.FeatureCollection | null,
+  nameResolver: (feature: BoundaryFeature) => string | null = getBoundaryName
+): GeoJSON.FeatureCollection {
+  if (!featureCollection) return { type: 'FeatureCollection', features: [] };
+
+  return {
+    type: 'FeatureCollection',
+    features: featureCollection.features
+      .filter((feature): feature is BoundaryFeature => !!feature.geometry && !!feature.properties)
+      .map((feature) => {
+        const [lng, lat] = getGeometryCenter(feature.geometry);
+        return {
+          type: 'Feature' as const,
+          geometry: { type: 'Point' as const, coordinates: [lng, lat] },
+          properties: {
+            ...feature.properties,
+            label: nameResolver(feature) ?? '',
+          },
+        };
+      })
+      .filter((feature) => typeof feature.properties?.label === 'string' && feature.properties.label.length > 0),
+  };
 }
 
 // ── Search bar ────────────────────────────────────────────────────────────────
@@ -312,6 +470,101 @@ const PARCEL_LINE_LAYER = {
   },
 };
 
+const COUNTY_FILL_LAYER = {
+  id: 'county-fill',
+  type: 'fill' as const,
+  paint: {
+    'fill-color': '#1d4ed8',
+    'fill-opacity': 0.02,
+  },
+};
+
+const COUNTY_LINE_LAYER = {
+  id: 'county-line',
+  type: 'line' as const,
+  paint: {
+    'line-color': '#1d4ed8',
+    'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.8, 10, 1.8] as unknown as number,
+    'line-opacity': 0.55,
+  },
+};
+
+const SELECTED_COUNTY_FILL_LAYER = {
+  id: 'selected-county-fill',
+  type: 'fill' as const,
+  paint: {
+    'fill-color': '#2563eb',
+    'fill-opacity': 0.08,
+  },
+};
+
+const SELECTED_COUNTY_LINE_LAYER = {
+  id: 'selected-county-line',
+  type: 'line' as const,
+  paint: {
+    'line-color': '#1d4ed8',
+    'line-width': 2.8,
+    'line-opacity': 0.95,
+  },
+};
+
+const HOVERED_COUNTY_FILL_LAYER = {
+  id: 'hovered-county-fill',
+  type: 'fill' as const,
+  paint: {
+    'fill-color': '#60a5fa',
+    'fill-opacity': 0.14,
+  },
+};
+
+const HOVERED_COUNTY_LINE_LAYER = {
+  id: 'hovered-county-line',
+  type: 'line' as const,
+  paint: {
+    'line-color': '#3b82f6',
+    'line-width': 2.2,
+    'line-opacity': 0.95,
+  },
+};
+
+const SUB_BOUNDARY_FILL_LAYER = {
+  id: 'sub-boundary-fill',
+  type: 'fill' as const,
+  paint: {
+    'fill-color': '#14b8a6',
+    'fill-opacity': 0.05,
+  },
+};
+
+const SUB_BOUNDARY_LINE_LAYER = {
+  id: 'sub-boundary-line',
+  type: 'line' as const,
+  paint: {
+    'line-color': '#0f766e',
+    'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.8, 13, 1.8] as unknown as number,
+    'line-opacity': 0.8,
+  },
+};
+
+const HOVERED_SUB_BOUNDARY_FILL_LAYER = {
+  id: 'hovered-sub-boundary-fill',
+  type: 'fill' as const,
+  paint: {
+    'fill-color': '#2dd4bf',
+    'fill-opacity': 0.24,
+  },
+};
+
+const HOVERED_SUB_BOUNDARY_LINE_LAYER = {
+  id: 'hovered-sub-boundary-line',
+  type: 'line' as const,
+  paint: {
+    'line-color': '#0f766e',
+    'line-width': 3.2,
+    'line-opacity': 1,
+  },
+};
+
 // ── Multi-select color palette ────────────────────────────────────────────────
 
 const MULTI_COLORS = [
@@ -346,6 +599,14 @@ interface BizEntry {
   nakedArticle: string | null;
   coordinates: { lat: number; lng: number } | null;
   allLocations?: BizLocation[];
+}
+
+function formatArticleDate(value: string | null): string {
+  if (!value) return 'Undated';
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime())
+    ? value
+    : parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // Group diverse categories into broad buckets for color-coding
@@ -436,6 +697,7 @@ interface BizFilterPanelProps {
   groupFilters: Set<string>;
   onToggleGroup: (key: string) => void;
   onClearFilters: () => void;
+  onClose: () => void;
   totalVisible: number;
   totalAll: number;
   ndOnly: boolean;
@@ -447,7 +709,7 @@ interface BizFilterPanelProps {
   onClearFocus: () => void;
 }
 
-function BizFilterPanel({ search, onSearch, groupFilters, onToggleGroup, onClearFilters, totalVisible, totalAll, ndOnly, onToggleNDOnly, visibleBusinesses, onSelectBiz, selectedBizId, focusedBiz, onClearFocus }: BizFilterPanelProps) {
+function BizFilterPanel({ search, onSearch, groupFilters, onToggleGroup, onClearFilters, onClose, totalVisible, totalAll, ndOnly, onToggleNDOnly, visibleBusinesses, onSelectBiz, selectedBizId, focusedBiz, onClearFocus }: BizFilterPanelProps) {
   const hasFilters = groupFilters.size > 0 || !!search || ndOnly;
   const showList = hasFilters || visibleBusinesses.length < totalAll || focusedBiz !== null;
   return (
@@ -489,11 +751,34 @@ function BizFilterPanel({ search, onSearch, groupFilters, onToggleGroup, onClear
             </>
           )}
         </div>
-        {!focusedBiz && hasFilters && (
-          <button onClick={onClearFilters} style={{ fontSize: 10, fontWeight: 600, color: '#ff3b30', background: 'rgba(255,59,48,0.08)', border: 'none', cursor: 'pointer', padding: '3px 7px', borderRadius: 5 }}>
-            Reset
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {!focusedBiz && hasFilters && (
+            <button onClick={onClearFilters} style={{ fontSize: 10, fontWeight: 600, color: '#ff3b30', background: 'rgba(255,59,48,0.08)', border: 'none', cursor: 'pointer', padding: '3px 7px', borderRadius: 5 }}>
+              Reset
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            aria-label="Close business directory"
+            title="Close business directory"
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              border: 'none',
+              background: 'rgba(0,0,0,0.07)',
+              color: '#666',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
           </button>
-        )}
+        </div>
       </div>
 
       {/* Search + chips — hidden when focused on one company */}
@@ -763,6 +1048,92 @@ function BizPopup({ biz, parcelLoading, parcelLoaded, onClose, onLoadParcel }: B
   );
 }
 
+interface ArticlePopupProps {
+  article: NakedDenverArticle;
+  onClose: () => void;
+}
+
+function ArticlePopup({ article, onClose }: ArticlePopupProps) {
+  return (
+    <div style={{
+      position: 'absolute',
+      bottom: 80,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      zIndex: 40,
+      width: 340,
+      background: 'rgba(255,255,255,0.98)',
+      backdropFilter: 'blur(24px)',
+      WebkitBackdropFilter: 'blur(24px)',
+      borderRadius: 14,
+      boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
+      border: '1px solid rgba(0,0,0,0.07)',
+      overflow: 'hidden',
+    }}>
+      <div style={{ height: 4, background: 'linear-gradient(90deg, #f59e0b 0%, #ea580c 100%)' }} />
+      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1c1c1e', lineHeight: 1.3 }}>{article.title}</div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 5 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#b45309', background: 'rgba(245,158,11,0.12)', borderRadius: 99, padding: '3px 8px' }}>
+                Naked Denver
+              </span>
+              {article.developmentType && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#9a3412', background: 'rgba(234,88,12,0.10)', borderRadius: 99, padding: '3px 8px' }}>
+                  {article.developmentType}
+                </span>
+              )}
+            </div>
+          </div>
+          <button onClick={onClose} style={{
+            flexShrink: 0, width: 22, height: 22, borderRadius: '50%', border: 'none',
+            background: 'rgba(0,0,0,0.07)', cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', color: '#666', marginTop: 1,
+          }}>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ fontSize: 11, color: '#8e8e93' }}>
+          {[formatArticleDate(article.publishedAt), article.neighborhood, article.address].filter(Boolean).join(' · ')}
+        </div>
+        {article.summary && (
+          <div style={{ fontSize: 11, color: '#3c3c3e', lineHeight: 1.5 }}>
+            {article.summary}
+          </div>
+        )}
+        {article.tags && article.tags.length > 0 && (
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+            {article.tags.slice(0, 4).map((tag) => (
+              <span key={tag} style={{ fontSize: 10, color: '#92400e', background: 'rgba(245,158,11,0.08)', borderRadius: 6, padding: '3px 7px' }}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 10px',
+              borderRadius: 6, background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.22)',
+              fontSize: 11, fontWeight: 700, color: '#b45309', textDecoration: 'none',
+            }}
+          >
+            Open Article ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Multi-select list panel ───────────────────────────────────────────────────
 
 import type { ParcelFeature } from '../data/parcelTypes';
@@ -904,10 +1275,22 @@ export function ParcelMap() {
   const [measureMode, setMeasureMode] = useState<'off' | 'line' | 'area'>('off');
   const [measurePoints, setMeasurePoints] = useState<LngLat[]>([]);
   const [denverZoning, setDenverZoning] = useState<DenverZoningRaw | null>(null);
+  const [denverBuilding, setDenverBuilding] = useState<DenverBuildingData | null>(null);
+  const [douglasParcelData, setDouglasParcelData] = useState<DouglasParcelData | null>(null);
+  const [showCountyBoundaries, setShowCountyBoundaries] = useState(true);
+  const [countyBoundaries, setCountyBoundaries] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [municipalBoundaries, setMunicipalBoundaries] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [denverNeighborhoodBoundaries, setDenverNeighborhoodBoundaries] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [selectedCountyName, setSelectedCountyName] = useState<string | null>(null);
+  const [hoveredCountyName, setHoveredCountyName] = useState<string | null>(null);
+  const [hoveredSubdivisionName, setHoveredSubdivisionName] = useState<string | null>(null);
+  const [mapCursor, setMapCursor] = useState<'crosshair' | 'pointer'>('crosshair');
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showWildfireRisk, setShowWildfireRisk] = useState(false);
   const [showBusinessDir, setShowBusinessDir] = useState(false);
+  const [showNDArticles, setShowNDArticles] = useState(false);
   const [selectedBiz, setSelectedBiz] = useState<BizEntry | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<NakedDenverArticle | null>(null);
   const [bizSearch, setBizSearch] = useState('');
   const [bizGroupFilters, setBizGroupFilters] = useState<Set<string>>(new Set());
   const [bizNDOnly, setBizNDOnly] = useState(false);
@@ -923,6 +1306,146 @@ export function ParcelMap() {
   const leftPanelOpen = multiSelectMode || panelOpen;
   const leftPanelWidth = multiSelectMode ? 300 : 380;
   const feature = parcelState.status === 'loaded' ? parcelState.feature : null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBoundaries() {
+      try {
+        const [counties, municipalities, denverNeighborhoods] = await Promise.all([
+          queryCountyBoundaries(),
+          queryMunicipalBoundaries(),
+          queryDenverNeighborhoodBoundaries(),
+        ]);
+
+        if (cancelled) return;
+        setCountyBoundaries(counties);
+        setMunicipalBoundaries(municipalities);
+        setDenverNeighborhoodBoundaries(denverNeighborhoods);
+      } catch (error) {
+        console.warn('[ParcelMap] boundary layer fetch failed:', error);
+      }
+    }
+
+    void loadBoundaries();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (feature?.location.county) {
+      setSelectedCountyName(feature.location.county);
+    }
+  }, [feature?.location.county]);
+
+  const nearbyArticles = useMemo(() => {
+    if (!feature) return [];
+    const lat = feature.location.lat;
+    const lng = feature.location.lng;
+    return NAKED_DENVER_ARTICLES
+      .filter((article): article is NakedDenverArticle & { lat: number; lng: number } => typeof article.lat === 'number' && typeof article.lng === 'number')
+      .map((article) => ({
+        ...article,
+        distanceMiles: haversineM([lng, lat], [article.lng, article.lat]) / 1609.344,
+      }))
+      .filter((article) => article.distanceMiles <= 0.5)
+      .sort((a, b) => a.distanceMiles - b.distanceMiles);
+  }, [feature]);
+
+  const selectedCountyFeature = useMemo(() => {
+    if (!countyBoundaries || !selectedCountyName) return null;
+    const normalized = normalizeCountyName(selectedCountyName);
+    return countyBoundaries.features.find((feature): feature is BoundaryFeature => {
+      const name = normalizeCountyName(getBoundaryName(feature as BoundaryFeature));
+      return !!name && !!normalized && name === normalized;
+    }) ?? null;
+  }, [countyBoundaries, selectedCountyName]);
+
+  const hoveredCountyFeature = useMemo(() => {
+    if (!countyBoundaries || !hoveredCountyName) return null;
+    const normalized = normalizeCountyName(hoveredCountyName);
+    return countyBoundaries.features.find((feature): feature is BoundaryFeature => {
+      const name = normalizeCountyName(getBoundaryName(feature as BoundaryFeature));
+      return !!name && !!normalized && name === normalized;
+    }) ?? null;
+  }, [countyBoundaries, hoveredCountyName]);
+
+  const selectedCountyGeoJSON = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (!selectedCountyFeature) return null;
+    return {
+      type: 'FeatureCollection',
+      features: [selectedCountyFeature],
+    };
+  }, [selectedCountyFeature]);
+
+  const hoveredCountyGeoJSON = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (!hoveredCountyFeature) return null;
+    const hoveredNormalized = normalizeCountyName(hoveredCountyName);
+    const selectedNormalized = normalizeCountyName(selectedCountyName);
+    if (hoveredNormalized && selectedNormalized && hoveredNormalized === selectedNormalized) return null;
+    return {
+      type: 'FeatureCollection',
+      features: [hoveredCountyFeature],
+    };
+  }, [hoveredCountyFeature, hoveredCountyName, selectedCountyName]);
+
+  const countyLabelGeoJSON = useMemo(
+    () => buildLabelPoints(countyBoundaries, getCountyDisplayName),
+    [countyBoundaries]
+  );
+
+  const activeCountySubdivisionGeoJSON = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (!selectedCountyFeature || !selectedCountyName) return null;
+
+    if (normalizeCountyName(selectedCountyName) === 'denver') {
+      return denverNeighborhoodBoundaries;
+    }
+
+    if (!municipalBoundaries) return null;
+
+    const countyGeometry = selectedCountyFeature.geometry;
+    if (!countyGeometry) return null;
+
+    return {
+      type: 'FeatureCollection',
+      features: municipalBoundaries.features.filter((feature): feature is BoundaryFeature => {
+        if (!feature.geometry) return false;
+        const center = getGeometryCenter(feature.geometry);
+        return geometryContainsPoint(countyGeometry, center);
+      }),
+    };
+  }, [denverNeighborhoodBoundaries, municipalBoundaries, selectedCountyFeature, selectedCountyName]);
+
+  const activeCountySubdivisionLabelGeoJSON = useMemo(
+    () => buildLabelPoints(activeCountySubdivisionGeoJSON),
+    [activeCountySubdivisionGeoJSON]
+  );
+
+  const hoveredBoundaryLabel = hoveredSubdivisionName ?? hoveredCountyName;
+  const hoveredBoundaryContext = hoveredSubdivisionName
+    ? (normalizeCountyName(selectedCountyName) === 'denver' ? 'Neighborhood' : 'Town')
+    : hoveredCountyName
+    ? 'County'
+    : null;
+
+  const hoveredSubdivisionFeature = useMemo(() => {
+    if (!activeCountySubdivisionGeoJSON || !hoveredSubdivisionName) return null;
+    const normalized = hoveredSubdivisionName.trim().toLowerCase();
+    return activeCountySubdivisionGeoJSON.features.find((feature): feature is BoundaryFeature => {
+      const name = getBoundaryName(feature as BoundaryFeature);
+      return !!name && name.trim().toLowerCase() === normalized;
+    }) ?? null;
+  }, [activeCountySubdivisionGeoJSON, hoveredSubdivisionName]);
+
+  const hoveredSubdivisionGeoJSON = useMemo<GeoJSON.FeatureCollection | null>(() => {
+    if (!hoveredSubdivisionFeature) return null;
+    return {
+      type: 'FeatureCollection',
+      features: [hoveredSubdivisionFeature],
+    };
+  }, [hoveredSubdivisionFeature]);
 
   const totalDistanceM = useMemo(() => {
     if (measurePoints.length < 2) return 0;
@@ -965,6 +1488,8 @@ export function ParcelMap() {
     setParcelState({ status: 'loading', lat, lng });
     setNeighbourhood(null);
     setDenverZoning(null);
+    setDenverBuilding(null);
+    setDouglasParcelData(null);
     setSearchError(null);
 
     // Fly to location
@@ -991,6 +1516,14 @@ export function ParcelMap() {
       setDenverZoning(dz?.zoneDistrict ? dz : null);
 
       if (parcel) {
+        if (parcel.location.county.toLowerCase() === 'denver') {
+          const building = await queryDenverBuilding(parcel.identity.apn);
+          setDenverBuilding(building);
+        }
+        if (parcel.location.county.toLowerCase() === 'douglas') {
+          const douglasData = await queryDouglasParcelData(lng, lat);
+          setDouglasParcelData(douglasData);
+        }
         setParcelState({ status: 'loaded', feature: parcel });
       } else {
         setParcelState({ status: 'not_found', lat, lng, address: addr });
@@ -1049,9 +1582,73 @@ export function ParcelMap() {
         if (match) { setSelectedBiz(match); return; }
       }
     }
+    if (showNDArticles && mapRef.current) {
+        const articlePins = mapRef.current.queryRenderedFeatures(e.point, { layers: ['nd-article-circles'] });
+      if (articlePins.length > 0) {
+        const props = articlePins[0].properties as { articleId?: string };
+        const match = NAKED_DENVER_MAPPED_ARTICLES.find((article) => article.id === props.articleId);
+        if (match) {
+          setSelectedBiz(null);
+          setSelectedArticle(match);
+          return;
+        }
+      }
+    }
+    if (showCountyBoundaries) {
+      const point: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      const subdivisionHit = findBoundaryFeatureAtPoint(activeCountySubdivisionGeoJSON, point);
+      if (subdivisionHit && normalizeCountyName(selectedCountyName) === 'denver') {
+        setHoveredSubdivisionName(getBoundaryName(subdivisionHit));
+      }
+
+      const countyHit = findBoundaryFeatureAtPoint(countyBoundaries, point);
+      if (countyHit) {
+        const countyName = getBoundaryName(countyHit);
+        if (countyName) {
+          setSelectedCountyName(countyName);
+        }
+      }
+    }
     setSelectedBiz(null);
+    setSelectedArticle(null);
     fetchParcel(e.lngLat.lng, e.lngLat.lat);
-  }, [fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, showBusinessDir]);
+  }, [activeCountySubdivisionGeoJSON, countyBoundaries, fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, selectedCountyName, showBusinessDir, showCountyBoundaries, showNDArticles]);
+
+  const handleMapMouseMove = useCallback((e: MapLayerMouseEvent) => {
+    let nextCursor: 'crosshair' | 'pointer' = 'crosshair';
+    const point: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+
+    if (showCountyBoundaries && activeCountySubdivisionGeoJSON?.features.length) {
+      const subdivisionHit = findBoundaryFeatureAtPoint(activeCountySubdivisionGeoJSON, point);
+      if (subdivisionHit) {
+        const subdivisionName = getBoundaryName(subdivisionHit);
+        setHoveredSubdivisionName(subdivisionName);
+        setHoveredCountyName(null);
+        nextCursor = 'pointer';
+        setMapCursor(nextCursor);
+        return;
+      }
+    }
+
+    setHoveredSubdivisionName(null);
+
+    if (!showCountyBoundaries) {
+      setHoveredCountyName(null);
+      setMapCursor(nextCursor);
+      return;
+    }
+
+    const countyHit = findBoundaryFeatureAtPoint(countyBoundaries, point);
+    if (countyHit) {
+      const countyName = getBoundaryName(countyHit);
+      setHoveredCountyName(countyName);
+      nextCursor = 'pointer';
+    } else {
+      setHoveredCountyName(null);
+    }
+
+    setMapCursor(nextCursor);
+  }, [activeCountySubdivisionGeoJSON, countyBoundaries, showCountyBoundaries]);
 
   // ── Close panel ───────────────────────────────────────────────────────────
 
@@ -1060,8 +1657,37 @@ export function ParcelMap() {
     setMarkerPos(null);
     setNeighbourhood(null);
     setDenverZoning(null);
+    setDenverBuilding(null);
+    setDouglasParcelData(null);
+    setHoveredSubdivisionName(null);
+    setHoveredCountyName(null);
     setShowHint(true);
   }, []);
+
+  const closeBusinessDirectory = useCallback(() => {
+    setShowBusinessDir(false);
+    setSelectedBiz(null);
+    setFocusedBizId(null);
+    setBizSearch('');
+    setBizGroupFilters(new Set());
+    setBizNDOnly(false);
+  }, []);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return;
+      if (selectedBiz) {
+        setSelectedBiz(null);
+        return;
+      }
+      if (showBusinessDir) {
+        closeBusinessDirectory();
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [closeBusinessDirectory, selectedBiz, showBusinessDir]);
 
   // ── GeoJSON for selected parcel polygon ───────────────────────────────────
 
@@ -1112,6 +1738,20 @@ export function ParcelMap() {
     });
     return { type: 'FeatureCollection', features };
   }, [bizSearch, bizGroupFilters, bizNDOnly, focusedBizId]);
+
+  const ndArticlesGeoJSON = useMemo((): GeoJSON.FeatureCollection => ({
+    type: 'FeatureCollection',
+    features: NAKED_DENVER_MAPPED_ARTICLES.map((article) => ({
+      type: 'Feature' as const,
+      geometry: { type: 'Point' as const, coordinates: [article.lng, article.lat] },
+      properties: {
+        articleId: article.id,
+        title: article.title,
+        developmentType: article.developmentType ?? '',
+        neighborhood: article.neighborhood ?? '',
+      },
+    })),
+  }), []);
 
   // ── Load ND parcel polygon for a business ─────────────────────────────────
 
@@ -1183,10 +1823,87 @@ export function ParcelMap() {
         initialViewState={CO_INITIAL}
         mapStyle={mapMode === 'satellite' ? MAP_STYLE_SATELLITE : MAP_STYLE_STREET}
         style={{ width: '100%', height: '100%' }}
-        cursor="crosshair"
+        preserveDrawingBuffer
+        cursor={mapCursor}
         onClick={handleMapClick}
+        onMouseMove={handleMapMouseMove}
         attributionControl={false}
       >
+        {showCountyBoundaries && countyBoundaries && (
+          <Source id="county-boundaries" type="geojson" data={countyBoundaries}>
+            <Layer {...COUNTY_FILL_LAYER} />
+            <Layer {...COUNTY_LINE_LAYER} />
+          </Source>
+        )}
+
+        {showCountyBoundaries && countyLabelGeoJSON.features.length > 0 && (
+          <Source id="county-labels" type="geojson" data={countyLabelGeoJSON}>
+            <Layer
+              id="county-label-layer"
+              type="symbol"
+              minzoom={6}
+              layout={{
+                'text-field': ['get', 'label'],
+                'text-font': ['Open Sans Semibold', 'Arial Unicode MS Regular'],
+                'text-size': ['interpolate', ['linear'], ['zoom'], 6, 10, 10, 13] as unknown as number,
+              }}
+              paint={{
+                'text-color': 'rgba(15,23,42,0.74)',
+                'text-halo-color': 'rgba(255,255,255,0.88)',
+                'text-halo-width': 1.1,
+              }}
+            />
+          </Source>
+        )}
+
+        {showCountyBoundaries && selectedCountyGeoJSON && (
+          <Source id="selected-county" type="geojson" data={selectedCountyGeoJSON}>
+            <Layer {...SELECTED_COUNTY_FILL_LAYER} />
+            <Layer {...SELECTED_COUNTY_LINE_LAYER} />
+          </Source>
+        )}
+
+        {showCountyBoundaries && hoveredCountyGeoJSON && (
+          <Source id="hovered-county" type="geojson" data={hoveredCountyGeoJSON}>
+            <Layer {...HOVERED_COUNTY_FILL_LAYER} />
+            <Layer {...HOVERED_COUNTY_LINE_LAYER} />
+          </Source>
+        )}
+
+        {showCountyBoundaries && activeCountySubdivisionGeoJSON && activeCountySubdivisionGeoJSON.features.length > 0 && (
+          <Source id="county-subdivisions" type="geojson" data={activeCountySubdivisionGeoJSON}>
+            <Layer {...SUB_BOUNDARY_FILL_LAYER} />
+            <Layer {...SUB_BOUNDARY_LINE_LAYER} />
+          </Source>
+        )}
+
+        {showCountyBoundaries && hoveredSubdivisionGeoJSON && (
+          <Source id="hovered-county-subdivision" type="geojson" data={hoveredSubdivisionGeoJSON}>
+            <Layer {...HOVERED_SUB_BOUNDARY_FILL_LAYER} />
+            <Layer {...HOVERED_SUB_BOUNDARY_LINE_LAYER} />
+          </Source>
+        )}
+
+        {showCountyBoundaries && activeCountySubdivisionLabelGeoJSON.features.length > 0 && (
+          <Source id="county-subdivision-labels" type="geojson" data={activeCountySubdivisionLabelGeoJSON}>
+            <Layer
+              id="county-subdivision-label-layer"
+              type="symbol"
+              minzoom={10}
+              layout={{
+                'text-field': ['get', 'label'],
+                'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+                'text-size': ['interpolate', ['linear'], ['zoom'], 10, 10, 14, 12] as unknown as number,
+              }}
+              paint={{
+                'text-color': 'rgba(15,118,110,0.9)',
+                'text-halo-color': 'rgba(255,255,255,0.92)',
+                'text-halo-width': 1,
+              }}
+            />
+          </Source>
+        )}
+
         {/* Parcel polygon (single-select) */}
         {parcelGeoJSON && (
           <Source id="parcel" type="geojson" data={parcelGeoJSON}>
@@ -1232,6 +1949,31 @@ export function ParcelMap() {
           <Source id="nd-parcels" type="geojson" data={ndParcels}>
             <Layer id="nd-parcels-fill" type="fill" paint={{ 'fill-color': '#f59e0b', 'fill-opacity': 0.18 }} />
             <Layer id="nd-parcels-line" type="line" paint={{ 'line-color': '#d97706', 'line-width': 2.5, 'line-opacity': 0.9 }} />
+          </Source>
+        )}
+
+        {showNDArticles && ndArticlesGeoJSON.features.length > 0 && (
+          <Source id="nd-articles" type="geojson" data={ndArticlesGeoJSON}>
+            <Layer
+              id="nd-article-halo"
+              type="circle"
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 15, 12],
+                'circle-color': 'rgba(245,158,11,0.18)',
+                'circle-stroke-width': 0,
+              }}
+            />
+            <Layer
+              id="nd-article-circles"
+              type="circle"
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 4, 15, 7],
+                'circle-color': '#f59e0b',
+                'circle-opacity': 0.95,
+                'circle-stroke-width': 1.6,
+                'circle-stroke-color': '#fff',
+              }}
+            />
           </Source>
         )}
 
@@ -1372,8 +2114,38 @@ export function ParcelMap() {
           address={searchedAddress}
           neighbourhood={neighbourhood}
           denverZoning={denverZoning}
+          denverBuilding={denverBuilding}
+          douglasParcelData={douglasParcelData}
+          nearbyArticles={nearbyArticles}
           onClose={handleClose}
         />
+      )}
+
+      {showCountyBoundaries && hoveredBoundaryLabel && hoveredBoundaryContext && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 72,
+            right: 52,
+            zIndex: 26,
+            padding: '9px 12px',
+            borderRadius: 12,
+            background: 'rgba(255,255,255,0.96)',
+            backdropFilter: 'blur(18px)',
+            WebkitBackdropFilter: 'blur(18px)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.14)',
+            border: '1px solid rgba(0,0,0,0.08)',
+            minWidth: 180,
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ap-t3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>
+            {hoveredBoundaryContext}
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ap-t1)' }}>
+            {hoveredBoundaryLabel}
+          </div>
+        </div>
       )}
 
       {/* ── Measure toolbar ── */}
@@ -1587,7 +2359,7 @@ export function ParcelMap() {
         alignItems: 'flex-end',
       }}>
         {/* Legend (shown when any overlay is active) */}
-        {(showFloodZones || showWildfireRisk) && (
+        {(showCountyBoundaries || showFloodZones || showWildfireRisk || showNDArticles) && (
           <div style={{
             background: 'rgba(255,255,255,0.96)',
             backdropFilter: 'blur(16px)',
@@ -1598,6 +2370,27 @@ export function ParcelMap() {
             padding: '8px 12px',
             minWidth: 160,
           }}>
+            {showCountyBoundaries && (
+              <div style={{ marginBottom: showFloodZones || showWildfireRisk || showNDArticles ? 8 : 0 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ap-t3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                  County Boundaries
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: activeCountySubdivisionGeoJSON?.features.length ? 4 : 0 }}>
+                  <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(29,78,216,0.45)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 10, color: 'var(--ap-t2)', lineHeight: 1.3 }}>
+                    Colorado counties
+                  </span>
+                </div>
+                {selectedCountyName && activeCountySubdivisionGeoJSON?.features.length ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 12, height: 12, borderRadius: 2, background: 'rgba(20,184,166,0.10)', border: '1px solid rgba(15,118,110,0.5)', flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: 'var(--ap-t2)', lineHeight: 1.3 }}>
+                      {selectedCountyName.trim().toLowerCase() === 'denver' ? 'Denver neighborhoods' : `${selectedCountyName} towns`}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            )}
             {showFloodZones && (
               <div style={{ marginBottom: showWildfireRisk ? 8 : 0 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ap-t3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
@@ -1634,6 +2427,19 @@ export function ParcelMap() {
                 ))}
               </div>
             )}
+            {showNDArticles && (
+              <div style={{ marginTop: showFloodZones || showWildfireRisk ? 8 : 0 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ap-t3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                  Naked Denver Articles
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#f59e0b', border: '1px solid rgba(0,0,0,0.12)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 10, color: 'var(--ap-t2)', lineHeight: 1.3 }}>
+                    Article location / project reference point
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1648,7 +2454,9 @@ export function ParcelMap() {
           border: '1px solid rgba(255,255,255,0.3)',
         }}>
           {([
+            { key: 'counties', label: 'Counties', active: showCountyBoundaries, color: '#2563eb', toggle: () => setShowCountyBoundaries(v => !v) },
             { key: 'directory', label: 'Directory', active: showBusinessDir, color: '#6366f1', toggle: () => { setShowBusinessDir(v => !v); setSelectedBiz(null); } },
+            { key: 'nd-articles', label: 'ND Articles', active: showNDArticles, color: '#f59e0b', toggle: () => { setShowNDArticles(v => !v); if (showNDArticles) setSelectedArticle(null); } },
             { key: 'flood', label: 'Flood Zones', active: showFloodZones, color: '#4B9FE8', toggle: () => setShowFloodZones(v => !v) },
             { key: 'wildfire', label: 'Wildfire Risk', active: showWildfireRisk, color: '#d7191c', toggle: () => setShowWildfireRisk(v => !v) },
           ] as const).map(({ key, label, active, color, toggle }) => (
@@ -1694,6 +2502,7 @@ export function ParcelMap() {
             return next;
           })}
           onClearFilters={() => { setBizSearch(''); setBizGroupFilters(new Set()); setBizNDOnly(false); }}
+          onClose={closeBusinessDirectory}
           totalVisible={filteredBizGeoJSON.features.length}
           totalAll={ALL_BIZ_GEOJSON.features.length}
           ndOnly={bizNDOnly}
@@ -1729,6 +2538,13 @@ export function ParcelMap() {
           parcelLoaded={ndParcelLoadedIds.has(selectedBiz.id)}
           onClose={() => setSelectedBiz(null)}
           onLoadParcel={handleLoadNDParcel}
+        />
+      )}
+
+      {selectedArticle && (
+        <ArticlePopup
+          article={selectedArticle}
+          onClose={() => setSelectedArticle(null)}
         />
       )}
 

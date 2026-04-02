@@ -8,7 +8,8 @@
     "server": "node --experimental-strip-types server.ts",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "import:nd-rss": "node scripts/importNakedDenverRss.cjs"
   },
   "dependencies": {
     "cors": "^2.8.6",

@@ -28,6 +28,24 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/denver-zoning/, '/maps/data/Zoning/MapServer'),
       },
+      // Denver assessor tables — residential characteristics
+      '/api/denver-residential': {
+        target: 'https://services1.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(
+          /^\/api\/denver-residential/,
+          '/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_real_property_residential_characteristics/FeatureServer/59'
+        ),
+      },
+      // Denver assessor tables — apartment/commercial characteristics
+      '/api/denver-commercial': {
+        target: 'https://services1.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(
+          /^\/api\/denver-commercial/,
+          '/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_real_property_apartment_and_commercial_characteristics/FeatureServer/58'
+        ),
+      },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
         target: 'https://hazards.fema.gov',
