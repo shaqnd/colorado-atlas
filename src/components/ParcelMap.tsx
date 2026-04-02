@@ -20,15 +20,18 @@ import Map, {
 } from 'react-map-gl/maplibre';
 import type { MapRef, MapLayerMouseEvent } from 'react-map-gl/maplibre';
 
-import type { ParcelState, GeoJSONGeometry, DenverBuildingData, DouglasParcelData } from '../data/parcelTypes';
+import type { ParcelState, GeoJSONGeometry, DenverBuildingData, DouglasParcelData, ArapahoeParcelData, ArapahoeZoningData, ParcelFeature } from '../data/parcelTypes';
 import {
-  geocodeAddress,
+  searchPlaces,
+  searchParcels,
   queryParcelByPoint,
   queryParcelsInBounds,
   reverseGeocodeNeighborhood,
   queryDenverZoning,
   queryDenverBuilding,
   queryDouglasParcelData,
+  queryArapahoeParcelData,
+  queryArapahoeZoning,
   queryCountyBoundaries,
   queryMunicipalBoundaries,
   queryDenverNeighborhoodBoundaries,
@@ -291,18 +294,63 @@ function buildLabelPoints(
   };
 }
 
+type SmartSearchResult =
+  | {
+      id: string;
+      kind: 'parcel';
+      title: string;
+      subtitle: string;
+      detail?: string;
+      parcel: ParcelFeature;
+      score: number;
+    }
+  | {
+      id: string;
+      kind: 'place';
+      title: string;
+      subtitle: string;
+      detail?: string;
+      lat: number;
+      lng: number;
+      score: number;
+    }
+  | {
+      id: string;
+      kind: 'business';
+      title: string;
+      subtitle: string;
+      detail?: string;
+      business: BizEntry;
+      lat: number;
+      lng: number;
+      score: number;
+    }
+  | {
+      id: string;
+      kind: 'article';
+      title: string;
+      subtitle: string;
+      detail?: string;
+      article: NakedDenverArticle;
+      lat: number;
+      lng: number;
+      score: number;
+    };
+
 // ── Search bar ────────────────────────────────────────────────────────────────
 
 interface SearchBarProps {
-  onSearch: (addr: string) => Promise<void>;
+  value: string;
+  onChange: (value: string) => void;
+  onSearch: (query: string) => Promise<void>;
+  results: SmartSearchResult[];
+  onSelectResult: (result: SmartSearchResult) => void;
   searching: boolean;
   error: string | null;
   panelOpen: boolean;
 }
 
-function SearchBar({ onSearch, searching, error, panelOpen }: SearchBarProps) {
-  const [value, setValue] = useState('');
-
+function SearchBar({ value, onChange, onSearch, results, onSelectResult, searching, error, panelOpen }: SearchBarProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = value.trim();
@@ -355,8 +403,8 @@ function SearchBar({ onSearch, searching, error, panelOpen }: SearchBarProps) {
           {/* Input */}
           <input
             value={value}
-            onChange={e => setValue(e.target.value)}
-            placeholder="Enter a Colorado address, APN, or place…"
+            onChange={e => onChange(e.target.value)}
+            placeholder="Search address, APN, owner, business, school, park, neighborhood…"
             style={{
               flex: 1,
               border: 'none',
@@ -373,7 +421,7 @@ function SearchBar({ onSearch, searching, error, panelOpen }: SearchBarProps) {
           {value && (
             <button
               type="button"
-              onClick={() => setValue('')}
+              onClick={() => onChange('')}
               style={{ padding: '0 8px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--ap-t3)', display: 'flex', alignItems: 'center' }}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -427,6 +475,57 @@ function SearchBar({ onSearch, searching, error, panelOpen }: SearchBarProps) {
               <path d="M7 4v3.5M7 9.5V10" stroke="var(--ap-red)" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
             {error}
+          </div>
+        )}
+
+        {results.length > 0 && (
+          <div
+            style={{
+              marginTop: 8,
+              background: 'rgba(255,255,255,0.98)',
+              backdropFilter: 'blur(18px)',
+              WebkitBackdropFilter: 'blur(18px)',
+              borderRadius: 12,
+              boxShadow: '0 8px 30px rgba(0,0,0,0.14)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ padding: '8px 12px', fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              Search Results
+            </div>
+            <div style={{ maxHeight: 340, overflowY: 'auto' }}>
+              {results.map((result) => (
+                <button
+                  key={result.id}
+                  type="button"
+                  onClick={() => onSelectResult(result)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: '10px 12px',
+                    borderBottom: '1px solid rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ap-t1)' }}>{result.title}</div>
+                    <div style={{ fontSize: 10, color: 'var(--ap-blue)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em', flexShrink: 0 }}>
+                      {result.kind}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--ap-t2)', lineHeight: 1.4 }}>{result.subtitle}</div>
+                  {result.detail && (
+                    <div style={{ fontSize: 10, color: 'var(--ap-t3)', lineHeight: 1.35 }}>{result.detail}</div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </form>
@@ -752,6 +851,31 @@ const ALL_BIZ_GEOJSON: GeoJSON.FeatureCollection = {
     }));
   }),
 };
+
+function normalizeSearchText(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function buildSearchScore(query: string, haystacks: string[], boosts = 0): number {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return boosts;
+
+  let score = boosts;
+  for (const haystack of haystacks) {
+    const normalizedHaystack = normalizeSearchText(haystack);
+    if (!normalizedHaystack) continue;
+    if (normalizedHaystack === normalizedQuery) score += 120;
+    else if (normalizedHaystack.startsWith(normalizedQuery)) score += 80;
+    else if (normalizedHaystack.includes(normalizedQuery)) score += 50;
+
+    for (const token of normalizedQuery.split(' ')) {
+      if (token.length < 2) continue;
+      if (normalizedHaystack.startsWith(token)) score += 14;
+      else if (normalizedHaystack.includes(token)) score += 8;
+    }
+  }
+  return score;
+}
 
 // ── Business filter panel ─────────────────────────────────────────────────────
 
@@ -1334,6 +1458,8 @@ export function ParcelMap() {
 
   const [parcelState, setParcelState] = useState<ParcelState>({ status: 'idle' });
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SmartSearchResult[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const [searchedAddress, setSearchedAddress] = useState('');
@@ -1345,6 +1471,8 @@ export function ParcelMap() {
   const [denverZoning, setDenverZoning] = useState<DenverZoningRaw | null>(null);
   const [denverBuilding, setDenverBuilding] = useState<DenverBuildingData | null>(null);
   const [douglasParcelData, setDouglasParcelData] = useState<DouglasParcelData | null>(null);
+  const [arapahoeParcelData, setArapahoeParcelData] = useState<ArapahoeParcelData | null>(null);
+  const [arapahoeZoningData, setArapahoeZoningData] = useState<ArapahoeZoningData | null>(null);
   const [showCountyBoundaries, setShowCountyBoundaries] = useState(true);
   const [countyBoundaries, setCountyBoundaries] = useState<GeoJSON.FeatureCollection | null>(null);
   const [municipalBoundaries, setMunicipalBoundaries] = useState<GeoJSON.FeatureCollection | null>(null);
@@ -1451,6 +1579,25 @@ export function ParcelMap() {
         } catch {
           if (!cancelled) {
             setDouglasParcelData(null);
+          }
+        }
+        return;
+      }
+
+      if (feature.location.county.trim().toLowerCase() === 'arapahoe') {
+        try {
+          const [arapahoeData, zoning] = await Promise.all([
+            queryArapahoeParcelData(feature.identity.apn),
+            queryArapahoeZoning(centerLng, centerLat),
+          ]);
+          if (!cancelled) {
+            setArapahoeParcelData(arapahoeData);
+            setArapahoeZoningData(zoning);
+          }
+        } catch {
+          if (!cancelled) {
+            setArapahoeParcelData(null);
+            setArapahoeZoningData(null);
           }
         }
       }
@@ -1642,8 +1789,17 @@ export function ParcelMap() {
     setDenverZoning(null);
     setDenverBuilding(null);
     setDouglasParcelData(null);
+    setArapahoeParcelData(null);
+    setArapahoeZoningData(null);
     setShowHint(true);
   }, []);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSearchError(null);
+    }
+  }, [searchQuery]);
 
   // ── Fetch parcel for multi-select ────────────────────────────────────────
 
@@ -1668,6 +1824,7 @@ export function ParcelMap() {
 
   const fetchParcel = useCallback(async (lng: number, lat: number, addr?: string) => {
     setSelectedBoundary(null);
+    setSearchResults([]);
     setShowHint(false);
     setMarkerPos({ lng, lat });
     setParcelState({ status: 'loading', lat, lng });
@@ -1675,6 +1832,8 @@ export function ParcelMap() {
     setDenverZoning(null);
     setDenverBuilding(null);
     setDouglasParcelData(null);
+    setArapahoeParcelData(null);
+    setArapahoeZoningData(null);
     setSearchError(null);
 
     // Fly to location
@@ -1711,21 +1870,153 @@ export function ParcelMap() {
   // ── Address search ────────────────────────────────────────────────────────
 
   const handleSearch = useCallback(async (address: string) => {
+    const query = address.trim();
+    if (!query) return;
+
     setSearching(true);
     setSearchError(null);
-    setSearchedAddress(address);
+    setSearchedAddress(query);
 
     try {
-      const { lat, lng } = await geocodeAddress(address);
-      await fetchParcel(lng, lat, address);
+      const businessResults: SmartSearchResult[] = BUSINESS_DIRECTORY
+        .map((business) => {
+          const firstLocation = business.allLocations?.[0] ?? (business.coordinates ? { address: business.address ?? '', ...business.coordinates } : null);
+          if (!firstLocation) return null;
+          const score = buildSearchScore(query, [business.name, business.category, business.address ?? '', business.about], 25);
+          if (score < 45) return null;
+          return {
+            id: `business-${business.id}`,
+            kind: 'business' as const,
+            title: business.name,
+            subtitle: `${business.category} · ${firstLocation.address || business.address || 'Colorado'}`,
+            detail: business.website || undefined,
+            business,
+            lat: firstLocation.lat,
+            lng: firstLocation.lng,
+            score,
+          };
+        })
+        .filter((result): result is SmartSearchResult & { kind: 'business' } => !!result);
+
+      const articleResults: SmartSearchResult[] = NAKED_DENVER_MAPPED_ARTICLES
+        .map((article) => {
+          const score = buildSearchScore(query, [article.title, article.neighborhood ?? '', article.address ?? '', article.summary ?? ''], 10);
+          if (score < 48) return null;
+          return {
+            id: `article-${article.id}`,
+            kind: 'article' as const,
+            title: article.title,
+            subtitle: [article.neighborhood, article.address].filter(Boolean).join(' · ') || 'Naked Denver article',
+            detail: article.developmentType || undefined,
+            article,
+            lat: article.lat,
+            lng: article.lng,
+            score,
+          };
+        })
+        .filter((result): result is SmartSearchResult & { kind: 'article' } => !!result);
+
+      const [parcelResultsRaw, placeResultsRaw] = await Promise.allSettled([
+        searchParcels(query, 14),
+        searchPlaces(query, 6),
+      ]);
+
+      const parcelResults: SmartSearchResult[] =
+        parcelResultsRaw.status === 'fulfilled'
+          ? parcelResultsRaw.value.map((parcel) => ({
+              id: `parcel-${parcel.identity.apn}`,
+              kind: 'parcel' as const,
+              title: parcel.location.situsAddress || parcel.identity.apn,
+              subtitle: `${parcel.owner.name} · ${parcel.location.city || parcel.location.county || 'Colorado'}`,
+              detail: `APN ${parcel.identity.apn}`,
+              parcel,
+              score: buildSearchScore(query, [parcel.identity.apn, parcel.location.situsAddress, parcel.owner.name, parcel.location.city, parcel.identity.legalDescription ?? ''], 40),
+            }))
+          : [];
+
+      const placeResults: SmartSearchResult[] =
+        placeResultsRaw.status === 'fulfilled'
+          ? placeResultsRaw.value.map((place, index) => ({
+              id: `place-${index}-${place.lat}-${place.lng}`,
+              kind: 'place' as const,
+              title: place.formattedAddress.split(',')[0] ?? place.formattedAddress,
+              subtitle: place.formattedAddress,
+              detail: [place.county, place.state].filter(Boolean).join(' · ') || undefined,
+              lat: place.lat,
+              lng: place.lng,
+              score: buildSearchScore(query, [place.formattedAddress], 5),
+            }))
+          : [];
+
+      const combined = [...parcelResults, ...businessResults, ...articleResults, ...placeResults]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 12);
+
+      setSearchResults(combined);
+
+      const digitsOnly = query.replace(/\D/g, '');
+      const isApnLike = /^[\d-\s]+$/.test(query) && digitsOnly.length >= 6;
+
+      if (isApnLike && parcelResults.length === 1) {
+        const parcel = parcelResults[0]!.parcel;
+        await fetchParcel(parcel.location.lng, parcel.location.lat, parcel.location.situsAddress || parcel.identity.apn);
+        setSearchResults([]);
+        return;
+      }
+
+      if (combined.length === 1 && combined[0]?.kind === 'place') {
+        const place = combined[0];
+        await fetchParcel(place.lng, place.lat, place.title);
+        setSearchResults([]);
+        return;
+      }
+
+      if (combined.length === 0) {
+        setSearchError('No matching parcels, owners, places, or businesses found.');
+        setParcelState({ status: 'idle' });
+      }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Geocoding failed.';
+      const msg = err instanceof Error ? err.message : 'Search failed.';
       setSearchError(msg);
       setParcelState({ status: 'idle' });
     } finally {
       setSearching(false);
     }
   }, [fetchParcel]);
+
+  const handleSelectSearchResult = useCallback(async (result: SmartSearchResult) => {
+    setSearchResults([]);
+    setSearchError(null);
+    setSearchQuery(result.title);
+    setSearchedAddress(result.title);
+
+    if (result.kind === 'parcel') {
+      await fetchParcel(result.parcel.location.lng, result.parcel.location.lat, result.parcel.location.situsAddress || result.parcel.identity.apn);
+      return;
+    }
+
+    if (result.kind === 'business') {
+      setSelectedArticle(null);
+      setShowBusinessDir(true);
+      setSelectedBiz(result.business);
+      setSelectedBoundary(null);
+      clearParcelSelection();
+      mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 16, duration: 1000, essential: true });
+      return;
+    }
+
+    if (result.kind === 'article') {
+      setSelectedBiz(null);
+      setShowNDArticles(true);
+      setSelectedArticle(result.article);
+      setSelectedBoundary(null);
+      clearParcelSelection();
+      mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 16, duration: 1000, essential: true });
+      return;
+    }
+
+    await fetchParcel(result.lng, result.lat, result.title);
+  }, [clearParcelSelection, fetchParcel]);
 
   // ── Map click ─────────────────────────────────────────────────────────────
 
@@ -1983,6 +2274,32 @@ export function ParcelMap() {
       setNdParcelLoadingId(null);
     }
   }, [ndParcelLoadedIds]);
+
+  const getMapSnapshot = useCallback(async (): Promise<string> => {
+    const map = mapRef.current?.getMap();
+    if (!map) return '';
+
+    try {
+      map.triggerRepaint();
+      await new Promise<void>((resolve) => {
+        let settled = false;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          resolve();
+        };
+        map.once('render', () => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(finish);
+          });
+        });
+        setTimeout(finish, 250);
+      });
+      return map.getCanvas().toDataURL('image/png');
+    } catch {
+      return '';
+    }
+  }, []);
 
   // ── GeoJSON for measurement layers ────────────────────────────────────────
 
@@ -2329,7 +2646,11 @@ export function ParcelMap() {
 
       {/* ── Search bar ── */}
       <SearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
         onSearch={handleSearch}
+        results={searchResults}
+        onSelectResult={handleSelectSearchResult}
         searching={searching}
         error={searchError}
         panelOpen={leftPanelOpen}
@@ -2354,9 +2675,13 @@ export function ParcelMap() {
           neighbourhood={neighbourhood}
           denverZoning={denverZoning}
           denverBuilding={denverBuilding}
+          denverValuation={null}
           douglasParcelData={douglasParcelData}
+          arapahoeParcelData={arapahoeParcelData}
+          arapahoeZoningData={arapahoeZoningData}
           nearbyArticles={nearbyArticles}
           boundarySelection={selectedBoundary}
+          getMapSnapshot={getMapSnapshot}
           onClose={handleClose}
         />
       )}

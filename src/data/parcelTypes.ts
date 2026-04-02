@@ -119,6 +119,16 @@ export interface DenverBuildingData {
   buildingName: string | null;
 }
 
+export interface DenverParcelValuationData {
+  parid: string;
+  appraisedLandValue: number | null;
+  appraisedImprovementValue: number | null;
+  appraisedTotalValue: number | null;
+  assessedLandValue: number | null;
+  assessedImprovementValue: number | null;
+  assessedTotalValue: number | null;
+}
+
 export interface DouglasBuildingData {
   propertyType: string | null;
   totalBuildingSqft: number | null;
@@ -177,6 +187,89 @@ export interface DouglasParcelData {
   estimatedTaxesUrl: string;
   neighborhoodInfoUrl: string;
   neighborhoodSalesUrl: string;
+}
+
+export interface ArapahoeBuildingData {
+  qualityGrade: string | null;
+  improvementType: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  architecturalStyle: string | null;
+  floors: number | null;
+  heatMethod: string | null;
+  coolMethod: string | null;
+  yearBuilt: number | null;
+  roofType: string | null;
+  fireplaces: number | null;
+  exteriorWall: string | null;
+  constructionType: string | null;
+  totalBuildingSqft: number | null;
+  firstFloorSqft: number | null;
+  secondFloorSqft: number | null;
+  basementTotalSqft: number | null;
+  basementFinishedSqft: number | null;
+}
+
+export interface ArapahoeTaxData {
+  taxYear: number | null;
+  payableYear: number | null;
+  lastUpdated: string | null;
+  taxableValue: number | null;
+  taxableSchoolValue: number | null;
+  totalTaxRate: number | null;
+  assessedTax: number | null;
+  totalDue: number | null;
+  amountPaid: number | null;
+}
+
+export interface ArapahoeParcelData {
+  ain: string;
+  pin: string | null;
+  situsAddress: string | null;
+  situsCity: string | null;
+  ownerName: string | null;
+  ownershipType: string | null;
+  ownerAddress: string | null;
+  ownerCityStateZip: string | null;
+  neighborhood: string | null;
+  neighborhoodCode: string | null;
+  acreage: number | null;
+  landUse: string | null;
+  landLineUse: string | null;
+  legalDescription: string | null;
+  appraisedTotalValue: number | null;
+  appraisedBuildingValue: number | null;
+  appraisedLandValue: number | null;
+  assessedTotalValue: number | null;
+  assessedBuildingValue: number | null;
+  assessedLandValue: number | null;
+  assessedSchoolTotalValue: number | null;
+  assessedSchoolBuildingValue: number | null;
+  assessedSchoolLandValue: number | null;
+  millLevy: number | null;
+  building: ArapahoeBuildingData | null;
+  tax: ArapahoeTaxData | null;
+  detailUrl: string;
+  taxUrl: string | null;
+  levyUrl: string | null;
+  noticeOfValueUrl: string | null;
+  salesReportUrl: string | null;
+  parcelMapUrl: string | null;
+}
+
+export interface ArapahoeZoningData {
+  jurisdiction: string | null;
+  jurisdictionCamaName: string | null;
+  jurisdictionUrl: string | null;
+  inCounty: boolean;
+  authorityType: 'county' | 'municipal';
+  zoningCode: string | null;
+  zoningUrl: string | null;
+  zoningDocUrl: string | null;
+  caseNumber: string | null;
+  active: string | null;
+  amendment: string | null;
+  effectiveDate: string | null;
 }
 
 // ── Top-level feature ─────────────────────────────────────────────────────────

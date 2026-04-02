@@ -10,7 +10,10 @@
  */
 
 import type {
+  ArapahoeParcelData,
+  ArapahoeZoningData,
   DenverBuildingData,
+  DenverParcelValuationData,
   DouglasParcelData,
   GeocodeResult,
   ParcelFeature,
@@ -76,6 +79,29 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult> {
   };
 }
 
+export async function searchPlaces(query: string, limit = 6): Promise<GeocodeResult[]> {
+  const params = new URLSearchParams({
+    q: /\b(CO|Colorado)\b/i.test(query) ? query : `${query}, Colorado`,
+    format: 'json',
+    limit: String(limit),
+    countrycodes: 'us',
+    addressdetails: '1',
+  });
+
+  const res = await fetch(`${NOMINATIM_BASE}/search?${params}`);
+  if (!res.ok) throw new Error(`Place search returned ${res.status}`);
+
+  const results = await res.json() as NominatimResult[];
+
+  return (results ?? []).map((result) => ({
+    lat: parseFloat(result.lat),
+    lng: parseFloat(result.lon),
+    formattedAddress: result.display_name,
+    state: result.address?.state,
+    county: result.address?.county,
+  }));
+}
+
 interface NominatimResult {
   lat: string;
   lon: string;
@@ -129,8 +155,11 @@ interface NominatimReverseResult {
 const DENVER_ZONING_API = '/api/denver-zoning/1/query';
 const DENVER_ZONING_POINT_API = '/api/denver-zoning-point';
 const DENVER_BUILDING_API = '/api/denver-building';
+const DENVER_VALUATION_API = '/api/denver-valuation';
 const DOUGLAS_PARCELS_API = '/api/douglas-parcels/query';
 const DOUGLAS_DETAIL_API = '/api/douglas-detail';
+const ARAPAHOE_DETAIL_API = '/api/arapahoe-detail';
+const ARAPAHOE_ZONING_API = '/api/arapahoe-zoning';
 const COUNTY_BOUNDARIES_API = '/api/esri-co/OIT/Colorado_State_Basemap/MapServer/52/query';
 const MUNICIPAL_BOUNDARIES_API = '/api/esri-co/OIT/Colorado_State_Basemap/MapServer/34/query';
 const DENVER_NEIGHBORHOODS_API = '/api/denver-neighborhoods';
@@ -168,8 +197,20 @@ interface DenverBuildingApiResponse {
   data: DenverBuildingData | null;
 }
 
+interface DenverValuationApiResponse {
+  data: DenverParcelValuationData | null;
+}
+
 interface DouglasDetailApiResponse {
   data: DouglasParcelData | null;
+}
+
+interface ArapahoeDetailApiResponse {
+  data: ArapahoeParcelData | null;
+}
+
+interface ArapahoeZoningApiResponse {
+  data: ArapahoeZoningData | null;
 }
 
 interface ArcGisQueryResponse<T> {
@@ -318,6 +359,24 @@ export async function queryDenverBuilding(parid: string): Promise<DenverBuilding
   return null;
 }
 
+export async function queryDenverParcelValuation(parid: string): Promise<DenverParcelValuationData | null> {
+  if (!parid) return null;
+
+  const params = new URLSearchParams({ parid });
+
+  try {
+    const res = await fetch(`${DENVER_VALUATION_API}?${params}`);
+    if (res.ok) {
+      const data = await res.json() as DenverValuationApiResponse;
+      return data.data ?? null;
+    }
+  } catch {
+    // no-op
+  }
+
+  return null;
+}
+
 export async function queryDouglasParcelData(
   lng: number,
   lat: number
@@ -430,6 +489,36 @@ export async function queryDouglasParcelData(
           )
         : detail.estimatedAnnualTax),
   };
+}
+
+export async function queryArapahoeParcelData(ain: string): Promise<ArapahoeParcelData | null> {
+  if (!ain) return null;
+
+  const params = new URLSearchParams({ ain });
+  const res = await fetch(`${ARAPAHOE_DETAIL_API}?${params}`);
+  if (!res.ok) {
+    throw new Error(`Arapahoe detail service returned ${res.status}`);
+  }
+
+  const json = await res.json() as ArapahoeDetailApiResponse;
+  return json.data ?? null;
+}
+
+export async function queryArapahoeZoning(
+  lng: number,
+  lat: number
+): Promise<ArapahoeZoningData | null> {
+  const params = new URLSearchParams({
+    lng: String(lng),
+    lat: String(lat),
+  });
+  const res = await fetch(`${ARAPAHOE_ZONING_API}?${params}`);
+  if (!res.ok) {
+    throw new Error(`Arapahoe zoning service returned ${res.status}`);
+  }
+
+  const json = await res.json() as ArapahoeZoningApiResponse;
+  return json.data ?? null;
 }
 
 export async function queryDenverBuildings(parids: string[]): Promise<Map<string, DenverBuildingData>> {
@@ -724,6 +813,61 @@ export async function queryParcelsNearby(
 
   return (data.features ?? []).map((feature) => {
     const centroid = ringsCentroid(feature.geometry?.rings) ?? { lat, lng };
+    return normalizeParcelFeature(feature, centroid.lat, centroid.lng);
+  });
+}
+
+function escapeSqlLiteral(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
+function escapeSqlLike(value: string): string {
+  return escapeSqlLiteral(value).replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+export async function searchParcels(query: string, limit = 12): Promise<ParcelFeature[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  const digitsOnly = trimmed.replace(/\D/g, '');
+  const isApnLike = /^[\d-\s]+$/.test(trimmed) && digitsOnly.length >= 6;
+
+  const where = isApnLike
+    ? [
+        `parcel_id = '${escapeSqlLiteral(trimmed)}'`,
+        `account = '${escapeSqlLiteral(trimmed)}'`,
+        `parcel_id = '${escapeSqlLiteral(digitsOnly)}'`,
+        `account = '${escapeSqlLiteral(digitsOnly)}'`,
+        `parcel_id LIKE '%${escapeSqlLike(digitsOnly)}%' ESCAPE '\\'`,
+        `account LIKE '%${escapeSqlLike(digitsOnly)}%' ESCAPE '\\'`,
+      ].join(' OR ')
+    : [
+        `owner LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
+        `owner2 LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
+        `situsAdd LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
+        `sitAddCty LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
+        `legalDesc LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
+        `subName LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
+      ].join(' OR ');
+
+  const params = new URLSearchParams({
+    where,
+    outFields: PARCEL_FIELDS,
+    returnGeometry: 'true',
+    outSR: '4326',
+    resultRecordCount: String(limit),
+    orderByFields: isApnLike ? 'parcel_id ASC' : 'owner ASC,situsAdd ASC',
+    f: 'json',
+  });
+
+  const res = await fetch(`${PARCEL_API}?${params}`);
+  if (!res.ok) throw new Error(`Parcel search returned ${res.status}`);
+
+  const data = await res.json() as EsriJsonResponse;
+  if (data.error) throw new Error(data.error.message);
+
+  return (data.features ?? []).map((feature) => {
+    const centroid = ringsCentroid(feature.geometry?.rings) ?? { lat: 39.5501, lng: -105.7821 };
     return normalizeParcelFeature(feature, centroid.lat, centroid.lng);
   });
 }

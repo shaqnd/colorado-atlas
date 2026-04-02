@@ -135,10 +135,30 @@ export interface HBUSignal {
   description: string;
 }
 
+export interface HBUDecisionTest {
+  status: 'pass' | 'caution' | 'fail';
+  summary: string;
+}
+
+export interface HBUTrackResult {
+  legalPermissibility: HBUDecisionTest;
+  physicalPossibility: HBUDecisionTest;
+  financialFeasibility: HBUDecisionTest;
+  conclusion: string;
+}
+
 export interface HBUResult {
   verdict: 'underutilized' | 'optimal';
   signals: HBUSignal[];
+  framework: {
+    asThoughVacant: HBUTrackResult;
+    asImproved: HBUTrackResult;
+  };
   recommendation: {
+    opinion: string;
+    conclusionType: 'continue_current_use' | 'interim_use' | 'redevelopment';
+    sourceZoneCode: string;
+    analyzedZoneCode: string;
     currentUseLabel: string;
     likelyInterimUse: string;
     likelyUltimateUse: string;

@@ -17,6 +17,7 @@ type ProxyConfig = {
 type DenverBuildingData = {
   source: 'residential' | 'commercial';
   parid: string;
+  neighborhoodName: string | null;
   propertyClass: string | null;
   totalBuildingSqft: number | null;
   aboveGradeSqft: number | null;
@@ -31,6 +32,16 @@ type DenverBuildingData = {
   remodelYear: number | null;
   style: string | null;
   buildingName: string | null;
+};
+
+type DenverParcelValuationData = {
+  parid: string;
+  appraisedLandValue: number | null;
+  appraisedImprovementValue: number | null;
+  appraisedTotalValue: number | null;
+  assessedLandValue: number | null;
+  assessedImprovementValue: number | null;
+  assessedTotalValue: number | null;
 };
 
 type DouglasBuildingData = {
@@ -91,6 +102,89 @@ type DouglasParcelData = {
   estimatedTaxesUrl: string;
   neighborhoodInfoUrl: string;
   neighborhoodSalesUrl: string;
+};
+
+type ArapahoeBuildingData = {
+  qualityGrade: string | null;
+  improvementType: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  architecturalStyle: string | null;
+  floors: number | null;
+  heatMethod: string | null;
+  coolMethod: string | null;
+  yearBuilt: number | null;
+  roofType: string | null;
+  fireplaces: number | null;
+  exteriorWall: string | null;
+  constructionType: string | null;
+  totalBuildingSqft: number | null;
+  firstFloorSqft: number | null;
+  secondFloorSqft: number | null;
+  basementTotalSqft: number | null;
+  basementFinishedSqft: number | null;
+};
+
+type ArapahoeTaxData = {
+  taxYear: number | null;
+  payableYear: number | null;
+  lastUpdated: string | null;
+  taxableValue: number | null;
+  taxableSchoolValue: number | null;
+  totalTaxRate: number | null;
+  assessedTax: number | null;
+  totalDue: number | null;
+  amountPaid: number | null;
+};
+
+type ArapahoeParcelData = {
+  ain: string;
+  pin: string | null;
+  situsAddress: string | null;
+  situsCity: string | null;
+  ownerName: string | null;
+  ownershipType: string | null;
+  ownerAddress: string | null;
+  ownerCityStateZip: string | null;
+  neighborhood: string | null;
+  neighborhoodCode: string | null;
+  acreage: number | null;
+  landUse: string | null;
+  landLineUse: string | null;
+  legalDescription: string | null;
+  appraisedTotalValue: number | null;
+  appraisedBuildingValue: number | null;
+  appraisedLandValue: number | null;
+  assessedTotalValue: number | null;
+  assessedBuildingValue: number | null;
+  assessedLandValue: number | null;
+  assessedSchoolTotalValue: number | null;
+  assessedSchoolBuildingValue: number | null;
+  assessedSchoolLandValue: number | null;
+  millLevy: number | null;
+  building: ArapahoeBuildingData | null;
+  tax: ArapahoeTaxData | null;
+  detailUrl: string;
+  taxUrl: string | null;
+  levyUrl: string | null;
+  noticeOfValueUrl: string | null;
+  salesReportUrl: string | null;
+  parcelMapUrl: string | null;
+};
+
+type ArapahoeZoningData = {
+  jurisdiction: string | null;
+  jurisdictionCamaName: string | null;
+  jurisdictionUrl: string | null;
+  inCounty: boolean;
+  authorityType: 'county' | 'municipal';
+  zoningCode: string | null;
+  zoningUrl: string | null;
+  zoningDocUrl: string | null;
+  caseNumber: string | null;
+  active: string | null;
+  amendment: string | null;
+  effectiveDate: string | null;
 };
 
 async function proxyGet(req: Request, res: Response, config: ProxyConfig) {
@@ -160,6 +254,117 @@ function extractLabeledNumber(text: string, label: string): number | null {
   const pattern = new RegExp(`${escapeRegExp(label)}\\s*:?\\s*\\$?(-?[0-9][0-9,]*(?:\\.[0-9]+)?)`, 'i');
   const match = text.match(pattern);
   return match ? toNumber(match[1]?.replace(/,/g, '')) : null;
+}
+
+function toMoney(value: string | null): number | null {
+  if (!value) return null;
+  return toNumber(value.replace(/[$,%\s]/g, '').replace(/,/g, ''));
+}
+
+function toIsoDate(value: unknown): string | null {
+  const num = toNumber(value);
+  if (num === null) return null;
+  const date = new Date(num);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function extractHtmlById(html: string, id: string): string | null {
+  const pattern = new RegExp(`<[^>]+id=["']${escapeRegExp(id)}["'][^>]*>([\\s\\S]*?)<\\/[^>]+>`, 'i');
+  const match = html.match(pattern);
+  return match ? stripHtml(match[1]) : null;
+}
+
+function extractMatch(html: string, pattern: RegExp): string | null {
+  const match = html.match(pattern);
+  return match?.[1] ? decodeHtmlEntities(match[1]).trim() : null;
+}
+
+function normalizeArapahoeAin(rawAin: string): string[] {
+  const trimmed = rawAin.trim();
+  const digitsOnly = trimmed.replace(/\D/g, '');
+  const candidates = new Set<string>();
+
+  if (trimmed) candidates.add(trimmed);
+  if (digitsOnly) {
+    candidates.add(digitsOnly);
+    if (digitsOnly.length === 12) {
+      candidates.add(
+        `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4, 6)}-${digitsOnly.slice(6, 7)}-${digitsOnly.slice(7, 9)}-${digitsOnly.slice(9)}`
+      );
+    }
+  }
+
+  return Array.from(candidates);
+}
+
+function toAbsoluteUrl(baseUrl: string, maybeRelative: string | null): string | null {
+  if (!maybeRelative) return null;
+  try {
+    return new URL(maybeRelative, baseUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
+function parseArapahoeBuilding(detailHtml: string): ArapahoeBuildingData | null {
+  const readAttrValue = (labelId: string) => {
+    const label = extractHtmlById(detailHtml, labelId);
+    if (!label) return null;
+    const labelText = stripHtml(label).trim();
+    const pattern = new RegExp(`${escapeRegExp(labelText)}<\\/span><\\/div><\\/td>\\s*<td[^>]*>\\s*<div>([^<]*)<`, 'i');
+    const match = detailHtml.match(pattern);
+    return match ? stripHtml(match[1]).trim() || null : null;
+  };
+
+  const totalBuildingSqft = toNumber(extractMatch(detailHtml, /Bldg Total Area:<\/b><\/td><td[^>]*><div[^>]*>([0-9,]+)/i)?.replace(/,/g, ''));
+  const firstFloorSqft = toNumber(extractMatch(detailHtml, /First Floor<\/div><\/td><td[^>]*><div>([0-9,]+)/i)?.replace(/,/g, ''));
+  const basementTotalSqft = toNumber(extractMatch(detailHtml, /Basement Total<\/div><\/td><td[^>]*><div>([0-9,]+)/i)?.replace(/,/g, ''));
+  const basementFinishedSqft = toNumber(extractMatch(detailHtml, /Basement Finish<\/div><\/td><td[^>]*><div>([0-9,]+)/i)?.replace(/,/g, ''));
+  const secondFloorMatches = [...detailHtml.matchAll(/Second Floor<\/div><\/td><td[^>]*><div>([0-9,]+)/gi)];
+  const secondFloorSqft = secondFloorMatches.length
+    ? secondFloorMatches.reduce((sum, match) => sum + (toNumber(match[1]?.replace(/,/g, '')) ?? 0), 0)
+    : null;
+
+  const building: ArapahoeBuildingData = {
+    qualityGrade: readAttrValue('ucParcelResdBuild_rptrResdBuild_lblQualityGradeTitle_0'),
+    improvementType: readAttrValue('ucParcelResdBuild_rptrResdBuild_lblImpTypeTitle_0'),
+    bedrooms: toNumber(readAttrValue('ucParcelResdBuild_rptrResdBuild_lblBedroomTitle_0')),
+    bathrooms: toNumber(readAttrValue('ucParcelResdBuild_rptrResdBuild_Label4_0')),
+    architecturalStyle: readAttrValue('ucParcelResdBuild_rptrResdBuild_lblArchitecturalTitle_0'),
+    floors: toNumber(readAttrValue('ucParcelResdBuild_rptrResdBuild_Label3_0')),
+    heatMethod: readAttrValue('ucParcelResdBuild_rptrResdBuild_Label1_0'),
+    coolMethod: readAttrValue('ucParcelResdBuild_rptrResdBuild_lblAirCondTitle_0'),
+    yearBuilt: toNumber(readAttrValue('ucParcelResdBuild_rptrResdBuild_lblYearBuiltTitle_0')),
+    roofType: readAttrValue('ucParcelResdBuild_rptrResdBuild_lblRoofTypeTitle_0'),
+    fireplaces: toNumber(readAttrValue('ucParcelResdBuild_rptrResdBuild_Label2_0')),
+    exteriorWall: readAttrValue('ucParcelResdBuild_rptrResdBuild_Label5_0'),
+    constructionType: readAttrValue('ucParcelResdBuild_rptrResdBuild_Label7_0'),
+    totalBuildingSqft,
+    firstFloorSqft,
+    secondFloorSqft,
+    basementTotalSqft,
+    basementFinishedSqft,
+  };
+
+  return Object.values(building).some((value) => value !== null) ? building : null;
+}
+
+function parseArapahoeTaxPage(taxHtml: string): ArapahoeTaxData | null {
+  const titleMatch = taxHtml.match(/Property Taxes for\s+(\d{4})\s+Payable\s+(\d{4})/i);
+
+  const data: ArapahoeTaxData = {
+    taxYear: titleMatch ? Number(titleMatch[1]) : null,
+    payableYear: titleMatch ? Number(titleMatch[2]) : null,
+    lastUpdated: extractHtmlById(taxHtml, 'ContentPlaceHolder1_lblUpdateDate'),
+    taxableValue: toMoney(extractHtmlById(taxHtml, 'ContentPlaceHolder1_lblTaxableValue')),
+    taxableSchoolValue: toMoney(extractHtmlById(taxHtml, 'ContentPlaceHolder1_lblTaxableSchoolValue')),
+    totalTaxRate: toMoney(extractHtmlById(taxHtml, 'ContentPlaceHolder1_lblMilllevy')),
+    assessedTax: toMoney(extractHtmlById(taxHtml, 'ContentPlaceHolder1_lblOrigTaxAmt')),
+    totalDue: toMoney(extractHtmlById(taxHtml, 'ContentPlaceHolder1_lblTaxFull')),
+    amountPaid: toMoney(extractHtmlById(taxHtml, 'ContentPlaceHolder1_lblPaidTotal')),
+  };
+
+  return Object.values(data).some((value) => value !== null) ? data : null;
 }
 
 function sumDouglasTaxAuthorityMillLevy(detailJson: Record<string, unknown>): number | null {
@@ -366,6 +571,8 @@ const DENVER_RESIDENTIAL_TABLE =
   'https://services1.arcgis.com/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_real_property_residential_characteristics/FeatureServer/59';
 const DENVER_COMMERCIAL_TABLE =
   'https://services1.arcgis.com/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_real_property_apartment_and_commercial_characteristics/FeatureServer/58';
+const DENVER_PARCEL_VALUATION_LAYER =
+  'https://services1.arcgis.com/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_PROP_PARCELS_A/FeatureServer/245';
 
 for (const config of proxyConfigs) {
   app.get(new RegExp(`^${config.routePrefix}(?:/.*)?$`), (req, res) => {
@@ -504,6 +711,52 @@ app.get('/api/denver-building', async (req, res) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown Denver building lookup error';
     res.status(502).json({ error: `Denver building lookup failed: ${message}` });
+  }
+});
+
+app.get('/api/denver-valuation', async (req, res) => {
+  const parid = typeof req.query.parid === 'string' ? req.query.parid.trim() : '';
+  if (!parid) {
+    res.status(400).json({ error: 'parid query param required' });
+    return;
+  }
+
+  const where = buildParidWhereClause(parid).replaceAll('PARID', 'SCHEDNUM');
+
+  try {
+    const attributes = await queryArcGisTable<Record<string, unknown>>(
+      DENVER_PARCEL_VALUATION_LAYER,
+      where,
+      [
+        'SCHEDNUM',
+        'APPRAISED_LAND_VALUE',
+        'APPRAISED_IMP_VALUE',
+        'APPRAISED_TOTAL_VALUE',
+        'ASSESSED_LAND_VALUE_LOCAL',
+        'ASSESSED_BLDG_VALUE_LOCAL',
+        'ASSESSED_TOTAL_VALUE_LOCAL',
+      ].join(',')
+    );
+
+    if (!attributes) {
+      res.json({ data: null });
+      return;
+    }
+
+    const data: DenverParcelValuationData = {
+      parid: toStringValue(attributes.SCHEDNUM) ?? parid,
+      appraisedLandValue: toNumber(attributes.APPRAISED_LAND_VALUE),
+      appraisedImprovementValue: toNumber(attributes.APPRAISED_IMP_VALUE),
+      appraisedTotalValue: toNumber(attributes.APPRAISED_TOTAL_VALUE),
+      assessedLandValue: toNumber(attributes.ASSESSED_LAND_VALUE_LOCAL),
+      assessedImprovementValue: toNumber(attributes.ASSESSED_BLDG_VALUE_LOCAL),
+      assessedTotalValue: toNumber(attributes.ASSESSED_TOTAL_VALUE_LOCAL),
+    };
+
+    res.json({ data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown Denver valuation lookup error';
+    res.status(502).json({ error: `Denver valuation lookup failed: ${message}` });
   }
 });
 
@@ -669,6 +922,166 @@ app.get('/api/douglas-detail', async (req, res) => {
   };
 
   res.json({ data });
+});
+
+app.get('/api/arapahoe-detail', async (req, res) => {
+  const rawAin = typeof req.query.ain === 'string' ? req.query.ain.trim() : '';
+  if (!rawAin) {
+    res.status(400).json({ error: 'ain query param required' });
+    return;
+  }
+
+  const ainCandidates = normalizeArapahoeAin(rawAin);
+  let detailHtml: string | null = null;
+  let resolvedAin: string | null = null;
+
+  for (const candidate of ainCandidates) {
+    const detailUrl = `https://parcelsearch.arapahoegov.com/PPINum.aspx?PPINum=${encodeURIComponent(candidate)}`;
+    try {
+      const upstream = await fetch(detailUrl, { headers: { accept: 'text/html,application/xhtml+xml' } });
+      if (!upstream.ok) continue;
+      const html = await upstream.text();
+      if (/No matching records were found/i.test(html)) continue;
+      detailHtml = html;
+      resolvedAin = extractHtmlById(html, 'ucParcelHeader_lblAinTxt') ?? candidate;
+      break;
+    } catch {
+      continue;
+    }
+  }
+
+  if (!detailHtml || !resolvedAin) {
+    res.json({ data: null });
+    return;
+  }
+
+  const detailUrl = `https://parcelsearch.arapahoegov.com/PPINum.aspx?PPINum=${encodeURIComponent(resolvedAin)}`;
+  const pin = extractHtmlById(detailHtml, 'ucParcelHeader_lblPinTxt');
+  const levyHref =
+    extractMatch(detailHtml, /<a[^>]+href=['"]([^'"]*Levy\.aspx\?id=[^'"]+)['"][^>]*>\s*Tax District Levies/i) ??
+    extractMatch(detailHtml, /window\.open\(&#39;(Levy\.aspx\?id=[^&]+&amp;auth=[^&#]+)&#39;\)/i);
+  const noticeHref = extractMatch(detailHtml, /href\s*=\s*['"](\.\/FileDownload\.ashx\?AIN=[^'"]+)['"][^>]*>\s*2025 Traditional Notice of Value/i);
+  const salesReportHref = extractMatch(detailHtml, /href=['"](\.\/SalesReport\.aspx\?NBHD=[^'"]+&Year=\d{4})['"]/i);
+  const parcelMapHref = extractMatch(detailHtml, /window\.open\('([^']*arapamaplite\/\?PARCEL=[^']+)'/i);
+  const taxUrl = pin ? `https://taxsearch.arapahoegov.com/ReReport.aspx?PIN=${encodeURIComponent(pin)}` : null;
+
+  let taxHtml: string | null = null;
+  if (taxUrl) {
+    try {
+      const taxRes = await fetch(taxUrl, { headers: { accept: 'text/html,application/xhtml+xml' } });
+      if (taxRes.ok) {
+        taxHtml = await taxRes.text();
+      }
+    } catch {
+      // keep null
+    }
+  }
+
+  const tax = taxHtml ? parseArapahoeTaxPage(taxHtml) : null;
+
+  const data: ArapahoeParcelData = {
+    ain: resolvedAin,
+    pin,
+    situsAddress: extractHtmlById(detailHtml, 'ucParcelHeader_lblSitusAddressTxt'),
+    situsCity: extractHtmlById(detailHtml, 'ucParcelHeader_lblSitusCityTxt'),
+    ownerName: extractHtmlById(detailHtml, 'ucParcelHeader_lblFullOwnerListTxt'),
+    ownershipType: extractHtmlById(detailHtml, 'ucParcelHeader_lblOwnershipTypeTxt'),
+    ownerAddress: extractHtmlById(detailHtml, 'ucParcelHeader_lblOwnerAddressTxt'),
+    ownerCityStateZip: extractHtmlById(detailHtml, 'ucParcelHeader_lblOwnerCSZTxt'),
+    neighborhood: extractHtmlById(detailHtml, 'ucParcelHeader_lblNeighborhoodTxt'),
+    neighborhoodCode: extractHtmlById(detailHtml, 'ucParcelHeader_lblNeighborhoodCodeTxt'),
+    acreage: toNumber(extractHtmlById(detailHtml, 'ucParcelHeader_lblAcreageTxt')),
+    landUse: extractHtmlById(detailHtml, 'ucParcelHeader_lblLandUseTxt'),
+    landLineUse: extractMatch(detailHtml, /<td[^>]*colspan=3><div>([^<]+)<\/div><\/td>/i),
+    legalDescription: extractHtmlById(detailHtml, 'ucParcelHeader_lblLegalDescTxt'),
+    appraisedTotalValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblApprTotal')),
+    appraisedBuildingValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblApprBuilding')),
+    appraisedLandValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblApprLand')),
+    assessedTotalValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblAssdTotal')),
+    assessedBuildingValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblAssdBuilding')),
+    assessedLandValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblAssdLand')),
+    assessedSchoolTotalValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblAssdSchoolTotal')),
+    assessedSchoolBuildingValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblAssdSchoolBuilding')),
+    assessedSchoolLandValue: toMoney(extractHtmlById(detailHtml, 'ucParcelValue_lblAssdSchoolLand')),
+    millLevy: toNumber(extractHtmlById(detailHtml, 'ucParcelValue_lnkLevy')),
+    building: parseArapahoeBuilding(detailHtml),
+    tax,
+    detailUrl,
+    taxUrl,
+    levyUrl: toAbsoluteUrl(detailUrl, levyHref),
+    noticeOfValueUrl: toAbsoluteUrl(detailUrl, noticeHref),
+    salesReportUrl: toAbsoluteUrl(detailUrl, salesReportHref),
+    parcelMapUrl: parcelMapHref,
+  };
+
+  res.json({ data });
+});
+
+app.get('/api/arapahoe-zoning', async (req, res) => {
+  const lat = typeof req.query.lat === 'string' ? Number(req.query.lat) : NaN;
+  const lng = typeof req.query.lng === 'string' ? Number(req.query.lng) : NaN;
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    res.status(400).json({ error: 'lat and lng query params required' });
+    return;
+  }
+
+  const queryPoint = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+
+  const jurisdictionUrl = `https://gis.arapahoegov.com/arcgis/rest/services/ArapaMAP/MapServer/375/query?${queryPoint}&outFields=JURISDICTION,CAMA_NAME,HYPERLINK,IN_COUNTY`;
+  const zoningUrl = `https://gis.arapahoegov.com/arcgis/rest/services/ArapaMAP/MapServer/352/query?${queryPoint}&outFields=ZONING,HYPERLINK,CASE_NUMBER,ACTIVE,DATE,AMENDMENT_,Zoning_Doc`;
+
+  try {
+    const [jurisdictionRes, zoningRes] = await Promise.all([
+      fetch(jurisdictionUrl, { headers: { accept: 'application/json' } }),
+      fetch(zoningUrl, { headers: { accept: 'application/json' } }),
+    ]);
+
+    if (!jurisdictionRes.ok) {
+      res.status(502).json({ error: `Arapahoe jurisdiction service returned ${jurisdictionRes.status}` });
+      return;
+    }
+
+    const jurisdictionJson = await jurisdictionRes.json() as {
+      features?: Array<{ attributes?: Record<string, unknown> }>;
+    };
+    const zoningJson = zoningRes.ok
+      ? await zoningRes.json() as { features?: Array<{ attributes?: Record<string, unknown> }> }
+      : null;
+
+    const jurisdictionAttributes = jurisdictionJson.features?.[0]?.attributes ?? {};
+    const zoningAttributes = zoningJson?.features?.[0]?.attributes ?? {};
+    const jurisdiction = toStringValue(jurisdictionAttributes.JURISDICTION);
+    const authorityType: 'county' | 'municipal' =
+      !jurisdiction || /unincorporated/i.test(jurisdiction) ? 'county' : 'municipal';
+
+    const data: ArapahoeZoningData = {
+      jurisdiction,
+      jurisdictionCamaName: toStringValue(jurisdictionAttributes.CAMA_NAME),
+      jurisdictionUrl: toStringValue(jurisdictionAttributes.HYPERLINK),
+      inCounty: /^y(es)?$/i.test(toStringValue(jurisdictionAttributes.IN_COUNTY) ?? ''),
+      authorityType,
+      zoningCode: authorityType === 'county' ? toStringValue(zoningAttributes.ZONING) : null,
+      zoningUrl: authorityType === 'county' ? toStringValue(zoningAttributes.HYPERLINK) : null,
+      zoningDocUrl: authorityType === 'county' ? toStringValue(zoningAttributes.Zoning_Doc) : null,
+      caseNumber: authorityType === 'county' ? toStringValue(zoningAttributes.CASE_NUMBER) : null,
+      active: authorityType === 'county' ? toStringValue(zoningAttributes.ACTIVE) : null,
+      amendment: authorityType === 'county' ? toStringValue(zoningAttributes.AMENDMENT_) : null,
+      effectiveDate: authorityType === 'county' ? toIsoDate(zoningAttributes.DATE) : null,
+    };
+
+    res.json({ data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown Arapahoe zoning error';
+    res.status(502).json({ error: message });
+  }
 });
 
 /**
