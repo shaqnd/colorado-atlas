@@ -628,26 +628,6 @@ const PARCEL_PREVIEW_LINE_LAYER = {
   },
 };
 
-const HOVERED_PARCEL_PREVIEW_FILL_LAYER = {
-  id: 'hovered-parcel-preview-fill',
-  type: 'fill' as const,
-  minzoom: PARCEL_PREVIEW_MIN_ZOOM,
-  paint: {
-    'fill-color': '#0ea5e9',
-    'fill-opacity': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 0.12, 16, 0.16, 18, 0.2] as unknown as number,
-  },
-};
-
-const HOVERED_PARCEL_PREVIEW_LINE_LAYER = {
-  id: 'hovered-parcel-preview-line',
-  type: 'line' as const,
-  minzoom: PARCEL_PREVIEW_MIN_ZOOM,
-  paint: {
-    'line-color': '#0284c7',
-    'line-width': ['interpolate', ['linear'], ['zoom'], PARCEL_PREVIEW_MIN_ZOOM, 2.2, 16, 2.8, 18, 3.3] as unknown as number,
-    'line-opacity': 1,
-  },
-};
 
 // ── Multi-select color palette ────────────────────────────────────────────────
 
@@ -1378,12 +1358,6 @@ export function ParcelMap() {
   const [viewZoom, setViewZoom] = useState(CO_INITIAL.zoom);
   const [parcelPreviewBounds, setParcelPreviewBounds] = useState<string | null>(null);
   const [parcelPreviewGeoJSON, setParcelPreviewGeoJSON] = useState<GeoJSON.FeatureCollection>(emptyFeatureCollection);
-  const [hoveredParcelPreviewGeoJSON, setHoveredParcelPreviewGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
-  const [hoveredParcelPreviewMeta, setHoveredParcelPreviewMeta] = useState<{
-    address: string | null;
-    apn: string | null;
-    lotSize: string | null;
-  } | null>(null);
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showWildfireRisk, setShowWildfireRisk] = useState(false);
   const [showBusinessDir, setShowBusinessDir] = useState(false);
@@ -1493,7 +1467,7 @@ export function ParcelMap() {
     let cancelled = false;
 
     async function loadVisibleParcels() {
-      if (feature || !parcelPreviewBounds || viewZoom < PARCEL_PREVIEW_MIN_ZOOM) {
+      if (feature || !selectedCountyName || !parcelPreviewBounds || viewZoom < PARCEL_PREVIEW_MIN_ZOOM) {
         setParcelPreviewGeoJSON(emptyFeatureCollection);
         return;
       }
@@ -1502,7 +1476,7 @@ export function ParcelMap() {
       if ([west, south, east, north].some((value) => Number.isNaN(value))) return;
 
       try {
-        const visibleParcels = await queryParcelsInBounds(west, south, east, north, 260);
+        const visibleParcels = await queryParcelsInBounds(west, south, east, north, 120);
         if (!cancelled) {
           setParcelPreviewGeoJSON(
             Array.isArray(visibleParcels?.features) ? visibleParcels : emptyFeatureCollection
@@ -1521,14 +1495,7 @@ export function ParcelMap() {
     return () => {
       cancelled = true;
     };
-  }, [emptyFeatureCollection, feature, parcelPreviewBounds, viewZoom]);
-
-  useEffect(() => {
-    if (feature || multiSelectMode || viewZoom < PARCEL_PREVIEW_MIN_ZOOM) {
-      setHoveredParcelPreviewGeoJSON(null);
-      setHoveredParcelPreviewMeta(null);
-    }
-  }, [feature, multiSelectMode, viewZoom]);
+  }, [emptyFeatureCollection, feature, parcelPreviewBounds, selectedCountyName, viewZoom]);
 
   const nearbyArticles = useMemo(() => {
     if (!feature) return [];
@@ -1856,57 +1823,13 @@ export function ParcelMap() {
     setSelectedBiz(null);
     setSelectedArticle(null);
     setSelectedBoundary(null);
+    setParcelPreviewGeoJSON(emptyFeatureCollection);
     fetchParcel(e.lngLat.lng, e.lngLat.lat);
-  }, [activeCountySubdivisionGeoJSON, clearParcelSelection, countyBoundaries, fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, selectedCountyName, showBusinessDir, showCountyBoundaries, showNDArticles]);
+  }, [activeCountySubdivisionGeoJSON, clearParcelSelection, countyBoundaries, emptyFeatureCollection, fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, selectedCountyName, showBusinessDir, showCountyBoundaries, showNDArticles]);
 
   const handleMapMouseMove = useCallback((e: MapLayerMouseEvent) => {
     let nextCursor: 'crosshair' | 'pointer' = 'crosshair';
     const point: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-
-    if (!feature && !multiSelectMode && viewZoom >= PARCEL_PREVIEW_MIN_ZOOM && mapRef.current && parcelPreviewGeoJSON.features.length > 0) {
-      const parcelFeatures = mapRef.current.queryRenderedFeatures(e.point, {
-        layers: ['parcel-preview-fill', 'parcel-preview-line'],
-      });
-
-      const parcelFeature = parcelFeatures.find((feature) => feature.geometry?.type === 'Polygon' || feature.geometry?.type === 'MultiPolygon');
-      if (parcelFeature?.geometry) {
-        setHoveredParcelPreviewGeoJSON({
-          type: 'FeatureCollection',
-          features: [{
-            type: 'Feature',
-            geometry: parcelFeature.geometry as GeoJSON.Geometry,
-            properties: parcelFeature.properties ?? {},
-          }],
-        });
-        const address = typeof parcelFeature.properties?.situsAdd === 'string' ? parcelFeature.properties.situsAdd : null;
-        const apn = typeof parcelFeature.properties?.parcel_id === 'string' ? parcelFeature.properties.parcel_id : null;
-        const landSqft = typeof parcelFeature.properties?.landSqft === 'number'
-          ? parcelFeature.properties.landSqft
-          : typeof parcelFeature.properties?.landSqft === 'string'
-          ? Number(parcelFeature.properties.landSqft)
-          : null;
-        const landAcres = typeof parcelFeature.properties?.landAcres === 'number'
-          ? parcelFeature.properties.landAcres
-          : typeof parcelFeature.properties?.landAcres === 'string'
-          ? Number(parcelFeature.properties.landAcres)
-          : null;
-        const lotSize = Number.isFinite(landSqft) && landSqft
-          ? `${Number(landSqft).toLocaleString()} sf`
-          : Number.isFinite(landAcres) && landAcres
-          ? `${Number(landAcres).toFixed(3)} ac`
-          : null;
-
-        setHoveredParcelPreviewMeta({ address, apn, lotSize });
-        setHoveredSubdivisionName(null);
-        setHoveredCountyName(null);
-        nextCursor = 'pointer';
-        setMapCursor(nextCursor);
-        return;
-      }
-    }
-
-    setHoveredParcelPreviewGeoJSON(null);
-    setHoveredParcelPreviewMeta(null);
 
     if (showCountyBoundaries && activeCountySubdivisionGeoJSON?.features.length) {
       const subdivisionHit = findBoundaryFeatureAtPoint(activeCountySubdivisionGeoJSON, point);
@@ -1938,7 +1861,7 @@ export function ParcelMap() {
     }
 
     setMapCursor(nextCursor);
-  }, [activeCountySubdivisionGeoJSON, countyBoundaries, feature, multiSelectMode, parcelPreviewGeoJSON.features.length, showCountyBoundaries, viewZoom]);
+  }, [activeCountySubdivisionGeoJSON, countyBoundaries, showCountyBoundaries]);
 
   // ── Close panel ───────────────────────────────────────────────────────────
 
@@ -2220,13 +2143,6 @@ export function ParcelMap() {
           </Source>
         )}
 
-        {!feature && !multiSelectMode && hoveredParcelPreviewGeoJSON && (
-          <Source id="hovered-parcel-preview" type="geojson" data={hoveredParcelPreviewGeoJSON}>
-            <Layer {...HOVERED_PARCEL_PREVIEW_FILL_LAYER} />
-            <Layer {...HOVERED_PARCEL_PREVIEW_LINE_LAYER} />
-          </Source>
-        )}
-
         {/* Parcel polygon (single-select) */}
         {parcelGeoJSON && (
           <Source id="parcel" type="geojson" data={parcelGeoJSON}>
@@ -2466,33 +2382,6 @@ export function ParcelMap() {
           }}
         >
           Parcel boundaries are active. Click any outlined parcel to inspect it.
-        </div>
-      )}
-
-      {hoveredParcelPreviewMeta && !feature && !multiSelectMode && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 128,
-            left: leftPanelOpen ? leftPanelWidth + 18 : 18,
-            zIndex: 12,
-            padding: '10px 12px',
-            borderRadius: 12,
-            background: 'rgba(14,165,233,0.96)',
-            color: '#fff',
-            fontSize: 12,
-            boxShadow: '0 8px 24px rgba(14,165,233,0.28)',
-            pointerEvents: 'none',
-            maxWidth: 320,
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {hoveredParcelPreviewMeta.address || hoveredParcelPreviewMeta.apn || 'Parcel'}
-          </div>
-          <div style={{ marginTop: 4, fontSize: 11, color: 'rgba(255,255,255,0.92)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {hoveredParcelPreviewMeta.apn && <span>APN: {hoveredParcelPreviewMeta.apn}</span>}
-            {hoveredParcelPreviewMeta.lotSize && <span>Lot: {hoveredParcelPreviewMeta.lotSize}</span>}
-          </div>
         </div>
       )}
 
