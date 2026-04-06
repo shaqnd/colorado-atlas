@@ -32,11 +32,12 @@ import {
   queryDouglasParcelData,
   queryArapahoeParcelData,
   queryArapahoeZoning,
+  queryAuroraZoning,
   queryCountyBoundaries,
   queryMunicipalBoundaries,
   queryDenverNeighborhoodBoundaries,
 } from '../utils/parcelService';
-import type { DenverZoningRaw } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw } from '../utils/parcelService';
 import { ParcelPanel, type BoundarySelectionSummary } from './ParcelPanel';
 import { NAKED_DENVER_ARTICLES, NAKED_DENVER_MAPPED_ARTICLES, type NakedDenverArticle } from '../data/nakedDenverArticles';
 
@@ -82,6 +83,21 @@ const FEMA_FLOOD_TILES = '/api/fema-nfhl/export?bbox={bbox-epsg-3857}&bboxSR=385
  * Resolution: 270m. Coverage: contiguous US.
  */
 const WILDFIRE_TILES = '/api/wildfire/exportImage?bbox={bbox-epsg-3857}&bboxSR=3857&size=256,256&imageSR=3857&format=png&transparent=true&f=image';
+
+/**
+ * Denver City & County Zoning Districts — official MapServer (denvergov.org).
+ * Layer 1 contains zoning polygons with ZONE_DISTRICT field.
+ * Coverage: Denver County only.
+ */
+const DENVER_ZONING_TILES = '/api/denver-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:1&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+
+/**
+ * Aurora City Zoning Districts — OpenData MapServer (ags.auroragov.org).
+ * Layer 20 contains zoning polygons.
+ * Coverage: Aurora city limits (Adams + Arapahoe counties).
+ */
+const AURORA_ZONING_TILES = '/api/aurora-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:20&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+
 const PARCEL_PREVIEW_MIN_ZOOM = 14;
 
 const BOUNDARY_SELECTION_MAX_ZOOM = 13.5;
@@ -1469,6 +1485,7 @@ export function ParcelMap() {
   const [measureMode, setMeasureMode] = useState<'off' | 'line' | 'area'>('off');
   const [measurePoints, setMeasurePoints] = useState<LngLat[]>([]);
   const [denverZoning, setDenverZoning] = useState<DenverZoningRaw | null>(null);
+  const [auroraZoning, setAuroraZoning] = useState<AuroraZoningRaw | null>(null);
   const [denverBuilding, setDenverBuilding] = useState<DenverBuildingData | null>(null);
   const [douglasParcelData, setDouglasParcelData] = useState<DouglasParcelData | null>(null);
   const [arapahoeParcelData, setArapahoeParcelData] = useState<ArapahoeParcelData | null>(null);
@@ -1488,6 +1505,7 @@ export function ParcelMap() {
   const [parcelPreviewGeoJSON, setParcelPreviewGeoJSON] = useState<GeoJSON.FeatureCollection>(emptyFeatureCollection);
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showWildfireRisk, setShowWildfireRisk] = useState(false);
+  const [showZoning, setShowZoning] = useState(false);
   const [showBusinessDir, setShowBusinessDir] = useState(false);
   const [showNDArticles, setShowNDArticles] = useState(false);
   const [selectedBiz, setSelectedBiz] = useState<BizEntry | null>(null);
@@ -1586,18 +1604,22 @@ export function ParcelMap() {
 
       if (feature.location.county.trim().toLowerCase() === 'arapahoe') {
         try {
-          const [arapahoeData, zoning] = await Promise.all([
+          const [arapahoeData, zoning, auroraResult] = await Promise.all([
             queryArapahoeParcelData(feature.identity.apn),
             queryArapahoeZoning(centerLng, centerLat),
+            queryAuroraZoning(centerLat, centerLng),
           ]);
           if (!cancelled) {
             setArapahoeParcelData(arapahoeData);
             setArapahoeZoningData(zoning);
+            const az = auroraResult;
+            setAuroraZoning(az?.districtId ? az : null);
           }
         } catch {
           if (!cancelled) {
             setArapahoeParcelData(null);
             setArapahoeZoningData(null);
+            setAuroraZoning(null);
           }
         }
       }
@@ -1787,6 +1809,7 @@ export function ParcelMap() {
     setMarkerPos(null);
     setNeighbourhood(null);
     setDenverZoning(null);
+    setAuroraZoning(null);
     setDenverBuilding(null);
     setDouglasParcelData(null);
     setArapahoeParcelData(null);
@@ -1830,6 +1853,7 @@ export function ParcelMap() {
     setParcelState({ status: 'loading', lat, lng });
     setNeighbourhood(null);
     setDenverZoning(null);
+    setAuroraZoning(null);
     setDenverBuilding(null);
     setDouglasParcelData(null);
     setArapahoeParcelData(null);
@@ -2500,6 +2524,22 @@ export function ParcelMap() {
           </Source>
         )}
 
+        {/* Denver County Zoning Districts overlay */}
+        {showZoning && (
+          <Source id="denver-zoning" type="raster" tiles={[DENVER_ZONING_TILES]} tileSize={256}
+            attribution="City and County of Denver — Zoning Districts">
+            <Layer id="denver-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
+        {/* Aurora City Zoning Districts overlay */}
+        {showZoning && (
+          <Source id="aurora-zoning" type="raster" tiles={[AURORA_ZONING_TILES]} tileSize={256}
+            attribution="City of Aurora — Zoning Districts">
+            <Layer id="aurora-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
         {/* ND parcel polygons */}
         {ndParcels.features.length > 0 && (
           <Source id="nd-parcels" type="geojson" data={ndParcels}>
@@ -2679,6 +2719,7 @@ export function ParcelMap() {
           douglasParcelData={douglasParcelData}
           arapahoeParcelData={arapahoeParcelData}
           arapahoeZoningData={arapahoeZoningData}
+          auroraZoning={auroraZoning}
           nearbyArticles={nearbyArticles}
           boundarySelection={selectedBoundary}
           getMapSnapshot={getMapSnapshot}
@@ -3048,6 +3089,7 @@ export function ParcelMap() {
             { key: 'nd-articles', label: 'ND Articles', active: showNDArticles, color: '#f59e0b', toggle: () => { setShowNDArticles(v => !v); if (showNDArticles) setSelectedArticle(null); } },
             { key: 'flood', label: 'Flood Zones', active: showFloodZones, color: '#4B9FE8', toggle: () => setShowFloodZones(v => !v) },
             { key: 'wildfire', label: 'Wildfire Risk', active: showWildfireRisk, color: '#d7191c', toggle: () => setShowWildfireRisk(v => !v) },
+            { key: 'zoning', label: 'Zoning', active: showZoning, color: '#8b5cf6', toggle: () => setShowZoning(v => !v) },
           ] as const).map(({ key, label, active, color, toggle }) => (
             <button
               key={key}

@@ -21,7 +21,8 @@ import { runHBUAnalysis } from '../utils/hbuAnalysis';
 import { zoneDistrictsByCode } from '../data/zoneDistricts';
 import { ALL_COMMUNITIES, getCommunitiesByCounty } from '../data/communities';
 import { getDenverZoneDistrict, DENVER_CATEGORY_LABELS } from '../data/denverZoning';
-import type { DenverZoningRaw } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw } from '../utils/parcelService';
+import { getAuroraZoneDistrict, AURORA_CATEGORY_LABELS } from '../data/auroraZoning';
 import type { Community } from '../data/communities';
 import type { HBUResult } from '../data/types';
 import type { NakedDenverArticle } from '../data/nakedDenverArticles';
@@ -109,6 +110,7 @@ interface ParcelPanelProps {
   douglasParcelData: DouglasParcelData | null;
   arapahoeParcelData: ArapahoeParcelData | null;
   arapahoeZoningData: ArapahoeZoningData | null;
+  auroraZoning: AuroraZoningRaw | null;
   nearbyArticles: (NakedDenverArticle & { distanceMiles: number })[];
   boundarySelection: BoundarySelectionSummary | null;
   getMapSnapshot?: () => Promise<string>;
@@ -1103,6 +1105,7 @@ function ZoningTab({
   douglasParcelData,
   arapahoeParcelData,
   arapahoeZoningData,
+  auroraZoning,
 }: {
   f: ParcelFeature;
   denverZoning?: DenverZoningRaw | null;
@@ -1110,11 +1113,14 @@ function ZoningTab({
   douglasParcelData?: DouglasParcelData | null;
   arapahoeParcelData?: ArapahoeParcelData | null;
   arapahoeZoningData?: ArapahoeZoningData | null;
+  auroraZoning?: AuroraZoningRaw | null;
 }) {
   const z = f.zoning;
   const dzDistrict = denverZoning?.zoneDistrict ? getDenverZoneDistrict(denverZoning.zoneDistrict) : null;
   const isDenverCounty = f.location.county.trim().toLowerCase() === 'denver';
   const isDenver = isDenverCounty;
+  const azDistrict = auroraZoning?.districtId ? getAuroraZoneDistrict(auroraZoning.districtId) : null;
+  const isAurora = !!auroraZoning?.districtId;
   const isDouglas = f.location.county.toLowerCase() === 'douglas' && !!douglasParcelData;
   const isArapahoe = f.location.county.toLowerCase() === 'arapahoe';
   const effectiveZoneCode = isDenver
@@ -1336,8 +1342,85 @@ function ZoningTab({
         </Section>
       )}
 
+      {/* ── Aurora Official Zoning (authoritative) ── */}
+      {isAurora && !isDenver && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              Official Aurora Zoning
+            </div>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(52,199,89,0.12)', color: '#166534', fontWeight: 600 }}>
+              City of Aurora — Authoritative
+            </span>
+          </div>
+          <div style={{ borderRadius: 12, border: '1.5px solid rgba(139,92,246,0.25)', background: 'rgba(139,92,246,0.04)', padding: '12px 14px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#6d28d9', letterSpacing: '-0.01em' }}>
+                  {auroraZoning!.districtId}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--ap-t2)', marginTop: 2 }}>
+                  {azDistrict?.name ?? auroraZoning!.distName ?? '—'}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                {azDistrict && (
+                  <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: 'rgba(0,0,0,0.06)', color: 'var(--ap-t2)', fontWeight: 500 }}>
+                    {AURORA_CATEGORY_LABELS[azDistrict.category]}
+                  </span>
+                )}
+                {auroraZoning!.subzone && (
+                  <div style={{ fontSize: 11, color: 'var(--ap-t3)', marginTop: 4 }}>Subzone: {auroraZoning!.subzone}</div>
+                )}
+              </div>
+            </div>
+            {azDistrict?.summary && (
+              <div style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--ap-sep)' }}>
+                {azDistrict.summary}
+              </div>
+            )}
+          </div>
+          {azDistrict && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>
+                Development Standards
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                {[
+                  ['Max Height', azDistrict.maxHeightFt > 0 ? `${azDistrict.maxHeightFt} ft` : 'Per overlay'],
+                  ['Min Lot Size', azDistrict.minLotSqft > 0 ? `${azDistrict.minLotSqft.toLocaleString()} sq ft` : 'None'],
+                  ['Max Density', azDistrict.maxDensityPerAcre != null ? `${azDistrict.maxDensityPerAcre} du/acre` : (auroraZoning!.density || 'N/A')],
+                  ['Max FAR', azDistrict.maxFAR > 0 ? String(azDistrict.maxFAR) : (auroraZoning!.far || 'N/A')],
+                  ['Category', AURORA_CATEGORY_LABELS[azDistrict.category]],
+                  ['Ordinance', auroraZoning!.ordinance || '—'],
+                ].map(([label, val]) => (
+                  <div key={label} style={{ background: 'rgba(0,0,0,0.025)', borderRadius: 8, padding: '7px 10px', border: '1px solid var(--ap-sep)' }}>
+                    <div style={{ fontSize: 10, color: 'var(--ap-t3)' }}>{label}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ap-t1)', marginTop: 1 }}>{val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {azDistrict && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <UseList title="Permitted By Right" items={azDistrict.permittedByRight} color="#166534" dotColor="#34c759" bg="rgba(52,199,89,0.06)" border="rgba(52,199,89,0.2)" />
+              {azDistrict.conditionalUses.length > 0 && (
+                <UseList title="Conditional Uses (Review Required)" items={azDistrict.conditionalUses} color="#92400e" dotColor="#f59e0b" bg="rgba(245,158,11,0.06)" border="rgba(245,158,11,0.2)" />
+              )}
+              <UseList title="Prohibited Uses" items={azDistrict.prohibited} color="#991b1b" dotColor="#ef4444" bg="rgba(239,68,68,0.05)" border="rgba(239,68,68,0.15)" />
+            </div>
+          )}
+          {azDistrict?.notes && (
+            <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.03)', fontSize: 11, color: 'var(--ap-t3)', lineHeight: 1.5 }}>
+              {azDistrict.notes}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Statewide ESRI zoning (fallback / supplement) ── */}
-      {!isDenver && (
+      {!isDenver && !isAurora && (
         <>
           {(douglasParcelData?.zoningCode || douglasParcelData?.zoningCodeDescription || arapahoeZoningData?.zoningCode || z.code || z.description || z.landUseCode || z.landUseDescription) ? (
             <Section title={isArapahoe ? 'Zoning Context (Statewide Layer / Supplemental)' : 'Zoning (Statewide Layer)'}>
@@ -2384,6 +2467,7 @@ export function ParcelPanel({
   douglasParcelData,
   arapahoeParcelData,
   arapahoeZoningData,
+  auroraZoning,
   nearbyArticles,
   boundarySelection,
   getMapSnapshot,
@@ -2691,7 +2775,7 @@ export function ParcelPanel({
         ) : (
           <>
             {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} />}
-            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} arapahoeZoningData={resolvedArapahoeZoningData} />}
+            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} arapahoeZoningData={resolvedArapahoeZoningData} auroraZoning={auroraZoning} />}
             {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} denverValuation={resolvedDenverValuation} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} />}
             {activeTab === 'council'  && <CouncilTab f={feature} />}
             {activeTab === 'activity' && <ActivityTab f={feature} nearbyArticles={nearbyArticles} />}

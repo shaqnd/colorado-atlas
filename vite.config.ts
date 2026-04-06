@@ -46,6 +46,12 @@ export default defineConfig({
           '/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_real_property_apartment_and_commercial_characteristics/FeatureServer/58'
         ),
       },
+      // Aurora City — official zoning MapServer (layer 20, OpenData service)
+      '/api/aurora-zoning': {
+        target: 'https://ags.auroragov.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/aurora-zoning/, '/aurora/rest/services/OpenData/MapServer'),
+      },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
         target: 'https://hazards.fema.gov',

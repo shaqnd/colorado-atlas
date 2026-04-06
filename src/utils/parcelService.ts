@@ -724,6 +724,57 @@ function toNullableString(value: unknown): string | null {
 }
  
 
+// ── Aurora official zoning lookup ─────────────────────────────────────────────
+
+const AURORA_ZONING_API = '/api/aurora-zoning/20/query';
+
+export interface AuroraZoningRaw {
+  districtId: string | null;
+  distName: string | null;
+  subzone: string | null;
+  ordinance: string | null;
+  density: string | null;
+  far: string | null;
+}
+
+/**
+ * Query Aurora's OpenData MapServer for the zoning district at a lat/lng.
+ * Returns null if outside Aurora city limits or service is unavailable.
+ *
+ * Source: ags.auroragov.org/aurora/rest/services/OpenData/MapServer/20
+ * Key field: DISTRICT_ID — e.g. "R-1", "MU-C", "I-2"
+ */
+export async function queryAuroraZoning(lat: number, lng: number): Promise<AuroraZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'DISTRICT_ID,Dist_Name,SUBZONE,ORDINANCE,DENSITY,FAR',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+
+  try {
+    const res = await fetch(`${AURORA_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: { message: string } };
+    if (data.error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    return {
+      districtId: s('DISTRICT_ID'),
+      distName:   s('Dist_Name'),
+      subzone:    s('SUBZONE'),
+      ordinance:  s('ORDINANCE'),
+      density:    s('DENSITY'),
+      far:        s('FAR'),
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── Parcel lookup ─────────────────────────────────────────────────────────────
 
 /**
