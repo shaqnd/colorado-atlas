@@ -52,6 +52,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/aurora-zoning/, '/aurora/rest/services/OpenData/MapServer'),
       },
+      // Centennial — Current Land Use MapServer (layer 0) + FeatureServer query
+      '/api/centennial-zoning': {
+        target: 'https://maps.centennialco.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/centennial-zoning/, '/arcgis/rest/services/Current_Land_Use'),
+      },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
         target: 'https://hazards.fema.gov',

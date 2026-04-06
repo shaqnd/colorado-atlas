@@ -33,11 +33,12 @@ import {
   queryArapahoeParcelData,
   queryArapahoeZoning,
   queryAuroraZoning,
+  queryCentennialZoning,
   queryCountyBoundaries,
   queryMunicipalBoundaries,
   queryDenverNeighborhoodBoundaries,
 } from '../utils/parcelService';
-import type { DenverZoningRaw, AuroraZoningRaw } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw } from '../utils/parcelService';
 import { ParcelPanel, type BoundarySelectionSummary } from './ParcelPanel';
 import { NAKED_DENVER_ARTICLES, NAKED_DENVER_MAPPED_ARTICLES, type NakedDenverArticle } from '../data/nakedDenverArticles';
 
@@ -97,6 +98,13 @@ const DENVER_ZONING_TILES = '/api/denver-zoning/export?bbox={bbox-epsg-3857}&bbo
  * Coverage: Aurora city limits (Adams + Arapahoe counties).
  */
 const AURORA_ZONING_TILES = '/api/aurora-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:20&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+
+/**
+ * Centennial Current Land Use — official MapServer (maps.centennialco.gov).
+ * Layer 0 contains land use polygons (RES_SFD, COM_RETAIL, IND_LIGHT, etc.).
+ * Coverage: City of Centennial (Arapahoe County).
+ */
+const CENTENNIAL_ZONING_TILES = '/api/centennial-zoning/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:0&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
 
 const PARCEL_PREVIEW_MIN_ZOOM = 14;
 
@@ -1486,6 +1494,7 @@ export function ParcelMap() {
   const [measurePoints, setMeasurePoints] = useState<LngLat[]>([]);
   const [denverZoning, setDenverZoning] = useState<DenverZoningRaw | null>(null);
   const [auroraZoning, setAuroraZoning] = useState<AuroraZoningRaw | null>(null);
+  const [centennialZoning, setCentennialZoning] = useState<CentennialZoningRaw | null>(null);
   const [denverBuilding, setDenverBuilding] = useState<DenverBuildingData | null>(null);
   const [douglasParcelData, setDouglasParcelData] = useState<DouglasParcelData | null>(null);
   const [arapahoeParcelData, setArapahoeParcelData] = useState<ArapahoeParcelData | null>(null);
@@ -1854,6 +1863,7 @@ export function ParcelMap() {
     setNeighbourhood(null);
     setDenverZoning(null);
     setAuroraZoning(null);
+    setCentennialZoning(null);
     setDenverBuilding(null);
     setDouglasParcelData(null);
     setArapahoeParcelData(null);
@@ -1870,14 +1880,20 @@ export function ParcelMap() {
 
     try {
       // First find the parcel and nearby neighborhood context.
-      const [parcelResult, nbResult] = await Promise.allSettled([
+      const [parcelResult, nbResult, auroraResult, centennialResult] = await Promise.allSettled([
         queryParcelByPoint(lng, lat),
         reverseGeocodeNeighborhood(lat, lng),
+        queryAuroraZoning(lat, lng),
+        queryCentennialZoning(lat, lng),
       ]);
 
       const parcel = parcelResult.status === 'fulfilled' ? parcelResult.value : null;
       const nb = nbResult.status === 'fulfilled' ? nbResult.value : null;
+      const az = auroraResult.status === 'fulfilled' ? auroraResult.value : null;
+      const cz = centennialResult.status === 'fulfilled' ? centennialResult.value : null;
       setNeighbourhood(nb);
+      setAuroraZoning(az?.districtId ? az : null);
+      setCentennialZoning(cz?.landUse ? cz : null);
 
       if (parcel) {
         setParcelState({ status: 'loaded', feature: parcel });
@@ -2540,6 +2556,14 @@ export function ParcelMap() {
           </Source>
         )}
 
+        {/* Centennial Current Land Use overlay */}
+        {showZoning && (
+          <Source id="centennial-zoning" type="raster" tiles={[CENTENNIAL_ZONING_TILES]} tileSize={256}
+            attribution="City of Centennial — Current Land Use">
+            <Layer id="centennial-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
         {/* ND parcel polygons */}
         {ndParcels.features.length > 0 && (
           <Source id="nd-parcels" type="geojson" data={ndParcels}>
@@ -2720,6 +2744,7 @@ export function ParcelMap() {
           arapahoeParcelData={arapahoeParcelData}
           arapahoeZoningData={arapahoeZoningData}
           auroraZoning={auroraZoning}
+          centennialZoning={centennialZoning}
           nearbyArticles={nearbyArticles}
           boundarySelection={selectedBoundary}
           getMapSnapshot={getMapSnapshot}

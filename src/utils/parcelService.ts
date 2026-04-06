@@ -775,6 +775,55 @@ export async function queryAuroraZoning(lat: number, lng: number): Promise<Auror
   }
 }
 
+// ── Centennial official land use lookup ───────────────────────────────────────
+
+const CENTENNIAL_ZONING_API = '/api/centennial-zoning/FeatureServer/0/query';
+
+export interface CentennialZoningRaw {
+  landUse: string | null;
+  landUseType: string | null;
+  levelI: string | null;
+  levelII: string | null;
+  levelIII: string | null;
+}
+
+/**
+ * Query Centennial's Current Land Use FeatureServer for the land use at a lat/lng.
+ * Returns null if outside Centennial city limits or service unavailable.
+ *
+ * Source: maps.centennialco.gov/arcgis/rest/services/Current_Land_Use/FeatureServer/0
+ * Key field: Land_Use — e.g. "RES_SFD", "COM_RETAIL", "IND_LIGHT"
+ */
+export async function queryCentennialZoning(lat: number, lng: number): Promise<CentennialZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'Land_Use,Land_Use_T,Level_I,Level_II,Level_III',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+
+  try {
+    const res = await fetch(`${CENTENNIAL_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: { message: string } };
+    if (data.error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    return {
+      landUse:     s('Land_Use'),
+      landUseType: s('Land_Use_T'),
+      levelI:      s('Level_I'),
+      levelII:     s('Level_II'),
+      levelIII:    s('Level_III'),
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ── Parcel lookup ─────────────────────────────────────────────────────────────
 
 /**
