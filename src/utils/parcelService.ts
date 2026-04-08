@@ -10,11 +10,6 @@
  */
 
 import type {
-  ArapahoeParcelData,
-  ArapahoeZoningData,
-  DenverBuildingData,
-  DenverParcelValuationData,
-  DouglasParcelData,
   GeocodeResult,
   ParcelFeature,
   EsriParcelAttributes,
@@ -79,29 +74,6 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult> {
   };
 }
 
-export async function searchPlaces(query: string, limit = 6): Promise<GeocodeResult[]> {
-  const params = new URLSearchParams({
-    q: /\b(CO|Colorado)\b/i.test(query) ? query : `${query}, Colorado`,
-    format: 'json',
-    limit: String(limit),
-    countrycodes: 'us',
-    addressdetails: '1',
-  });
-
-  const res = await fetch(`${NOMINATIM_BASE}/search?${params}`);
-  if (!res.ok) throw new Error(`Place search returned ${res.status}`);
-
-  const results = await res.json() as NominatimResult[];
-
-  return (results ?? []).map((result) => ({
-    lat: parseFloat(result.lat),
-    lng: parseFloat(result.lon),
-    formattedAddress: result.display_name,
-    state: result.address?.state,
-    county: result.address?.county,
-  }));
-}
-
 interface NominatimResult {
   lat: string;
   lon: string;
@@ -153,16 +125,6 @@ interface NominatimReverseResult {
 // ── Denver official zoning lookup ─────────────────────────────────────────────
 
 const DENVER_ZONING_API = '/api/denver-zoning/1/query';
-const DENVER_ZONING_POINT_API = '/api/denver-zoning-point';
-const DENVER_BUILDING_API = '/api/denver-building';
-const DENVER_VALUATION_API = '/api/denver-valuation';
-const DOUGLAS_PARCELS_API = '/api/douglas-parcels/query';
-const DOUGLAS_DETAIL_API = '/api/douglas-detail';
-const ARAPAHOE_DETAIL_API = '/api/arapahoe-detail';
-const ARAPAHOE_ZONING_API = '/api/arapahoe-zoning';
-const COUNTY_BOUNDARIES_API = '/api/esri-co/OIT/Colorado_State_Basemap/MapServer/52/query';
-const MUNICIPAL_BOUNDARIES_API = '/api/esri-co/OIT/Colorado_State_Basemap/MapServer/34/query';
-const DENVER_NEIGHBORHOODS_API = '/api/denver-neighborhoods';
 
 export interface DenverZoningRaw {
   zoneDistrict: string | null;
@@ -176,108 +138,6 @@ export interface DenverZoningRaw {
   pudDocument: string | null;
   ordNum: number | null;
   ordYear: number | null;
-}
-
-function buildDenverParidCandidates(parid: string): string[] {
-  const trimmed = parid.trim();
-  const digitsOnly = trimmed.replace(/\D/g, '');
-  const candidates = new Set<string>();
-
-  if (trimmed) candidates.add(trimmed);
-  if (digitsOnly) {
-    candidates.add(digitsOnly);
-    if (digitsOnly.length === 12) candidates.add(`${digitsOnly}0`);
-    if (digitsOnly.length === 13 && digitsOnly.endsWith('0')) candidates.add(digitsOnly.slice(0, -1));
-  }
-
-  return Array.from(candidates);
-}
-
-interface DenverBuildingApiResponse {
-  data: DenverBuildingData | null;
-}
-
-interface DenverValuationApiResponse {
-  data: DenverParcelValuationData | null;
-}
-
-interface DouglasDetailApiResponse {
-  data: DouglasParcelData | null;
-}
-
-interface ArapahoeDetailApiResponse {
-  data: ArapahoeParcelData | null;
-}
-
-interface ArapahoeZoningApiResponse {
-  data: ArapahoeZoningData | null;
-}
-
-interface ArcGisQueryResponse<T> {
-  features?: Array<{ attributes?: T }>;
-  error?: { message?: string };
-}
-
-export async function queryCountyBoundaries(): Promise<GeoJSON.FeatureCollection> {
-  const params = new URLSearchParams({
-    where: '1=1',
-    outFields: '*',
-    returnGeometry: 'true',
-    f: 'geojson',
-  });
-
-  const res = await fetch(`${COUNTY_BOUNDARIES_API}?${params}`);
-  if (!res.ok) throw new Error(`County boundaries returned ${res.status}`);
-  return await res.json() as GeoJSON.FeatureCollection;
-}
-
-export async function queryMunicipalBoundaries(): Promise<GeoJSON.FeatureCollection> {
-  const params = new URLSearchParams({
-    where: '1=1',
-    outFields: '*',
-    returnGeometry: 'true',
-    f: 'geojson',
-  });
-
-  const res = await fetch(`${MUNICIPAL_BOUNDARIES_API}?${params}`);
-  if (!res.ok) throw new Error(`Municipal boundaries returned ${res.status}`);
-  return await res.json() as GeoJSON.FeatureCollection;
-}
-
-export async function queryDenverNeighborhoodBoundaries(): Promise<GeoJSON.FeatureCollection> {
-  const res = await fetch(DENVER_NEIGHBORHOODS_API);
-  if (!res.ok) throw new Error(`Denver neighborhoods returned ${res.status}`);
-  return await res.json() as GeoJSON.FeatureCollection;
-}
-
-export async function queryParcelsInBounds(
-  west: number,
-  south: number,
-  east: number,
-  north: number,
-  resultRecordCount = 700,
-): Promise<GeoJSON.FeatureCollection> {
-  const params = new URLSearchParams({
-    geometry: JSON.stringify({
-      xmin: west,
-      ymin: south,
-      xmax: east,
-      ymax: north,
-      spatialReference: { wkid: 4326 },
-    }),
-    geometryType: 'esriGeometryEnvelope',
-    inSR: '4326',
-    spatialRel: 'esriSpatialRelIntersects',
-    where: '1=1',
-    outFields: 'parcel_id,situsAdd,sitAddCty,countyName,landSqft,landAcres',
-    returnGeometry: 'true',
-    resultRecordCount: String(resultRecordCount),
-    f: 'geojson',
-  });
-
-  const res = await fetch(`${PARCEL_API}?${params}`);
-  if (!res.ok) throw new Error(`Visible parcels query returned ${res.status}`);
-  return await res.json() as GeoJSON.FeatureCollection;
 }
 
 /**
@@ -320,409 +180,9 @@ export async function queryDenverZoning(lat: number, lng: number): Promise<Denve
       ordYear:        n('ORD_YEAR'),
     };
   } catch {
-    const pointParams = new URLSearchParams({
-      lat: String(lat),
-      lng: String(lng),
-    });
-
-    try {
-      const pointRes = await fetch(`${DENVER_ZONING_POINT_API}?${pointParams}`);
-      if (pointRes.ok) {
-        const pointJson = await pointRes.json() as { data?: DenverZoningRaw | null };
-        if (pointJson.data?.zoneDistrict) return pointJson.data;
-      }
-    } catch {
-      // no-op
-    }
-
     return null;
   }
 }
-
-export async function queryDenverBuilding(parid: string): Promise<DenverBuildingData | null> {
-  if (!parid) return null;
-  const publicTableResult = await queryDenverBuildingFromPublicTables(parid);
-  if (publicTableResult) return publicTableResult;
-
-  const params = new URLSearchParams({ parid });
-
-  try {
-    const res = await fetch(`${DENVER_BUILDING_API}?${params}`);
-    if (res.ok) {
-      const data = await res.json() as DenverBuildingApiResponse;
-      return data.data ?? null;
-    }
-  } catch {
-    // no-op
-  }
-
-  return null;
-}
-
-export async function queryDenverParcelValuation(parid: string): Promise<DenverParcelValuationData | null> {
-  if (!parid) return null;
-
-  const params = new URLSearchParams({ parid });
-
-  try {
-    const res = await fetch(`${DENVER_VALUATION_API}?${params}`);
-    if (res.ok) {
-      const data = await res.json() as DenverValuationApiResponse;
-      return data.data ?? null;
-    }
-  } catch {
-    // no-op
-  }
-
-  return null;
-}
-
-export async function queryDouglasParcelData(
-  lng: number,
-  lat: number
-): Promise<DouglasParcelData | null> {
-  const parcelParams = new URLSearchParams({
-    geometry: JSON.stringify({ x: lng, y: lat }),
-    geometryType: 'esriGeometryPoint',
-    inSR: '4326',
-    spatialRel: 'esriSpatialRelIntersects',
-    outFields: [
-      'ACCOUNT_NO',
-      'STATE_PARCEL_NO',
-      'PARCEL_TYPE',
-      'ACCOUNT_SUBTYPE_CODE',
-      'LOCATION_ADDRESS',
-      'CITY_NAME',
-      'OWNER_NAME',
-      'MAILING_ADDRESS_LINE_1',
-      'MAILING_ADDRESS_LINE_2',
-      'MAILING_ADDRESS_LINE_3',
-      'MAILING_CITY_NAME',
-      'MAILING_STATE',
-      'MAILING_ZIP_CODE',
-      'GIS_LEGAL_DESC',
-      'CAMA_LEGAL_DESC',
-      'DEDICATED_SUB_FILING_NAME',
-      'FILING_DESCR',
-      'TOTAL_ACTUAL_VALUE',
-      'TOTAL_ASSESSED_VALUE',
-      'REDUCED_MILL_LEVY',
-    ].join(','),
-    returnGeometry: 'false',
-    f: 'json',
-  });
-
-  const parcelRes = await fetch(`${DOUGLAS_PARCELS_API}?${parcelParams}`);
-  if (!parcelRes.ok) {
-    throw new Error(`Douglas parcel service returned ${parcelRes.status}`);
-  }
-
-  const parcelJson = await parcelRes.json() as ArcGisQueryResponse<Record<string, unknown>>;
-  if (parcelJson.error) {
-    throw new Error(parcelJson.error.message ?? 'Douglas parcel query failed');
-  }
-
-  const parcelAttributes = parcelJson.features?.[0]?.attributes;
-  const accountNumber = toNullableString(parcelAttributes?.ACCOUNT_NO);
-  if (!accountNumber) return null;
-
-  const detailParams = new URLSearchParams({ accountNo: accountNumber });
-  const detailRes = await fetch(`${DOUGLAS_DETAIL_API}?${detailParams}`);
-  if (!detailRes.ok) {
-    throw new Error(`Douglas detail service returned ${detailRes.status}`);
-  }
-
-  const detailJson = await detailRes.json() as DouglasDetailApiResponse;
-  const detail = detailJson.data;
-  if (!detail) return null;
-
-  const mailingAddress = [
-    toNullableString(parcelAttributes?.MAILING_ADDRESS_LINE_1),
-    toNullableString(parcelAttributes?.MAILING_ADDRESS_LINE_2),
-    toNullableString(parcelAttributes?.MAILING_ADDRESS_LINE_3),
-    [
-      toNullableString(parcelAttributes?.MAILING_CITY_NAME),
-      toNullableString(parcelAttributes?.MAILING_STATE),
-      toNullableString(parcelAttributes?.MAILING_ZIP_CODE),
-    ].filter(Boolean).join(' '),
-  ]
-    .filter((value): value is string => !!value)
-    .join(', ');
-
-  return {
-    ...detail,
-    stateParcelNumber: toNullableString(parcelAttributes?.STATE_PARCEL_NO) ?? detail.stateParcelNumber,
-    parcelType: toNullableString(parcelAttributes?.PARCEL_TYPE) ?? detail.parcelType,
-    accountSubtypeCode: toNullableString(parcelAttributes?.ACCOUNT_SUBTYPE_CODE) ?? detail.accountSubtypeCode,
-    locationAddress: toNullableString(parcelAttributes?.LOCATION_ADDRESS) ?? detail.locationAddress,
-    cityName: toNullableString(parcelAttributes?.CITY_NAME) ?? detail.cityName,
-    ownerName: toNullableString(parcelAttributes?.OWNER_NAME) ?? detail.ownerName,
-    mailingAddress: mailingAddress || detail.mailingAddress,
-    legalDescription:
-      toNullableString(parcelAttributes?.CAMA_LEGAL_DESC) ??
-      toNullableString(parcelAttributes?.GIS_LEGAL_DESC) ??
-      detail.legalDescription,
-    subdivision:
-      toNullableString(parcelAttributes?.DEDICATED_SUB_FILING_NAME) ??
-      toNullableString(parcelAttributes?.FILING_DESCR) ??
-      detail.subdivision,
-    totalActualValue: toNullableNumber(parcelAttributes?.TOTAL_ACTUAL_VALUE) ?? detail.totalActualValue,
-    totalAssessedValue: toNullableNumber(parcelAttributes?.TOTAL_ASSESSED_VALUE) ?? detail.totalAssessedValue,
-    reducedMillLevy: toNullableNumber(parcelAttributes?.REDUCED_MILL_LEVY) ?? detail.reducedMillLevy,
-    fullMillLevy: detail.fullMillLevy,
-    estimatedAnnualTax:
-      detail.latestTaxReport?.estimatedTaxes ??
-      ((detail.latestTaxReport?.taxableAssessedValue ??
-        toNullableNumber(parcelAttributes?.TOTAL_ASSESSED_VALUE) ??
-        detail.totalAssessedValue) !== null &&
-      (detail.fullMillLevy ??
-        toNullableNumber(parcelAttributes?.REDUCED_MILL_LEVY) ??
-        detail.reducedMillLevy) !== null
-        ? Math.round(
-            (((detail.latestTaxReport?.taxableAssessedValue ??
-              toNullableNumber(parcelAttributes?.TOTAL_ASSESSED_VALUE) ??
-              detail.totalAssessedValue) ?? 0) *
-              ((detail.fullMillLevy ??
-                toNullableNumber(parcelAttributes?.REDUCED_MILL_LEVY) ??
-                detail.reducedMillLevy) ?? 0)) /
-              1000
-          )
-        : detail.estimatedAnnualTax),
-  };
-}
-
-export async function queryArapahoeParcelData(ain: string): Promise<ArapahoeParcelData | null> {
-  if (!ain) return null;
-
-  const params = new URLSearchParams({ ain });
-  const res = await fetch(`${ARAPAHOE_DETAIL_API}?${params}`);
-  if (!res.ok) {
-    throw new Error(`Arapahoe detail service returned ${res.status}`);
-  }
-
-  const json = await res.json() as ArapahoeDetailApiResponse;
-  return json.data ?? null;
-}
-
-export async function queryArapahoeZoning(
-  lng: number,
-  lat: number
-): Promise<ArapahoeZoningData | null> {
-  const params = new URLSearchParams({
-    lng: String(lng),
-    lat: String(lat),
-  });
-  const res = await fetch(`${ARAPAHOE_ZONING_API}?${params}`);
-  if (!res.ok) {
-    throw new Error(`Arapahoe zoning service returned ${res.status}`);
-  }
-
-  const json = await res.json() as ArapahoeZoningApiResponse;
-  return json.data ?? null;
-}
-
-export async function queryDenverBuildings(parids: string[]): Promise<Map<string, DenverBuildingData>> {
-  const normalizedParids = Array.from(
-    new Set(
-      parids
-        .map((parid) => buildDenverParidCandidates(parid))
-        .flat()
-        .filter(Boolean)
-    )
-  );
-
-  const results = new Map<string, DenverBuildingData>();
-  if (normalizedParids.length === 0) return results;
-
-  const clause = normalizedParids
-    .map((parid) => `PARID = '${parid.replace(/'/g, "''")}'`)
-    .join(' OR ');
-
-  try {
-    const [residentialRes, commercialRes] = await Promise.all([
-      fetch(`/api/denver-residential/query?${new URLSearchParams({
-        where: clause,
-        outFields: 'PARID,NBHD_1_CN,PROP_CLASS,AREA_ABG,BSMT_AREA,FBSMT_SQFT,GRD_AREA,STORY,UNITS,CCYRBLT,CCAGE_RM,STYLE_CN',
-        returnGeometry: 'false',
-        f: 'json',
-      })}`),
-      fetch(`/api/denver-commercial/query?${new URLSearchParams({
-        where: clause,
-        outFields: 'PARID,NBHD_1_CN,PROPERTY_CLASS_DESC,BLD_NAME,GROSS_AREA,NET_AREA,BSMT_AREA,FBSMT_SQFT,NO_FLOORS,TOTL_SQFT,ORIG_YOC,REMODEL,TOT_UNITS,D_CLASS_CN',
-        returnGeometry: 'false',
-        f: 'json',
-      })}`),
-    ]);
-
-    const residentialJson = residentialRes.ok
-      ? await residentialRes.json() as ArcGisQueryResponse<Record<string, unknown>>
-      : null;
-    const commercialJson = commercialRes.ok
-      ? await commercialRes.json() as ArcGisQueryResponse<Record<string, unknown>>
-      : null;
-
-    for (const feature of residentialJson?.features ?? []) {
-      const residential = feature.attributes;
-      if (!residential) continue;
-      const aboveGradeSqft = toNullableNumber(residential.AREA_ABG);
-      const basementSqft = toNullableNumber(residential.BSMT_AREA);
-      const data: DenverBuildingData = {
-        source: 'residential',
-        parid: toNullableString(residential.PARID) ?? '',
-        neighborhoodName: toNullableString(residential.NBHD_1_CN),
-        propertyClass: toNullableString(residential.PROP_CLASS),
-        totalBuildingSqft:
-          aboveGradeSqft !== null || basementSqft !== null
-            ? (aboveGradeSqft ?? 0) + (basementSqft ?? 0)
-            : null,
-        aboveGradeSqft,
-        basementSqft,
-        finishedBasementSqft: toNullableNumber(residential.FBSMT_SQFT),
-        grossAreaSqft: null,
-        netAreaSqft: null,
-        groundFloorSqft: toNullableNumber(residential.GRD_AREA),
-        floors: toNullableNumber(residential.STORY),
-        units: toNullableNumber(residential.UNITS),
-        yearBuilt: toNullableNumber(residential.CCYRBLT),
-        remodelYear: toNullableNumber(residential.CCAGE_RM),
-        style: toNullableString(residential.STYLE_CN),
-        buildingName: null,
-      };
-      if (data.parid) results.set(data.parid, data);
-    }
-
-    for (const feature of commercialJson?.features ?? []) {
-      const commercial = feature.attributes;
-      if (!commercial) continue;
-      const data: DenverBuildingData = {
-        source: 'commercial',
-        parid: toNullableString(commercial.PARID) ?? '',
-        neighborhoodName: toNullableString(commercial.NBHD_1_CN),
-        propertyClass: toNullableString(commercial.PROPERTY_CLASS_DESC),
-        totalBuildingSqft: toNullableNumber(commercial.TOTL_SQFT),
-        aboveGradeSqft: null,
-        basementSqft: toNullableNumber(commercial.BSMT_AREA),
-        finishedBasementSqft: toNullableNumber(commercial.FBSMT_SQFT),
-        grossAreaSqft: toNullableNumber(commercial.GROSS_AREA),
-        netAreaSqft: toNullableNumber(commercial.NET_AREA),
-        groundFloorSqft: null,
-        floors: toNullableNumber(commercial.NO_FLOORS),
-        units: toNullableNumber(commercial.TOT_UNITS),
-        yearBuilt: toNullableNumber(commercial.ORIG_YOC),
-        remodelYear: toNullableNumber(commercial.REMODEL),
-        style: toNullableString(commercial.D_CLASS_CN),
-        buildingName: toNullableString(commercial.BLD_NAME),
-      };
-      if (data.parid) results.set(data.parid, data);
-    }
-  } catch {
-    return results;
-  }
-
-  return results;
-}
-
-async function queryDenverBuildingFromPublicTables(parid: string): Promise<DenverBuildingData | null> {
-  const candidates = buildDenverParidCandidates(parid);
-
-  if (candidates.length === 0) return null;
-
-  const where = candidates
-    .map((candidate) => `PARID = '${candidate.replace(/'/g, "''")}'`)
-    .join(' OR ');
-
-  try {
-    const [residentialRes, commercialRes] = await Promise.all([
-      fetch(`/api/denver-residential/query?${new URLSearchParams({
-        where,
-        outFields: 'PARID,NBHD_1_CN,PROP_CLASS,AREA_ABG,BSMT_AREA,FBSMT_SQFT,GRD_AREA,STORY,UNITS,CCYRBLT,CCAGE_RM,STYLE_CN',
-        returnGeometry: 'false',
-        f: 'json',
-      })}`),
-      fetch(`/api/denver-commercial/query?${new URLSearchParams({
-        where,
-        outFields: 'PARID,NBHD_1_CN,PROPERTY_CLASS_DESC,BLD_NAME,GROSS_AREA,NET_AREA,BSMT_AREA,FBSMT_SQFT,NO_FLOORS,TOTL_SQFT,ORIG_YOC,REMODEL,TOT_UNITS,D_CLASS_CN',
-        returnGeometry: 'false',
-        f: 'json',
-      })}`),
-    ]);
-
-    const residentialJson = residentialRes.ok
-      ? await residentialRes.json() as ArcGisQueryResponse<Record<string, unknown>>
-      : null;
-    const commercialJson = commercialRes.ok
-      ? await commercialRes.json() as ArcGisQueryResponse<Record<string, unknown>>
-      : null;
-
-    const residential = residentialJson?.features?.[0]?.attributes;
-    if (residential) {
-      const aboveGradeSqft = toNullableNumber(residential.AREA_ABG);
-      const basementSqft = toNullableNumber(residential.BSMT_AREA);
-      return {
-        source: 'residential',
-        parid: toNullableString(residential.PARID) ?? parid,
-        neighborhoodName: toNullableString(residential.NBHD_1_CN),
-        propertyClass: toNullableString(residential.PROP_CLASS),
-        totalBuildingSqft:
-          aboveGradeSqft !== null || basementSqft !== null
-            ? (aboveGradeSqft ?? 0) + (basementSqft ?? 0)
-            : null,
-        aboveGradeSqft,
-        basementSqft,
-        finishedBasementSqft: toNullableNumber(residential.FBSMT_SQFT),
-        grossAreaSqft: null,
-        netAreaSqft: null,
-        groundFloorSqft: toNullableNumber(residential.GRD_AREA),
-        floors: toNullableNumber(residential.STORY),
-        units: toNullableNumber(residential.UNITS),
-        yearBuilt: toNullableNumber(residential.CCYRBLT),
-        remodelYear: toNullableNumber(residential.CCAGE_RM),
-        style: toNullableString(residential.STYLE_CN),
-        buildingName: null,
-      };
-    }
-
-    const commercial = commercialJson?.features?.[0]?.attributes;
-    if (commercial) {
-      return {
-        source: 'commercial',
-        parid: toNullableString(commercial.PARID) ?? parid,
-        neighborhoodName: toNullableString(commercial.NBHD_1_CN),
-        propertyClass: toNullableString(commercial.PROPERTY_CLASS_DESC),
-        totalBuildingSqft: toNullableNumber(commercial.TOTL_SQFT),
-        aboveGradeSqft: null,
-        basementSqft: toNullableNumber(commercial.BSMT_AREA),
-        finishedBasementSqft: toNullableNumber(commercial.FBSMT_SQFT),
-        grossAreaSqft: toNullableNumber(commercial.GROSS_AREA),
-        netAreaSqft: toNullableNumber(commercial.NET_AREA),
-        groundFloorSqft: null,
-        floors: toNullableNumber(commercial.NO_FLOORS),
-        units: toNullableNumber(commercial.TOT_UNITS),
-        yearBuilt: toNullableNumber(commercial.ORIG_YOC),
-        remodelYear: toNullableNumber(commercial.REMODEL),
-        style: toNullableString(commercial.D_CLASS_CN),
-        buildingName: toNullableString(commercial.BLD_NAME),
-      };
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-}
-
-function toNullableNumber(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') return null;
-  const num = Number(value);
-  return Number.isFinite(num) ? num : null;
-}
-
-function toNullableString(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  const text = String(value).trim();
-  return text || null;
-}
- 
 
 // ── Aurora official zoning lookup ─────────────────────────────────────────────
 
@@ -833,6 +293,13 @@ export interface DouglasZoningRaw {
   zoneName: string | null;
 }
 
+/**
+ * Query Douglas County's Landuse MapServer for the zone district at a lat/lng.
+ * Returns null if outside unincorporated Douglas County or service unavailable.
+ *
+ * Source: apps.douglas.co.us/gisod/rest/services/Landuse/MapServer/1
+ * Key field: ZONE_TYPE — e.g. "R-1", "B-2", "A-1"
+ */
 export async function queryDouglasZoning(lat: number, lng: number): Promise<DouglasZoningRaw | null> {
   const params = new URLSearchParams({
     geometry: `${lng},${lat}`,
@@ -843,6 +310,7 @@ export async function queryDouglasZoning(lat: number, lng: number): Promise<Doug
     returnGeometry: 'false',
     f: 'json',
   });
+
   try {
     const res = await fetch(`${DOUGLAS_ZONING_API}?${params}`);
     if (!res.ok) return null;
@@ -850,8 +318,13 @@ export async function queryDouglasZoning(lat: number, lng: number): Promise<Doug
     if (data.error || !data.features?.length) return null;
     const a = data.features[0]!.attributes;
     const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
-    return { zoneType: s('ZONE_TYPE'), zoneName: s('FIRST_DESC') };
-  } catch { return null; }
+    return {
+      zoneType: s('ZONE_TYPE'),
+      zoneName: s('FIRST_DESC'),
+    };
+  } catch {
+    return null;
+  }
 }
 
 // ── Jefferson County zoning lookup ────────────────────────────────────────────
@@ -863,6 +336,12 @@ export interface JeffersonZoningRaw {
   zoneName: string | null;
 }
 
+/**
+ * Query Jefferson County's Zoning MapServer for the zone district at a lat/lng.
+ * Returns null if outside unincorporated Jefferson County or service unavailable.
+ *
+ * Source: gisportal.jeffco.us/server2/rest/services/Zoning/MapServer/36
+ */
 export async function queryJeffersonZoning(lat: number, lng: number): Promise<JeffersonZoningRaw | null> {
   const params = new URLSearchParams({
     geometry: `${lng},${lat}`,
@@ -873,6 +352,7 @@ export async function queryJeffersonZoning(lat: number, lng: number): Promise<Je
     returnGeometry: 'false',
     f: 'json',
   });
+
   try {
     const res = await fetch(`${JEFFERSON_ZONING_API}?${params}`);
     if (!res.ok) return null;
@@ -880,11 +360,14 @@ export async function queryJeffersonZoning(lat: number, lng: number): Promise<Je
     if (data.error || !data.features?.length) return null;
     const a = data.features[0]!.attributes;
     const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    // Field names may vary — try common variations
     return {
       zoneCode: s('ZONING') ?? s('ZONE_CODE') ?? s('ZONE') ?? s('ZoningCode') ?? null,
       zoneName: s('ZONE_NAME') ?? s('ZoningName') ?? s('DESCRIPTION') ?? null,
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ── Larimer County zoning lookup ──────────────────────────────────────────────
@@ -896,6 +379,12 @@ export interface LarimerZoningRaw {
   zoneName: string | null;
 }
 
+/**
+ * Query Larimer County's LC_Zoning MapServer for the zone district at a lat/lng.
+ * Returns null if outside unincorporated Larimer County or service unavailable.
+ *
+ * Source: maps1.larimer.org/arcgis/rest/services/MapServices/LC_Zoning/MapServer/0
+ */
 export async function queryLarimerZoning(lat: number, lng: number): Promise<LarimerZoningRaw | null> {
   const params = new URLSearchParams({
     geometry: `${lng},${lat}`,
@@ -906,6 +395,7 @@ export async function queryLarimerZoning(lat: number, lng: number): Promise<Lari
     returnGeometry: 'false',
     f: 'json',
   });
+
   try {
     const res = await fetch(`${LARIMER_ZONING_API}?${params}`);
     if (!res.ok) return null;
@@ -917,7 +407,9 @@ export async function queryLarimerZoning(lat: number, lng: number): Promise<Lari
       zoneCode: s('ZONE') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneCode') ?? null,
       zoneName: s('ZONE_NAME') ?? s('ZoneName') ?? s('DESCRIPTION') ?? null,
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ── El Paso County zoning lookup ──────────────────────────────────────────────
@@ -929,6 +421,12 @@ export interface ElPasoZoningRaw {
   zoneName: string | null;
 }
 
+/**
+ * Query El Paso County's ZoningAreas MapServer for the zone district at a lat/lng.
+ * Returns null if outside unincorporated El Paso County or service unavailable.
+ *
+ * Source: gisservices.elpasoco.com/arcgis2/rest/services/HubPublic/ZoningAreas/MapServer/1
+ */
 export async function queryElPasoZoning(lat: number, lng: number): Promise<ElPasoZoningRaw | null> {
   const params = new URLSearchParams({
     geometry: `${lng},${lat}`,
@@ -939,6 +437,7 @@ export async function queryElPasoZoning(lat: number, lng: number): Promise<ElPas
     returnGeometry: 'false',
     f: 'json',
   });
+
   try {
     const res = await fetch(`${ELPASO_ZONING_API}?${params}`);
     if (!res.ok) return null;
@@ -950,7 +449,9 @@ export async function queryElPasoZoning(lat: number, lng: number): Promise<ElPas
       zoneCode: s('ZONE_TYPE') ?? s('ZONING') ?? s('ZONE_CODE') ?? s('ZONE') ?? null,
       zoneName: s('ZONE_NAME') ?? s('DESCRIPTION') ?? s('ZoneName') ?? null,
     };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ── Clear Creek County zoning lookup ──────────────────────────────────────────
@@ -962,6 +463,13 @@ export interface ClearCreekZoningRaw {
   zoneName: string | null;
 }
 
+/**
+ * Query Clear Creek County's Cadastral MapServer for the zone district at a lat/lng.
+ * Returns null if outside Clear Creek County or service unavailable.
+ *
+ * Source: gis.clearcreekcounty.us/arcgis2/rest/services/ClearCreek/Cadastral/MapServer/18
+ * Key field: CURR_ZONE — e.g. "R-1", "B-1", "A-1"
+ */
 export async function queryClearCreekZoning(lat: number, lng: number): Promise<ClearCreekZoningRaw | null> {
   const params = new URLSearchParams({
     geometry: `${lng},${lat}`,
@@ -972,6 +480,7 @@ export async function queryClearCreekZoning(lat: number, lng: number): Promise<C
     returnGeometry: 'false',
     f: 'json',
   });
+
   try {
     const res = await fetch(`${CLEARCREEK_ZONING_API}?${params}`);
     if (!res.ok) return null;
@@ -983,6 +492,158 @@ export async function queryClearCreekZoning(lat: number, lng: number): Promise<C
       currZone: s('CURR_ZONE') ?? s('ZONE') ?? s('ZONING') ?? null,
       zoneName: s('ZONE_NAME') ?? s('DESCRIPTION') ?? null,
     };
+  } catch {
+    return null;
+  }
+}
+
+// ── Lakewood zoning lookup ────────────────────────────────────────────────────
+
+const LAKEWOOD_ZONING_API = '/api/lakewood-zoning/0/query';
+
+export interface LakewoodZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryLakewoodZoning(lat: number, lng: number): Promise<LakewoodZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${LAKEWOOD_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneCode') ?? null, zoneName: s('ZONE_NAME') ?? s('ZoneName') ?? s('DESCRIPTION') ?? null };
+  } catch { return null; }
+}
+
+// ── Arvada zoning lookup ──────────────────────────────────────────────────────
+
+const ARVADA_ZONING_API = '/api/arvada-zoning/0/query';
+
+export interface ArvadaZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryArvadaZoning(lat: number, lng: number): Promise<ArvadaZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${ARVADA_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneCode') ?? null, zoneName: s('ZONE_NAME') ?? s('ZoneName') ?? s('DESCRIPTION') ?? null };
+  } catch { return null; }
+}
+
+// ── Greenwood Village zoning lookup ──────────────────────────────────────────
+
+const GREENWOODVILLAGE_ZONING_API = '/api/greenwoodvillage-zoning/1/query';
+
+export interface GreenwoodVillageZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryGreenwoodVillageZoning(lat: number, lng: number): Promise<GreenwoodVillageZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${GREENWOODVILLAGE_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneCode') ?? null, zoneName: s('ZONE_NAME') ?? s('ZoneName') ?? s('DESCRIPTION') ?? null };
+  } catch { return null; }
+}
+
+// ── Littleton zoning lookup ───────────────────────────────────────────────────
+
+const LITTLETON_ZONING_API = '/api/littleton-zoning/2/query';
+
+export interface LittletonZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryLittletonZoning(lat: number, lng: number): Promise<LittletonZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${LITTLETON_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneCode') ?? null, zoneName: s('ZONE_NAME') ?? s('ZoneName') ?? s('DESCRIPTION') ?? null };
+  } catch { return null; }
+}
+
+// ── Thornton zoning lookup ────────────────────────────────────────────────────
+
+const THORNTON_ZONING_API = '/api/thornton-zoning/0/query';
+
+export interface ThorntonZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryThorntonZoning(lat: number, lng: number): Promise<ThorntonZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${THORNTON_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneCode') ?? null, zoneName: s('ZONE_NAME') ?? s('ZoneName') ?? s('DESCRIPTION') ?? null };
   } catch { return null; }
 }
 
@@ -1038,100 +699,6 @@ export async function queryParcelByPoint(
   if (features.length === 0) return null;
 
   return normalizeParcelFeature(features[0]!, lat, lng);
-}
-
-export async function queryParcelsNearby(
-  lng: number,
-  lat: number,
-  radiusMiles: number,
-  limit = 60
-): Promise<ParcelFeature[]> {
-  const latDelta = radiusMiles / 69;
-  const lngDelta = radiusMiles / (Math.cos((lat * Math.PI) / 180) * 69 || 1);
-
-  const params = new URLSearchParams({
-    geometry: JSON.stringify({
-      xmin: lng - lngDelta,
-      ymin: lat - latDelta,
-      xmax: lng + lngDelta,
-      ymax: lat + latDelta,
-      spatialReference: { wkid: 4326 },
-    }),
-    geometryType: 'esriGeometryEnvelope',
-    inSR: '4326',
-    spatialRel: 'esriSpatialRelIntersects',
-    outFields: PARCEL_FIELDS,
-    returnGeometry: 'true',
-    outSR: '4326',
-    resultRecordCount: String(limit),
-    f: 'json',
-  });
-
-  const res = await fetch(`${PARCEL_API}?${params}`);
-  if (!res.ok) throw new Error(`Parcel nearby service returned ${res.status}`);
-
-  const data = await res.json() as EsriJsonResponse;
-  if (data.error) throw new Error(data.error.message);
-
-  return (data.features ?? []).map((feature) => {
-    const centroid = ringsCentroid(feature.geometry?.rings) ?? { lat, lng };
-    return normalizeParcelFeature(feature, centroid.lat, centroid.lng);
-  });
-}
-
-function escapeSqlLiteral(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-function escapeSqlLike(value: string): string {
-  return escapeSqlLiteral(value).replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
-
-export async function searchParcels(query: string, limit = 12): Promise<ParcelFeature[]> {
-  const trimmed = query.trim();
-  if (!trimmed) return [];
-
-  const digitsOnly = trimmed.replace(/\D/g, '');
-  const isApnLike = /^[\d-\s]+$/.test(trimmed) && digitsOnly.length >= 6;
-
-  const where = isApnLike
-    ? [
-        `parcel_id = '${escapeSqlLiteral(trimmed)}'`,
-        `account = '${escapeSqlLiteral(trimmed)}'`,
-        `parcel_id = '${escapeSqlLiteral(digitsOnly)}'`,
-        `account = '${escapeSqlLiteral(digitsOnly)}'`,
-        `parcel_id LIKE '%${escapeSqlLike(digitsOnly)}%' ESCAPE '\\'`,
-        `account LIKE '%${escapeSqlLike(digitsOnly)}%' ESCAPE '\\'`,
-      ].join(' OR ')
-    : [
-        `owner LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
-        `owner2 LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
-        `situsAdd LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
-        `sitAddCty LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
-        `legalDesc LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
-        `subName LIKE '%${escapeSqlLike(trimmed)}%' ESCAPE '\\'`,
-      ].join(' OR ');
-
-  const params = new URLSearchParams({
-    where,
-    outFields: PARCEL_FIELDS,
-    returnGeometry: 'true',
-    outSR: '4326',
-    resultRecordCount: String(limit),
-    orderByFields: isApnLike ? 'parcel_id ASC' : 'owner ASC,situsAdd ASC',
-    f: 'json',
-  });
-
-  const res = await fetch(`${PARCEL_API}?${params}`);
-  if (!res.ok) throw new Error(`Parcel search returned ${res.status}`);
-
-  const data = await res.json() as EsriJsonResponse;
-  if (data.error) throw new Error(data.error.message);
-
-  return (data.features ?? []).map((feature) => {
-    const centroid = ringsCentroid(feature.geometry?.rings) ?? { lat: 39.5501, lng: -105.7821 };
-    return normalizeParcelFeature(feature, centroid.lat, centroid.lng);
-  });
 }
 
 /** ESRI standard JSON response (f=json) */
@@ -1242,30 +809,6 @@ function esriRingsToGeoJSON(rings?: number[][][]): GeoJSONGeometry {
   return {
     type: 'MultiPolygon',
     coordinates: rings.map(r => [r]) as unknown as [number, number][][][],
-  };
-}
-
-function ringsCentroid(rings?: number[][][]): { lat: number; lng: number } | null {
-  const ring = rings?.[0];
-  if (!ring?.length) return null;
-
-  let minLng = Infinity;
-  let maxLng = -Infinity;
-  let minLat = Infinity;
-  let maxLat = -Infinity;
-
-  for (const [pointLng, pointLat] of ring) {
-    if (pointLng < minLng) minLng = pointLng;
-    if (pointLng > maxLng) maxLng = pointLng;
-    if (pointLat < minLat) minLat = pointLat;
-    if (pointLat > maxLat) maxLat = pointLat;
-  }
-
-  if (!Number.isFinite(minLng) || !Number.isFinite(minLat)) return null;
-
-  return {
-    lng: (minLng + maxLng) / 2,
-    lat: (minLat + maxLat) / 2,
   };
 }
 

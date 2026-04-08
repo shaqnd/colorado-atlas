@@ -28,24 +28,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/denver-zoning/, '/maps/data/Zoning/MapServer'),
       },
-      // Denver assessor tables — residential characteristics
-      '/api/denver-residential': {
-        target: 'https://services1.arcgis.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(
-          /^\/api\/denver-residential/,
-          '/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_real_property_residential_characteristics/FeatureServer/59'
-        ),
-      },
-      // Denver assessor tables — apartment/commercial characteristics
-      '/api/denver-commercial': {
-        target: 'https://services1.arcgis.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(
-          /^\/api\/denver-commercial/,
-          '/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_real_property_apartment_and_commercial_characteristics/FeatureServer/58'
-        ),
-      },
       // Aurora City — official zoning MapServer (layer 20, OpenData service)
       '/api/aurora-zoning': {
         target: 'https://ags.auroragov.org',
@@ -87,6 +69,36 @@ export default defineConfig({
         target: 'https://gis.clearcreekcounty.us',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/clearcreek-zoning/, '/arcgis2/rest/services/ClearCreek/Cadastral/MapServer'),
+      },
+      // Lakewood — Zoning MapServer (layer 0)
+      '/api/lakewood-zoning': {
+        target: 'https://egis.lakewood.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/lakewood-zoning/, '/server/rest/services/PL/Zoning/MapServer'),
+      },
+      // Arvada — Planning/Zoning MapServer (layer 0)
+      '/api/arvada-zoning': {
+        target: 'https://maps.arvada.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/arvada-zoning/, '/arcgis/rest/services/Planning/Zoning/MapServer'),
+      },
+      // Greenwood Village — GeneralMapViewer MapServer (layer 1 = Zoning)
+      '/api/greenwoodvillage-zoning': {
+        target: 'https://online.greenwoodvillage.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/greenwoodvillage-zoning/, '/server/rest/services/City/GreenwoodVillage_GeneralMapViewer_Web/MapServer'),
+      },
+      // Littleton — LittletonParcelZoning MapServer (layer 2 = Zoning Districts)
+      '/api/littleton-zoning': {
+        target: 'https://ltngiswa.littletonco.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/littleton-zoning/, '/server/rest/services/City/LittletonParcelZoning/MapServer'),
+      },
+      // Thornton — Zoning MapServer (layer 0)
+      '/api/thornton-zoning': {
+        target: 'https://maps.thorntonco.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/thornton-zoning/, '/citydevweb/rest/services/Zoning/MapServer'),
       },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
