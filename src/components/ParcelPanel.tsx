@@ -21,9 +21,14 @@ import { runHBUAnalysis } from '../utils/hbuAnalysis';
 import { zoneDistrictsByCode } from '../data/zoneDistricts';
 import { ALL_COMMUNITIES, getCommunitiesByCounty } from '../data/communities';
 import { getDenverZoneDistrict, DENVER_CATEGORY_LABELS } from '../data/denverZoning';
-import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw } from '../utils/parcelService';
 import { getAuroraZoneDistrict, AURORA_CATEGORY_LABELS } from '../data/auroraZoning';
 import { getCentennialLandUseDistrict, CENTENNIAL_CATEGORY_LABELS } from '../data/centennialZoning';
+import { getDouglasZoneDistrict, DOUGLAS_CATEGORY_LABELS } from '../data/douglasZoning';
+import { getJeffersonZoneDistrict, JEFFERSON_CATEGORY_LABELS } from '../data/jeffersonZoning';
+import { getLarimerZoneDistrict, LARIMER_CATEGORY_LABELS } from '../data/larimerZoning';
+import { getElPasoZoneDistrict, ELPASO_CATEGORY_LABELS } from '../data/elpasoZoning';
+import { getClearCreekZoneDistrict, CLEARCREEK_CATEGORY_LABELS } from '../data/clearcreekZoning';
 import type { Community } from '../data/communities';
 import type { HBUResult } from '../data/types';
 import type { NakedDenverArticle } from '../data/nakedDenverArticles';
@@ -113,6 +118,11 @@ interface ParcelPanelProps {
   arapahoeZoningData: ArapahoeZoningData | null;
   auroraZoning: AuroraZoningRaw | null;
   centennialZoning?: CentennialZoningRaw | null;
+  douglasZoning?: DouglasZoningRaw | null;
+  jeffersonZoning?: JeffersonZoningRaw | null;
+  larimerZoning?: LarimerZoningRaw | null;
+  elpasoZoning?: ElPasoZoningRaw | null;
+  clearcreekZoning?: ClearCreekZoningRaw | null;
   nearbyArticles: (NakedDenverArticle & { distanceMiles: number })[];
   boundarySelection: BoundarySelectionSummary | null;
   getMapSnapshot?: () => Promise<string>;
@@ -1109,6 +1119,11 @@ function ZoningTab({
   arapahoeZoningData,
   auroraZoning,
   centennialZoning,
+  douglasZoning,
+  jeffersonZoning,
+  larimerZoning,
+  elpasoZoning,
+  clearcreekZoning,
 }: {
   f: ParcelFeature;
   denverZoning?: DenverZoningRaw | null;
@@ -1118,6 +1133,11 @@ function ZoningTab({
   arapahoeZoningData?: ArapahoeZoningData | null;
   auroraZoning?: AuroraZoningRaw | null;
   centennialZoning?: CentennialZoningRaw | null;
+  douglasZoning?: DouglasZoningRaw | null;
+  jeffersonZoning?: JeffersonZoningRaw | null;
+  larimerZoning?: LarimerZoningRaw | null;
+  elpasoZoning?: ElPasoZoningRaw | null;
+  clearcreekZoning?: ClearCreekZoningRaw | null;
 }) {
   const z = f.zoning;
   const dzDistrict = denverZoning?.zoneDistrict ? getDenverZoneDistrict(denverZoning.zoneDistrict) : null;
@@ -1127,6 +1147,16 @@ function ZoningTab({
   const isAurora = !!auroraZoning?.districtId;
   const czDistrict = centennialZoning?.landUse ? getCentennialLandUseDistrict(centennialZoning.landUse) : null;
   const isCentennial = !!centennialZoning?.landUse;
+  const dgzDistrict = douglasZoning?.zoneType ? getDouglasZoneDistrict(douglasZoning.zoneType) : null;
+  const isDouglasZoning = !!douglasZoning?.zoneType;
+  const jfzDistrict = jeffersonZoning?.zoneCode ? getJeffersonZoneDistrict(jeffersonZoning.zoneCode) : null;
+  const isJefferson = !!jeffersonZoning?.zoneCode;
+  const lrzDistrict = larimerZoning?.zoneCode ? getLarimerZoneDistrict(larimerZoning.zoneCode) : null;
+  const isLarimer = !!larimerZoning?.zoneCode;
+  const epzDistrict = elpasoZoning?.zoneCode ? getElPasoZoneDistrict(elpasoZoning.zoneCode) : null;
+  const isElPaso = !!elpasoZoning?.zoneCode;
+  const cczDistrict = clearcreekZoning?.currZone ? getClearCreekZoneDistrict(clearcreekZoning.currZone) : null;
+  const isClearCreek = !!clearcreekZoning?.currZone;
   const isDouglas = f.location.county.toLowerCase() === 'douglas' && !!douglasParcelData;
   const isArapahoe = f.location.county.toLowerCase() === 'arapahoe';
   const effectiveZoneCode = isDenver
@@ -1503,8 +1533,143 @@ function ZoningTab({
         </div>
       )}
 
+      {/* ── Douglas County Official Zoning (authoritative) ── */}
+      {isDouglasZoning && !isDenver && !isAurora && !isCentennial && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Official Douglas County Zoning</div>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(52,199,89,0.12)', color: '#166534', fontWeight: 600 }}>Douglas County — Authoritative</span>
+          </div>
+          <div style={{ borderRadius: 12, border: '1.5px solid rgba(59,130,246,0.25)', background: 'rgba(59,130,246,0.04)', padding: '12px 14px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#1e40af', letterSpacing: '-0.01em' }}>{douglasZoning!.zoneType}</div>
+                <div style={{ fontSize: 13, color: 'var(--ap-t2)', marginTop: 2 }}>{dgzDistrict?.name ?? douglasZoning!.zoneName ?? '—'}</div>
+              </div>
+              {dgzDistrict && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: 'rgba(0,0,0,0.06)', color: 'var(--ap-t2)', fontWeight: 500, flexShrink: 0 }}>{DOUGLAS_CATEGORY_LABELS[dgzDistrict.category]}</span>}
+            </div>
+            {dgzDistrict?.summary && <div style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--ap-sep)' }}>{dgzDistrict.summary}</div>}
+          </div>
+          {dgzDistrict && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <UseList title="Permitted By Right" items={dgzDistrict.permittedByRight} color="#166534" dotColor="#34c759" bg="rgba(52,199,89,0.06)" border="rgba(52,199,89,0.2)" />
+              {dgzDistrict.conditionalUses.length > 0 && <UseList title="Conditional Uses" items={dgzDistrict.conditionalUses} color="#92400e" dotColor="#f59e0b" bg="rgba(245,158,11,0.06)" border="rgba(245,158,11,0.2)" />}
+              {dgzDistrict.prohibited.length > 0 && <UseList title="Prohibited Uses" items={dgzDistrict.prohibited} color="#991b1b" dotColor="#ef4444" bg="rgba(239,68,68,0.05)" border="rgba(239,68,68,0.15)" />}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Jefferson County Official Zoning (authoritative) ── */}
+      {isJefferson && !isDenver && !isAurora && !isCentennial && !isDouglasZoning && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Official Jefferson County Zoning</div>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(52,199,89,0.12)', color: '#166534', fontWeight: 600 }}>Jefferson County — Authoritative</span>
+          </div>
+          <div style={{ borderRadius: 12, border: '1.5px solid rgba(245,158,11,0.25)', background: 'rgba(245,158,11,0.04)', padding: '12px 14px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#92400e', letterSpacing: '-0.01em' }}>{jeffersonZoning!.zoneCode}</div>
+                <div style={{ fontSize: 13, color: 'var(--ap-t2)', marginTop: 2 }}>{jfzDistrict?.name ?? jeffersonZoning!.zoneName ?? '—'}</div>
+              </div>
+              {jfzDistrict && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: 'rgba(0,0,0,0.06)', color: 'var(--ap-t2)', fontWeight: 500, flexShrink: 0 }}>{JEFFERSON_CATEGORY_LABELS[jfzDistrict.category]}</span>}
+            </div>
+            {jfzDistrict?.summary && <div style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--ap-sep)' }}>{jfzDistrict.summary}</div>}
+          </div>
+          {jfzDistrict && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <UseList title="Permitted By Right" items={jfzDistrict.permittedByRight} color="#166534" dotColor="#34c759" bg="rgba(52,199,89,0.06)" border="rgba(52,199,89,0.2)" />
+              {jfzDistrict.conditionalUses.length > 0 && <UseList title="Conditional Uses" items={jfzDistrict.conditionalUses} color="#92400e" dotColor="#f59e0b" bg="rgba(245,158,11,0.06)" border="rgba(245,158,11,0.2)" />}
+              {jfzDistrict.prohibited.length > 0 && <UseList title="Prohibited Uses" items={jfzDistrict.prohibited} color="#991b1b" dotColor="#ef4444" bg="rgba(239,68,68,0.05)" border="rgba(239,68,68,0.15)" />}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Larimer County Official Zoning (authoritative) ── */}
+      {isLarimer && !isDenver && !isAurora && !isCentennial && !isDouglasZoning && !isJefferson && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Official Larimer County Zoning</div>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(52,199,89,0.12)', color: '#166634', fontWeight: 600 }}>Larimer County — Authoritative</span>
+          </div>
+          <div style={{ borderRadius: 12, border: '1.5px solid rgba(16,185,129,0.3)', background: 'rgba(16,185,129,0.05)', padding: '12px 14px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#065f46', letterSpacing: '-0.01em' }}>{larimerZoning!.zoneCode}</div>
+                <div style={{ fontSize: 13, color: 'var(--ap-t2)', marginTop: 2 }}>{lrzDistrict?.name ?? larimerZoning!.zoneName ?? '—'}</div>
+              </div>
+              {lrzDistrict && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: 'rgba(0,0,0,0.06)', color: 'var(--ap-t2)', fontWeight: 500, flexShrink: 0 }}>{LARIMER_CATEGORY_LABELS[lrzDistrict.category]}</span>}
+            </div>
+            {lrzDistrict?.summary && <div style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--ap-sep)' }}>{lrzDistrict.summary}</div>}
+          </div>
+          {lrzDistrict && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <UseList title="Permitted By Right" items={lrzDistrict.permittedByRight} color="#166534" dotColor="#34c759" bg="rgba(52,199,89,0.06)" border="rgba(52,199,89,0.2)" />
+              {lrzDistrict.conditionalUses.length > 0 && <UseList title="Conditional Uses" items={lrzDistrict.conditionalUses} color="#92400e" dotColor="#f59e0b" bg="rgba(245,158,11,0.06)" border="rgba(245,158,11,0.2)" />}
+              {lrzDistrict.prohibited.length > 0 && <UseList title="Prohibited Uses" items={lrzDistrict.prohibited} color="#991b1b" dotColor="#ef4444" bg="rgba(239,68,68,0.05)" border="rgba(239,68,68,0.15)" />}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── El Paso County Official Zoning (authoritative) ── */}
+      {isElPaso && !isDenver && !isAurora && !isCentennial && !isDouglasZoning && !isJefferson && !isLarimer && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Official El Paso County Zoning</div>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(52,199,89,0.12)', color: '#166534', fontWeight: 600 }}>El Paso County — Authoritative</span>
+          </div>
+          <div style={{ borderRadius: 12, border: '1.5px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.04)', padding: '12px 14px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#7f1d1d', letterSpacing: '-0.01em' }}>{elpasoZoning!.zoneCode}</div>
+                <div style={{ fontSize: 13, color: 'var(--ap-t2)', marginTop: 2 }}>{epzDistrict?.name ?? elpasoZoning!.zoneName ?? '—'}</div>
+              </div>
+              {epzDistrict && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: 'rgba(0,0,0,0.06)', color: 'var(--ap-t2)', fontWeight: 500, flexShrink: 0 }}>{ELPASO_CATEGORY_LABELS[epzDistrict.category]}</span>}
+            </div>
+            {epzDistrict?.summary && <div style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--ap-sep)' }}>{epzDistrict.summary}</div>}
+          </div>
+          {epzDistrict && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <UseList title="Permitted By Right" items={epzDistrict.permittedByRight} color="#166534" dotColor="#34c759" bg="rgba(52,199,89,0.06)" border="rgba(52,199,89,0.2)" />
+              {epzDistrict.conditionalUses.length > 0 && <UseList title="Conditional Uses" items={epzDistrict.conditionalUses} color="#92400e" dotColor="#f59e0b" bg="rgba(245,158,11,0.06)" border="rgba(245,158,11,0.2)" />}
+              {epzDistrict.prohibited.length > 0 && <UseList title="Prohibited Uses" items={epzDistrict.prohibited} color="#991b1b" dotColor="#ef4444" bg="rgba(239,68,68,0.05)" border="rgba(239,68,68,0.15)" />}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Clear Creek County Official Zoning (authoritative) ── */}
+      {isClearCreek && !isDenver && !isAurora && !isCentennial && !isDouglasZoning && !isJefferson && !isLarimer && !isElPaso && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Official Clear Creek County Zoning</div>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(52,199,89,0.12)', color: '#166534', fontWeight: 600 }}>Clear Creek County — Authoritative</span>
+          </div>
+          <div style={{ borderRadius: 12, border: '1.5px solid rgba(167,139,250,0.3)', background: 'rgba(167,139,250,0.05)', padding: '12px 14px', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#4c1d95', letterSpacing: '-0.01em' }}>{clearcreekZoning!.currZone}</div>
+                <div style={{ fontSize: 13, color: 'var(--ap-t2)', marginTop: 2 }}>{cczDistrict?.name ?? clearcreekZoning!.zoneName ?? '—'}</div>
+              </div>
+              {cczDistrict && <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 99, background: 'rgba(0,0,0,0.06)', color: 'var(--ap-t2)', fontWeight: 500, flexShrink: 0 }}>{CLEARCREEK_CATEGORY_LABELS[cczDistrict.category]}</span>}
+            </div>
+            {cczDistrict?.summary && <div style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--ap-sep)' }}>{cczDistrict.summary}</div>}
+          </div>
+          {cczDistrict && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <UseList title="Permitted By Right" items={cczDistrict.permittedByRight} color="#166534" dotColor="#34c759" bg="rgba(52,199,89,0.06)" border="rgba(52,199,89,0.2)" />
+              {cczDistrict.conditionalUses.length > 0 && <UseList title="Conditional Uses" items={cczDistrict.conditionalUses} color="#92400e" dotColor="#f59e0b" bg="rgba(245,158,11,0.06)" border="rgba(245,158,11,0.2)" />}
+              {cczDistrict.prohibited.length > 0 && <UseList title="Prohibited Uses" items={cczDistrict.prohibited} color="#991b1b" dotColor="#ef4444" bg="rgba(239,68,68,0.05)" border="rgba(239,68,68,0.15)" />}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Statewide ESRI zoning (fallback / supplement) ── */}
-      {!isDenver && !isAurora && !isCentennial && (
+      {!isDenver && !isAurora && !isCentennial && !isDouglasZoning && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && (
         <>
           {(douglasParcelData?.zoningCode || douglasParcelData?.zoningCodeDescription || arapahoeZoningData?.zoningCode || z.code || z.description || z.landUseCode || z.landUseDescription) ? (
             <Section title={isArapahoe ? 'Zoning Context (Statewide Layer / Supplemental)' : 'Zoning (Statewide Layer)'}>
@@ -2553,6 +2718,11 @@ export function ParcelPanel({
   arapahoeZoningData,
   auroraZoning,
   centennialZoning,
+  douglasZoning,
+  jeffersonZoning,
+  larimerZoning,
+  elpasoZoning,
+  clearcreekZoning,
   nearbyArticles,
   boundarySelection,
   getMapSnapshot,
@@ -2860,7 +3030,7 @@ export function ParcelPanel({
         ) : (
           <>
             {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} />}
-            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} arapahoeZoningData={resolvedArapahoeZoningData} auroraZoning={auroraZoning} centennialZoning={centennialZoning} />}
+            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} arapahoeZoningData={resolvedArapahoeZoningData} auroraZoning={auroraZoning} centennialZoning={centennialZoning} douglasZoning={douglasZoning} jeffersonZoning={jeffersonZoning} larimerZoning={larimerZoning} elpasoZoning={elpasoZoning} clearcreekZoning={clearcreekZoning} />}
             {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={resolvedDenverZoning} denverBuilding={resolvedDenverBuilding} denverValuation={resolvedDenverValuation} douglasParcelData={douglasParcelData} arapahoeParcelData={resolvedArapahoeParcelData} />}
             {activeTab === 'council'  && <CouncilTab f={feature} />}
             {activeTab === 'activity' && <ActivityTab f={feature} nearbyArticles={nearbyArticles} />}

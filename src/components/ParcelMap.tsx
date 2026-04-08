@@ -34,11 +34,16 @@ import {
   queryArapahoeZoning,
   queryAuroraZoning,
   queryCentennialZoning,
+  queryDouglasZoning,
+  queryJeffersonZoning,
+  queryLarimerZoning,
+  queryElPasoZoning,
+  queryClearCreekZoning,
   queryCountyBoundaries,
   queryMunicipalBoundaries,
   queryDenverNeighborhoodBoundaries,
 } from '../utils/parcelService';
-import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw } from '../utils/parcelService';
 import { ParcelPanel, type BoundarySelectionSummary } from './ParcelPanel';
 import { NAKED_DENVER_ARTICLES, NAKED_DENVER_MAPPED_ARTICLES, type NakedDenverArticle } from '../data/nakedDenverArticles';
 
@@ -105,6 +110,12 @@ const AURORA_ZONING_TILES = '/api/aurora-zoning/export?bbox={bbox-epsg-3857}&bbo
  * Coverage: City of Centennial (Arapahoe County).
  */
 const CENTENNIAL_ZONING_TILES = '/api/centennial-zoning/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:0&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+
+const DOUGLAS_ZONING_TILES = '/api/douglas-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:1&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+const JEFFERSON_ZONING_TILES = '/api/jefferson-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:36&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+const LARIMER_ZONING_TILES = '/api/larimer-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:0&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+const ELPASO_ZONING_TILES = '/api/elpaso-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:1&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+const CLEARCREEK_ZONING_TILES = '/api/clearcreek-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:18&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
 
 const PARCEL_PREVIEW_MIN_ZOOM = 14;
 
@@ -1495,6 +1506,11 @@ export function ParcelMap() {
   const [denverZoning, setDenverZoning] = useState<DenverZoningRaw | null>(null);
   const [auroraZoning, setAuroraZoning] = useState<AuroraZoningRaw | null>(null);
   const [centennialZoning, setCentennialZoning] = useState<CentennialZoningRaw | null>(null);
+  const [douglasZoning, setDouglasZoning] = useState<DouglasZoningRaw | null>(null);
+  const [jeffersonZoning, setJeffersonZoning] = useState<JeffersonZoningRaw | null>(null);
+  const [larimerZoning, setLarimerZoning] = useState<LarimerZoningRaw | null>(null);
+  const [elpasoZoning, setElPasoZoning] = useState<ElPasoZoningRaw | null>(null);
+  const [clearcreekZoning, setClearCreekZoning] = useState<ClearCreekZoningRaw | null>(null);
   const [denverBuilding, setDenverBuilding] = useState<DenverBuildingData | null>(null);
   const [douglasParcelData, setDouglasParcelData] = useState<DouglasParcelData | null>(null);
   const [arapahoeParcelData, setArapahoeParcelData] = useState<ArapahoeParcelData | null>(null);
@@ -1819,6 +1835,11 @@ export function ParcelMap() {
     setNeighbourhood(null);
     setDenverZoning(null);
     setAuroraZoning(null);
+    setDouglasZoning(null);
+    setJeffersonZoning(null);
+    setLarimerZoning(null);
+    setElPasoZoning(null);
+    setClearCreekZoning(null);
     setDenverBuilding(null);
     setDouglasParcelData(null);
     setArapahoeParcelData(null);
@@ -1864,6 +1885,11 @@ export function ParcelMap() {
     setDenverZoning(null);
     setAuroraZoning(null);
     setCentennialZoning(null);
+    setDouglasZoning(null);
+    setJeffersonZoning(null);
+    setLarimerZoning(null);
+    setElPasoZoning(null);
+    setClearCreekZoning(null);
     setDenverBuilding(null);
     setDouglasParcelData(null);
     setArapahoeParcelData(null);
@@ -1880,20 +1906,35 @@ export function ParcelMap() {
 
     try {
       // First find the parcel and nearby neighborhood context.
-      const [parcelResult, nbResult, auroraResult, centennialResult] = await Promise.allSettled([
+      const [parcelResult, nbResult, auroraResult, centennialResult, douglasResult, jeffersonResult, larimerResult, elpasoResult, clearcreekResult] = await Promise.allSettled([
         queryParcelByPoint(lng, lat),
         reverseGeocodeNeighborhood(lat, lng),
         queryAuroraZoning(lat, lng),
         queryCentennialZoning(lat, lng),
+        queryDouglasZoning(lat, lng),
+        queryJeffersonZoning(lat, lng),
+        queryLarimerZoning(lat, lng),
+        queryElPasoZoning(lat, lng),
+        queryClearCreekZoning(lat, lng),
       ]);
 
       const parcel = parcelResult.status === 'fulfilled' ? parcelResult.value : null;
       const nb = nbResult.status === 'fulfilled' ? nbResult.value : null;
       const az = auroraResult.status === 'fulfilled' ? auroraResult.value : null;
       const cz = centennialResult.status === 'fulfilled' ? centennialResult.value : null;
+      const dgz = douglasResult.status === 'fulfilled' ? douglasResult.value : null;
+      const jfz = jeffersonResult.status === 'fulfilled' ? jeffersonResult.value : null;
+      const lrz = larimerResult.status === 'fulfilled' ? larimerResult.value : null;
+      const epz = elpasoResult.status === 'fulfilled' ? elpasoResult.value : null;
+      const ccz = clearcreekResult.status === 'fulfilled' ? clearcreekResult.value : null;
       setNeighbourhood(nb);
       setAuroraZoning(az?.districtId ? az : null);
       setCentennialZoning(cz?.landUse ? cz : null);
+      setDouglasZoning(dgz?.zoneType ? dgz : null);
+      setJeffersonZoning(jfz?.zoneCode ? jfz : null);
+      setLarimerZoning(lrz?.zoneCode ? lrz : null);
+      setElPasoZoning(epz?.zoneCode ? epz : null);
+      setClearCreekZoning(ccz?.currZone ? ccz : null);
 
       if (parcel) {
         setParcelState({ status: 'loaded', feature: parcel });
@@ -2564,6 +2605,46 @@ export function ParcelMap() {
           </Source>
         )}
 
+        {/* Douglas County Zoning overlay */}
+        {showZoning && (
+          <Source id="douglas-zoning" type="raster" tiles={[DOUGLAS_ZONING_TILES]} tileSize={256}
+            attribution="Douglas County — Zoning Districts">
+            <Layer id="douglas-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
+        {/* Jefferson County Zoning overlay */}
+        {showZoning && (
+          <Source id="jefferson-zoning" type="raster" tiles={[JEFFERSON_ZONING_TILES]} tileSize={256}
+            attribution="Jefferson County — Zoning Districts">
+            <Layer id="jefferson-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
+        {/* Larimer County Zoning overlay */}
+        {showZoning && (
+          <Source id="larimer-zoning" type="raster" tiles={[LARIMER_ZONING_TILES]} tileSize={256}
+            attribution="Larimer County — Zoning Districts">
+            <Layer id="larimer-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
+        {/* El Paso County Zoning overlay */}
+        {showZoning && (
+          <Source id="elpaso-zoning" type="raster" tiles={[ELPASO_ZONING_TILES]} tileSize={256}
+            attribution="El Paso County — Zoning Areas">
+            <Layer id="elpaso-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
+        {/* Clear Creek County Zoning overlay */}
+        {showZoning && (
+          <Source id="clearcreek-zoning" type="raster" tiles={[CLEARCREEK_ZONING_TILES]} tileSize={256}
+            attribution="Clear Creek County — Zoning Districts">
+            <Layer id="clearcreek-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+
         {/* ND parcel polygons */}
         {ndParcels.features.length > 0 && (
           <Source id="nd-parcels" type="geojson" data={ndParcels}>
@@ -2745,6 +2826,11 @@ export function ParcelMap() {
           arapahoeZoningData={arapahoeZoningData}
           auroraZoning={auroraZoning}
           centennialZoning={centennialZoning}
+          douglasZoning={douglasZoning}
+          jeffersonZoning={jeffersonZoning}
+          larimerZoning={larimerZoning}
+          elpasoZoning={elpasoZoning}
+          clearcreekZoning={clearcreekZoning}
           nearbyArticles={nearbyArticles}
           boundarySelection={selectedBoundary}
           getMapSnapshot={getMapSnapshot}

@@ -58,6 +58,36 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/centennial-zoning/, '/arcgis/rest/services/Current_Land_Use'),
       },
+      // Douglas County — Landuse MapServer (layer 1, ZONE_TYPE field)
+      '/api/douglas-zoning': {
+        target: 'https://apps.douglas.co.us',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/douglas-zoning/, '/gisod/rest/services/Landuse/MapServer'),
+      },
+      // Jefferson County — Zoning MapServer (layer 36)
+      '/api/jefferson-zoning': {
+        target: 'https://gisportal.jeffco.us',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/jefferson-zoning/, '/server2/rest/services/Zoning/MapServer'),
+      },
+      // Larimer County — LC_Zoning MapServer (layer 0)
+      '/api/larimer-zoning': {
+        target: 'https://maps1.larimer.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/larimer-zoning/, '/arcgis/rest/services/MapServices/LC_Zoning/MapServer'),
+      },
+      // El Paso County — ZoningAreas MapServer (layer 1)
+      '/api/elpaso-zoning': {
+        target: 'https://gisservices.elpasoco.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/elpaso-zoning/, '/arcgis2/rest/services/HubPublic/ZoningAreas/MapServer'),
+      },
+      // Clear Creek County — Cadastral MapServer (layer 18, CURR_ZONE field)
+      '/api/clearcreek-zoning': {
+        target: 'https://gis.clearcreekcounty.us',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/clearcreek-zoning/, '/arcgis2/rest/services/ClearCreek/Cadastral/MapServer'),
+      },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
         target: 'https://hazards.fema.gov',

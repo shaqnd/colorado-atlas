@@ -824,6 +824,168 @@ export async function queryCentennialZoning(lat: number, lng: number): Promise<C
   }
 }
 
+// ── Douglas County zoning lookup ─────────────────────────────────────────────
+
+const DOUGLAS_ZONING_API = '/api/douglas-zoning/1/query';
+
+export interface DouglasZoningRaw {
+  zoneType: string | null;
+  zoneName: string | null;
+}
+
+export async function queryDouglasZoning(lat: number, lng: number): Promise<DouglasZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONE_TYPE,ZONE_NAME',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${DOUGLAS_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: { message: string } };
+    if (data.error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    return { zoneType: s('ZONE_TYPE'), zoneName: s('ZONE_NAME') };
+  } catch { return null; }
+}
+
+// ── Jefferson County zoning lookup ────────────────────────────────────────────
+
+const JEFFERSON_ZONING_API = '/api/jefferson-zoning/36/query';
+
+export interface JeffersonZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryJeffersonZoning(lat: number, lng: number): Promise<JeffersonZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${JEFFERSON_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: { message: string } };
+    if (data.error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    return {
+      zoneCode: s('ZONING') ?? s('ZONE_CODE') ?? s('ZONE') ?? s('ZoningCode') ?? null,
+      zoneName: s('ZONE_NAME') ?? s('ZoningName') ?? s('DESCRIPTION') ?? null,
+    };
+  } catch { return null; }
+}
+
+// ── Larimer County zoning lookup ──────────────────────────────────────────────
+
+const LARIMER_ZONING_API = '/api/larimer-zoning/0/query';
+
+export interface LarimerZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryLarimerZoning(lat: number, lng: number): Promise<LarimerZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${LARIMER_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: { message: string } };
+    if (data.error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    return {
+      zoneCode: s('ZONE') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneCode') ?? null,
+      zoneName: s('ZONE_NAME') ?? s('ZoneName') ?? s('DESCRIPTION') ?? null,
+    };
+  } catch { return null; }
+}
+
+// ── El Paso County zoning lookup ──────────────────────────────────────────────
+
+const ELPASO_ZONING_API = '/api/elpaso-zoning/1/query';
+
+export interface ElPasoZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryElPasoZoning(lat: number, lng: number): Promise<ElPasoZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${ELPASO_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: { message: string } };
+    if (data.error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    return {
+      zoneCode: s('ZONE_TYPE') ?? s('ZONING') ?? s('ZONE_CODE') ?? s('ZONE') ?? null,
+      zoneName: s('ZONE_NAME') ?? s('DESCRIPTION') ?? s('ZoneName') ?? null,
+    };
+  } catch { return null; }
+}
+
+// ── Clear Creek County zoning lookup ──────────────────────────────────────────
+
+const CLEARCREEK_ZONING_API = '/api/clearcreek-zoning/18/query';
+
+export interface ClearCreekZoningRaw {
+  currZone: string | null;
+  zoneName: string | null;
+}
+
+export async function queryClearCreekZoning(lat: number, lng: number): Promise<ClearCreekZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'CURR_ZONE,ZONE_NAME,DESCRIPTION',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${CLEARCREEK_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: { message: string } };
+    if (data.error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    return {
+      currZone: s('CURR_ZONE') ?? s('ZONE') ?? s('ZONING') ?? null,
+      zoneName: s('ZONE_NAME') ?? s('DESCRIPTION') ?? null,
+    };
+  } catch { return null; }
+}
+
 // ── Parcel lookup ─────────────────────────────────────────────────────────────
 
 /**
