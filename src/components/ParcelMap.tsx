@@ -21,8 +21,8 @@ import Map, {
 import type { MapRef, MapLayerMouseEvent } from 'react-map-gl/maplibre';
 
 import type { ParcelState, GeoJSONGeometry } from '../data/parcelTypes';
-import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning, queryAuroraZoning, queryCentennialZoning, queryDouglasZoning, queryJeffersonZoning, queryLarimerZoning, queryElPasoZoning, queryClearCreekZoning, queryLakewoodZoning, queryArvadaZoning, queryGreenwoodVillageZoning, queryLittletonZoning, queryThorntonZoning } from '../utils/parcelService';
-import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw } from '../utils/parcelService';
+import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning, queryAuroraZoning, queryCentennialZoning, queryDouglasZoning, queryJeffersonZoning, queryLarimerZoning, queryElPasoZoning, queryClearCreekZoning, queryLakewoodZoning, queryArvadaZoning, queryGreenwoodVillageZoning, queryLittletonZoning, queryThorntonZoning, queryArapahoeZoning, queryBroomfieldZoning, queryBoulderCountyZoning, queryWeldZoning, queryPuebloCountyZoning } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw } from '../utils/parcelService';
 import { ParcelPanel } from './ParcelPanel';
 
 // Business directory data — pre-geocoded at build time
@@ -128,6 +128,13 @@ const ARVADA_ZONING_TILES = '/api/arvada-zoning/export?bbox={bbox-epsg-3857}&bbo
 const GREENWOODVILLAGE_ZONING_TILES = '/api/greenwoodvillage-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:1&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
 const LITTLETON_ZONING_TILES = '/api/littleton-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:2&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
 const THORNTON_ZONING_TILES = '/api/thornton-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:0&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+// Arapahoe County — MapServer layer 352
+const ARAPAHOE_ZONING_TILES = '/api/arapahoe-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:352&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+// Boulder County — MapServer layer 0
+const BOULDER_COUNTY_ZONING_TILES = '/api/boulder-county-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:0&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+// Pueblo County — MapServer layer 0
+const PUEBLO_COUNTY_ZONING_TILES = '/api/pueblo-county-zoning/export?bbox={bbox-epsg-3857}&bboxSR=3857&layers=show:0&size=256,256&imageSR=3857&format=png32&transparent=true&f=image';
+// Broomfield and Weld use FeatureServer (ArcGIS Online) — no /export tile support; query only
 
 // Colorado geographic center
 const CO_INITIAL: { longitude: number; latitude: number; zoom: number } = {
@@ -989,6 +996,11 @@ export function ParcelMap() {
   const [greenwoodvillageZoning, setGreenwoodVillageZoning] = useState<GreenwoodVillageZoningRaw | null>(null);
   const [littletonZoning, setLittletonZoning] = useState<LittletonZoningRaw | null>(null);
   const [thorntonZoning, setThorntonZoning] = useState<ThorntonZoningRaw | null>(null);
+  const [arapahoeZoning, setArapahoeZoning] = useState<ArapahoeZoningRaw | null>(null);
+  const [broomfieldZoning, setBroomfieldZoning] = useState<BroomfieldZoningRaw | null>(null);
+  const [boulderCountyZoning, setBoulderCountyZoning] = useState<BoulderCountyZoningRaw | null>(null);
+  const [weldZoning, setWeldZoning] = useState<WeldZoningRaw | null>(null);
+  const [puebloCountyZoning, setPuebloCountyZoning] = useState<PuebloCountyZoningRaw | null>(null);
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showWildfireRisk, setShowWildfireRisk] = useState(false);
   const [showZoning, setShowZoning] = useState(false);
@@ -1063,6 +1075,11 @@ export function ParcelMap() {
     setGreenwoodVillageZoning(null);
     setLittletonZoning(null);
     setThorntonZoning(null);
+    setArapahoeZoning(null);
+    setBroomfieldZoning(null);
+    setBoulderCountyZoning(null);
+    setWeldZoning(null);
+    setPuebloCountyZoning(null);
     setSearchError(null);
 
     // Fly to location
@@ -1075,7 +1092,7 @@ export function ParcelMap() {
 
     try {
       // Run parcel lookup, reverse geocode, and city/county zoning queries all in parallel
-      const [parcelResult, nbResult, denverResult, auroraResult, centennialResult, douglasResult, jeffersonResult, larimerResult, elpasoResult, clearcreekResult, lakewoodResult, arvadaResult, gvResult, littletonResult, thorntonResult] = await Promise.allSettled([
+      const [parcelResult, nbResult, denverResult, auroraResult, centennialResult, douglasResult, jeffersonResult, larimerResult, elpasoResult, clearcreekResult, lakewoodResult, arvadaResult, gvResult, littletonResult, thorntonResult, arapahoeResult, broomfieldResult, boulderCountyResult, weldResult, puebloCountyResult] = await Promise.allSettled([
         queryParcelByPoint(lng, lat),
         reverseGeocodeNeighborhood(lat, lng),
         queryDenverZoning(lat, lng),
@@ -1091,6 +1108,11 @@ export function ParcelMap() {
         queryGreenwoodVillageZoning(lat, lng),
         queryLittletonZoning(lat, lng),
         queryThorntonZoning(lat, lng),
+        queryArapahoeZoning(lat, lng),
+        queryBroomfieldZoning(lat, lng),
+        queryBoulderCountyZoning(lat, lng),
+        queryWeldZoning(lat, lng),
+        queryPuebloCountyZoning(lat, lng),
       ]);
 
       const parcel = parcelResult.status === 'fulfilled' ? parcelResult.value : null;
@@ -1122,6 +1144,16 @@ export function ParcelMap() {
       setLittletonZoning(ltl?.zoneCode ? ltl : null);
       const thr = thorntonResult.status === 'fulfilled' ? thorntonResult.value : null;
       setThorntonZoning(thr?.zoneCode ? thr : null);
+      const arap = arapahoeResult.status === 'fulfilled' ? arapahoeResult.value : null;
+      setArapahoeZoning(arap?.zoneCode ? arap : null);
+      const broom = broomfieldResult.status === 'fulfilled' ? broomfieldResult.value : null;
+      setBroomfieldZoning(broom?.zoneCode ? broom : null);
+      const boco = boulderCountyResult.status === 'fulfilled' ? boulderCountyResult.value : null;
+      setBoulderCountyZoning(boco?.zoneCode ? boco : null);
+      const weld = weldResult.status === 'fulfilled' ? weldResult.value : null;
+      setWeldZoning(weld?.zoneCode ? weld : null);
+      const pueblo = puebloCountyResult.status === 'fulfilled' ? puebloCountyResult.value : null;
+      setPuebloCountyZoning(pueblo?.zoneCode ? pueblo : null);
 
       if (parcel) {
         setParcelState({ status: 'loaded', feature: parcel });
@@ -1458,6 +1490,28 @@ export function ParcelMap() {
             <Layer id="thornton-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
           </Source>
         )}
+        {/* Arapahoe County Zoning overlay */}
+        {showZoning && (
+          <Source id="arapahoe-zoning" type="raster" tiles={[ARAPAHOE_ZONING_TILES]} tileSize={256}
+            attribution="Arapahoe County — Zoning Districts (unincorporated)">
+            <Layer id="arapahoe-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+        {/* Boulder County Zoning overlay */}
+        {showZoning && (
+          <Source id="boulder-county-zoning" type="raster" tiles={[BOULDER_COUNTY_ZONING_TILES]} tileSize={256}
+            attribution="Boulder County — Zoning Districts (unincorporated)">
+            <Layer id="boulder-county-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+        {/* Pueblo County Zoning overlay */}
+        {showZoning && (
+          <Source id="pueblo-county-zoning" type="raster" tiles={[PUEBLO_COUNTY_ZONING_TILES]} tileSize={256}
+            attribution="Pueblo County — Zoning Districts (unincorporated)">
+            <Layer id="pueblo-county-zoning-layer" type="raster" paint={{ 'raster-opacity': 0.65 }} />
+          </Source>
+        )}
+        {/* Broomfield and Weld — FeatureServer only (no tile export); data appears in parcel panel */}
 
         {/* ND parcel polygons */}
         {ndParcels.features.length > 0 && (
@@ -1616,6 +1670,11 @@ export function ParcelMap() {
           greenwoodvillageZoning={greenwoodvillageZoning}
           littletonZoning={littletonZoning}
           thorntonZoning={thorntonZoning}
+          arapahoeZoning={arapahoeZoning}
+          broomfieldZoning={broomfieldZoning}
+          boulderCountyZoning={boulderCountyZoning}
+          weldZoning={weldZoning}
+          puebloCountyZoning={puebloCountyZoning}
           onClose={handleClose}
         />
       )}

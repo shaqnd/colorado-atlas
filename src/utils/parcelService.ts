@@ -647,6 +647,152 @@ export async function queryThorntonZoning(lat: number, lng: number): Promise<Tho
   } catch { return null; }
 }
 
+// ── Arapahoe County zoning lookup ────────────────────────────────────────────
+
+const ARAPAHOE_ZONING_API = '/api/arapahoe-zoning/352/query';
+
+export interface ArapahoeZoningRaw {
+  zoneCode: string | null;
+}
+
+export async function queryArapahoeZoning(lat: number, lng: number): Promise<ArapahoeZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONING',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${ARAPAHOE_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONING') ?? null };
+  } catch { return null; }
+}
+
+// ── Broomfield zoning lookup ──────────────────────────────────────────────────
+
+const BROOMFIELD_ZONING_API = '/api/broomfield-zoning/0/query';
+
+export interface BroomfieldZoningRaw {
+  zoneCode: string | null;
+}
+
+export async function queryBroomfieldZoning(lat: number, lng: number): Promise<BroomfieldZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONING,GIS_ID',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${BROOMFIELD_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONING') ?? s('GIS_ID') ?? null };
+  } catch { return null; }
+}
+
+// ── Boulder County zoning lookup ──────────────────────────────────────────────
+
+const BOULDER_COUNTY_ZONING_API = '/api/boulder-county-zoning/0/query';
+
+export interface BoulderCountyZoningRaw {
+  zoneCode: string | null;
+}
+
+export async function queryBoulderCountyZoning(lat: number, lng: number): Promise<BoulderCountyZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: '*',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${BOULDER_COUNTY_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE_DIST') ?? s('ZONE_CODE') ?? s('ZONING') ?? s('ZoneDist') ?? null };
+  } catch { return null; }
+}
+
+// ── Weld County zoning lookup ─────────────────────────────────────────────────
+
+const WELD_ZONING_API = '/api/weld-zoning/38/query';
+
+export interface WeldZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryWeldZoning(lat: number, lng: number): Promise<WeldZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONE_SYMB,ZONING',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${WELD_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE_SYMB') ?? null, zoneName: s('ZONING') ?? null };
+  } catch { return null; }
+}
+
+// ── Pueblo County zoning lookup ───────────────────────────────────────────────
+
+const PUEBLO_COUNTY_ZONING_API = '/api/pueblo-county-zoning/0/query';
+
+export interface PuebloCountyZoningRaw {
+  zoneCode: string | null;
+}
+
+export async function queryPuebloCountyZoning(lat: number, lng: number): Promise<PuebloCountyZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZoneDist',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${PUEBLO_COUNTY_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZoneDist') ?? s('ZONE_DIST') ?? s('ZONING') ?? null };
+  } catch { return null; }
+}
+
 // ── Parcel lookup ─────────────────────────────────────────────────────────────
 
 /**

@@ -10,7 +10,7 @@ import { runHBUAnalysis } from '../utils/hbuAnalysis';
 import { zoneDistrictsByCode } from '../data/zoneDistricts';
 import { ALL_COMMUNITIES } from '../data/communities';
 import { getDenverZoneDistrict, DENVER_CATEGORY_LABELS } from '../data/denverZoning';
-import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw } from '../utils/parcelService';
 import { getAuroraZoneDistrict, AURORA_CATEGORY_LABELS } from '../data/auroraZoning';
 import { getCentennialLandUseDistrict, CENTENNIAL_CATEGORY_LABELS } from '../data/centennialZoning';
 import { getDouglasZoneDistrict, DOUGLAS_CATEGORY_LABELS } from '../data/douglasZoning';
@@ -23,6 +23,11 @@ import { getArvadaZoneDistrict, ARVADA_CATEGORY_LABELS } from '../data/arvadaZon
 import { getGreenwoodVillageZoneDistrict, GREENWOODVILLAGE_CATEGORY_LABELS } from '../data/greenwoodvillageZoning';
 import { getLittletonZoneDistrict, LITTLETON_CATEGORY_LABELS } from '../data/littletonZoning';
 import { getThorntonZoneDistrict, THORNTON_CATEGORY_LABELS } from '../data/thorntonZoning';
+import { getArapahoeZoneDistrict, ARAPAHOE_CATEGORY_LABELS } from '../data/arapahoezoning';
+import { getBroomfieldZoneDistrict, BROOMFIELD_CATEGORY_LABELS } from '../data/broomfieldZoning';
+import { getBoulderCountyZoneDistrict, BOULDER_COUNTY_CATEGORY_LABELS } from '../data/boulderCountyZoning';
+import { getWeldZoneDistrict, WELD_CATEGORY_LABELS } from '../data/weldZoning';
+import { getPuebloCountyZoneDistrict, PUEBLO_COUNTY_CATEGORY_LABELS } from '../data/puebloCountyZoning';
 import type { Community } from '../data/communities';
 import type { HBUResult } from '../data/types';
 
@@ -55,6 +60,11 @@ interface ParcelPanelProps {
   greenwoodvillageZoning?: GreenwoodVillageZoningRaw | null;
   littletonZoning?: LittletonZoningRaw | null;
   thorntonZoning?: ThorntonZoningRaw | null;
+  arapahoeZoning?: ArapahoeZoningRaw | null;
+  broomfieldZoning?: BroomfieldZoningRaw | null;
+  boulderCountyZoning?: BoulderCountyZoningRaw | null;
+  weldZoning?: WeldZoningRaw | null;
+  puebloCountyZoning?: PuebloCountyZoningRaw | null;
   onClose: () => void;
 }
 
@@ -398,7 +408,7 @@ function ParcelTab({ f, neighbourhood }: { f: ParcelFeature; neighbourhood?: str
   );
 }
 
-function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning }: { f: ParcelFeature; denverZoning?: DenverZoningRaw | null; auroraZoning?: AuroraZoningRaw | null; centennialZoning?: CentennialZoningRaw | null; douglasZoning?: DouglasZoningRaw | null; jeffersonZoning?: JeffersonZoningRaw | null; larimerZoning?: LarimerZoningRaw | null; elpasoZoning?: ElPasoZoningRaw | null; clearcreekZoning?: ClearCreekZoningRaw | null; lakewoodZoning?: LakewoodZoningRaw | null; arvadaZoning?: ArvadaZoningRaw | null; greenwoodvillageZoning?: GreenwoodVillageZoningRaw | null; littletonZoning?: LittletonZoningRaw | null; thorntonZoning?: ThorntonZoningRaw | null }) {
+function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning }: { f: ParcelFeature; denverZoning?: DenverZoningRaw | null; auroraZoning?: AuroraZoningRaw | null; centennialZoning?: CentennialZoningRaw | null; douglasZoning?: DouglasZoningRaw | null; jeffersonZoning?: JeffersonZoningRaw | null; larimerZoning?: LarimerZoningRaw | null; elpasoZoning?: ElPasoZoningRaw | null; clearcreekZoning?: ClearCreekZoningRaw | null; lakewoodZoning?: LakewoodZoningRaw | null; arvadaZoning?: ArvadaZoningRaw | null; greenwoodvillageZoning?: GreenwoodVillageZoningRaw | null; littletonZoning?: LittletonZoningRaw | null; thorntonZoning?: ThorntonZoningRaw | null; arapahoeZoning?: ArapahoeZoningRaw | null; broomfieldZoning?: BroomfieldZoningRaw | null; boulderCountyZoning?: BoulderCountyZoningRaw | null; weldZoning?: WeldZoningRaw | null; puebloCountyZoning?: PuebloCountyZoningRaw | null }) {
   const z = f.zoning;
   const dzDistrict = denverZoning?.zoneDistrict ? getDenverZoneDistrict(denverZoning.zoneDistrict) : null;
   const isDenver = !!denverZoning?.zoneDistrict;
@@ -426,6 +436,16 @@ function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZon
   const isLittleton = !!littletonZoning?.zoneCode;
   const thrDistrict = thorntonZoning?.zoneCode ? getThorntonZoneDistrict(thorntonZoning.zoneCode) : null;
   const isThornton = !!thorntonZoning?.zoneCode;
+  const arapDistrict = arapahoeZoning?.zoneCode ? getArapahoeZoneDistrict(arapahoeZoning.zoneCode) : null;
+  const isArapahoe = !!arapahoeZoning?.zoneCode;
+  const broomDistrict = broomfieldZoning?.zoneCode ? getBroomfieldZoneDistrict(broomfieldZoning.zoneCode) : null;
+  const isBroomfield = !!broomfieldZoning?.zoneCode;
+  const bocoDistrict = boulderCountyZoning?.zoneCode ? getBoulderCountyZoneDistrict(boulderCountyZoning.zoneCode) : null;
+  const isBoulderCounty = !!boulderCountyZoning?.zoneCode;
+  const weldDistrict = weldZoning?.zoneCode ? getWeldZoneDistrict(weldZoning.zoneCode) : null;
+  const isWeld = !!weldZoning?.zoneCode;
+  const puebloDistrict = puebloCountyZoning?.zoneCode ? getPuebloCountyZoneDistrict(puebloCountyZoning.zoneCode) : null;
+  const isPuebloCounty = !!puebloCountyZoning?.zoneCode;
 
   // For HBU: prefer city/county official zone, fall back to ESRI
   const officialZoneCode = isDenver ? denverZoning!.zoneDistrict
@@ -440,6 +460,11 @@ function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZon
     : isGreenwoodVillage ? greenwoodvillageZoning!.zoneCode
     : isLittleton ? littletonZoning!.zoneCode
     : isThornton ? thorntonZoning!.zoneCode
+    : isArapahoe ? arapahoeZoning!.zoneCode
+    : isBroomfield ? broomfieldZoning!.zoneCode
+    : isBoulderCounty ? boulderCountyZoning!.zoneCode
+    : isWeld ? weldZoning!.zoneCode
+    : isPuebloCounty ? puebloCountyZoning!.zoneCode
     : null;
   const zoneCodeForHbu = officialZoneCode ? inferZoneCode(officialZoneCode) : inferZoneCode(z.code);
   const mappedUse = inferUseCode(z.landUseDescription, z.landUseCode);
@@ -1296,8 +1321,144 @@ function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZon
         </div>
       )}
 
+      {/* ── Arapahoe County Official Zoning (authoritative) ── */}
+      {isArapahoe && !isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Arapahoe County Zoning</span>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(234,88,12,0.12)', color: '#c2410c', fontWeight: 700 }}>Unincorporated County</span>
+          </div>
+          {arapDistrict ? (
+            <>
+              <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#c2410c' }}>{arapahoeZoning!.zoneCode}</span> — {arapDistrict.name}</>} />
+              <Row label="Category" value={ARAPAHOE_CATEGORY_LABELS[arapDistrict.category]} />
+              <Row label="Summary" value={arapDistrict.summary} />
+              {arapDistrict.minLotSqft > 0 && <Row label="Min Lot" value={`${arapDistrict.minLotSqft.toLocaleString()} sf`} />}
+              {arapDistrict.maxHeightFt > 0 && <Row label="Max Height" value={`${arapDistrict.maxHeightFt} ft`} />}
+              {arapDistrict.maxDensityPerAcre !== null && <Row label="Max Density" value={`${arapDistrict.maxDensityPerAcre} du/ac`} />}
+              {arapDistrict.maxFAR > 0 && <Row label="Max FAR" value={arapDistrict.maxFAR.toFixed(2)} />}
+              {arapDistrict.permittedByRight.length > 0 && <Row label="Permitted by Right" value={arapDistrict.permittedByRight.join(' · ')} />}
+              {arapDistrict.conditionalUses.length > 0 && <Row label="Conditional Uses" value={arapDistrict.conditionalUses.join(' · ')} />}
+              {arapDistrict.notes && <Row label="Notes" value={arapDistrict.notes} />}
+            </>
+          ) : (
+            <Row label="Zone Code" value={arapahoeZoning!.zoneCode ?? '—'} />
+          )}
+          <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: Arapahoe County ArapaMAP — Zoning Layer 352</div>
+        </div>
+      )}
+
+      {/* ── Broomfield Official Zoning (authoritative) ── */}
+      {isBroomfield && !isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && !isArapahoe && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Broomfield Zoning</span>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(79,70,229,0.12)', color: '#4338ca', fontWeight: 700 }}>City & County</span>
+          </div>
+          {broomDistrict ? (
+            <>
+              <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#4338ca' }}>{broomfieldZoning!.zoneCode}</span> — {broomDistrict.name}</>} />
+              <Row label="Category" value={BROOMFIELD_CATEGORY_LABELS[broomDistrict.category]} />
+              <Row label="Summary" value={broomDistrict.summary} />
+              {broomDistrict.minLotSqft > 0 && <Row label="Min Lot" value={`${broomDistrict.minLotSqft.toLocaleString()} sf`} />}
+              {broomDistrict.maxHeightFt > 0 && <Row label="Max Height" value={`${broomDistrict.maxHeightFt} ft`} />}
+              {broomDistrict.maxDensityPerAcre !== null && <Row label="Max Density" value={`${broomDistrict.maxDensityPerAcre} du/ac`} />}
+              {broomDistrict.maxFAR > 0 && <Row label="Max FAR" value={broomDistrict.maxFAR.toFixed(2)} />}
+              {broomDistrict.permittedByRight.length > 0 && <Row label="Permitted by Right" value={broomDistrict.permittedByRight.join(' · ')} />}
+              {broomDistrict.conditionalUses.length > 0 && <Row label="Conditional Uses" value={broomDistrict.conditionalUses.join(' · ')} />}
+              {broomDistrict.notes && <Row label="Notes" value={broomDistrict.notes} />}
+            </>
+          ) : (
+            <Row label="Zone Code" value={broomfieldZoning!.zoneCode ?? '—'} />
+          )}
+          <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: Broomfield Open Data — Zoning (ArcGIS Online)</div>
+        </div>
+      )}
+
+      {/* ── Boulder County Official Zoning (authoritative) ── */}
+      {isBoulderCounty && !isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && !isArapahoe && !isBroomfield && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Boulder County Zoning</span>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(5,150,105,0.12)', color: '#047857', fontWeight: 700 }}>Unincorporated County</span>
+          </div>
+          {bocoDistrict ? (
+            <>
+              <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#047857' }}>{boulderCountyZoning!.zoneCode}</span> — {bocoDistrict.name}</>} />
+              <Row label="Category" value={BOULDER_COUNTY_CATEGORY_LABELS[bocoDistrict.category]} />
+              <Row label="Summary" value={bocoDistrict.summary} />
+              {bocoDistrict.minLotSqft > 0 && <Row label="Min Lot" value={`${bocoDistrict.minLotSqft.toLocaleString()} sf`} />}
+              {bocoDistrict.maxHeightFt > 0 && <Row label="Max Height" value={`${bocoDistrict.maxHeightFt} ft`} />}
+              {bocoDistrict.maxDensityPerAcre !== null && <Row label="Max Density" value={`${bocoDistrict.maxDensityPerAcre} du/ac`} />}
+              {bocoDistrict.maxFAR > 0 && <Row label="Max FAR" value={bocoDistrict.maxFAR.toFixed(2)} />}
+              {bocoDistrict.permittedByRight.length > 0 && <Row label="Permitted by Right" value={bocoDistrict.permittedByRight.join(' · ')} />}
+              {bocoDistrict.conditionalUses.length > 0 && <Row label="Conditional Uses" value={bocoDistrict.conditionalUses.join(' · ')} />}
+              {bocoDistrict.notes && <Row label="Notes" value={bocoDistrict.notes} />}
+            </>
+          ) : (
+            <Row label="Zone Code" value={boulderCountyZoning!.zoneCode ?? '—'} />
+          )}
+          <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: Boulder County Planning — LUC Zoning Districts MapServer</div>
+        </div>
+      )}
+
+      {/* ── Weld County Official Zoning (authoritative) ── */}
+      {isWeld && !isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && !isArapahoe && !isBroomfield && !isBoulderCounty && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Weld County Zoning</span>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(161,98,7,0.12)', color: '#92400e', fontWeight: 700 }}>Unincorporated County</span>
+          </div>
+          {weldDistrict ? (
+            <>
+              <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#92400e' }}>{weldZoning!.zoneCode}</span> — {weldDistrict.name}</>} />
+              {weldZoning!.zoneName && <Row label="Description" value={weldZoning!.zoneName} />}
+              <Row label="Category" value={WELD_CATEGORY_LABELS[weldDistrict.category]} />
+              <Row label="Summary" value={weldDistrict.summary} />
+              {weldDistrict.minLotSqft > 0 && <Row label="Min Lot" value={`${weldDistrict.minLotSqft.toLocaleString()} sf`} />}
+              {weldDistrict.maxHeightFt > 0 && <Row label="Max Height" value={`${weldDistrict.maxHeightFt} ft`} />}
+              {weldDistrict.maxDensityPerAcre !== null && <Row label="Max Density" value={`${weldDistrict.maxDensityPerAcre} du/ac`} />}
+              {weldDistrict.maxFAR > 0 && <Row label="Max FAR" value={weldDistrict.maxFAR.toFixed(2)} />}
+              {weldDistrict.permittedByRight.length > 0 && <Row label="Permitted by Right" value={weldDistrict.permittedByRight.join(' · ')} />}
+              {weldDistrict.conditionalUses.length > 0 && <Row label="Conditional Uses" value={weldDistrict.conditionalUses.join(' · ')} />}
+              {weldDistrict.notes && <Row label="Notes" value={weldDistrict.notes} />}
+            </>
+          ) : (
+            <Row label="Zone Code" value={weldZoning!.zoneCode ?? '—'} />
+          )}
+          <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: Weld County Open Data — Zoning (ArcGIS Online)</div>
+        </div>
+      )}
+
+      {/* ── Pueblo County Official Zoning (authoritative) ── */}
+      {isPuebloCounty && !isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && !isArapahoe && !isBroomfield && !isBoulderCounty && !isWeld && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ap-t3)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Pueblo County Zoning</span>
+            <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 99, background: 'rgba(124,58,237,0.12)', color: '#6d28d9', fontWeight: 700 }}>Unincorporated County</span>
+          </div>
+          {puebloDistrict ? (
+            <>
+              <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#6d28d9' }}>{puebloCountyZoning!.zoneCode}</span> — {puebloDistrict.name}</>} />
+              <Row label="Category" value={PUEBLO_COUNTY_CATEGORY_LABELS[puebloDistrict.category]} />
+              <Row label="Summary" value={puebloDistrict.summary} />
+              {puebloDistrict.minLotSqft > 0 && <Row label="Min Lot" value={`${puebloDistrict.minLotSqft.toLocaleString()} sf`} />}
+              {puebloDistrict.maxHeightFt > 0 && <Row label="Max Height" value={`${puebloDistrict.maxHeightFt} ft`} />}
+              {puebloDistrict.maxDensityPerAcre !== null && <Row label="Max Density" value={`${puebloDistrict.maxDensityPerAcre} du/ac`} />}
+              {puebloDistrict.maxFAR > 0 && <Row label="Max FAR" value={puebloDistrict.maxFAR.toFixed(2)} />}
+              {puebloDistrict.permittedByRight.length > 0 && <Row label="Permitted by Right" value={puebloDistrict.permittedByRight.join(' · ')} />}
+              {puebloDistrict.conditionalUses.length > 0 && <Row label="Conditional Uses" value={puebloDistrict.conditionalUses.join(' · ')} />}
+              {puebloDistrict.notes && <Row label="Notes" value={puebloDistrict.notes} />}
+            </>
+          ) : (
+            <Row label="Zone Code" value={puebloCountyZoning!.zoneCode ?? '—'} />
+          )}
+          <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: Pueblo County GIS — Zoning (County Only)</div>
+        </div>
+      )}
+
       {/* ── Statewide ESRI zoning (fallback / supplement) ── */}
-      {!isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && (
+      {!isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && !isArapahoe && !isBroomfield && !isBoulderCounty && !isWeld && !isPuebloCounty && (
         <>
           {(z.code || z.description || z.landUseCode || z.landUseDescription) ? (
             <Section title="Zoning (Statewide Layer)">
@@ -1653,7 +1814,7 @@ function ActivityTab({ f }: { f: ParcelFeature }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, onClose }: ParcelPanelProps) {
+export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning, onClose }: ParcelPanelProps) {
   const [activeTab, setActiveTab] = useState<PanelTab>('parcel');
 
   const panelW = 380;
@@ -1796,7 +1957,7 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
         ) : (
           <>
             {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} />}
-            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} auroraZoning={auroraZoning} centennialZoning={centennialZoning} douglasZoning={douglasZoning} jeffersonZoning={jeffersonZoning} larimerZoning={larimerZoning} elpasoZoning={elpasoZoning} clearcreekZoning={clearcreekZoning} lakewoodZoning={lakewoodZoning} arvadaZoning={arvadaZoning} greenwoodvillageZoning={greenwoodvillageZoning} littletonZoning={littletonZoning} thorntonZoning={thorntonZoning} />}
+            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} auroraZoning={auroraZoning} centennialZoning={centennialZoning} douglasZoning={douglasZoning} jeffersonZoning={jeffersonZoning} larimerZoning={larimerZoning} elpasoZoning={elpasoZoning} clearcreekZoning={clearcreekZoning} lakewoodZoning={lakewoodZoning} arvadaZoning={arvadaZoning} greenwoodvillageZoning={greenwoodvillageZoning} littletonZoning={littletonZoning} thorntonZoning={thorntonZoning} arapahoeZoning={arapahoeZoning} broomfieldZoning={broomfieldZoning} boulderCountyZoning={boulderCountyZoning} weldZoning={weldZoning} puebloCountyZoning={puebloCountyZoning} />}
             {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={denverZoning} />}
             {activeTab === 'council'  && <CouncilTab f={feature} />}
             {activeTab === 'activity' && <ActivityTab f={feature} />}

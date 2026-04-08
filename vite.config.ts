@@ -100,6 +100,36 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/thornton-zoning/, '/citydevweb/rest/services/Zoning/MapServer'),
       },
+      // Arapahoe County — ArapaMAP MapServer (layer 352 = Zoning, ZONING field)
+      '/api/arapahoe-zoning': {
+        target: 'https://gis.arapahoegov.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/arapahoe-zoning/, '/arcgis/rest/services/ArapaMAP/MapServer'),
+      },
+      // Broomfield City & County — ArcGIS Online FeatureServer (layer 0, ZONING field)
+      '/api/broomfield-zoning': {
+        target: 'https://services1.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/broomfield-zoning/, '/vXSRPZbyyOmH9pek/arcgis/rest/services/Zoning/FeatureServer'),
+      },
+      // Boulder County — Planning LUC_ZoningDistricts MapServer (layer 0, ZONE_DIST field)
+      '/api/boulder-county-zoning': {
+        target: 'https://maps.bouldercounty.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/boulder-county-zoning/, '/arcgis/rest/services/PLANNING/LUC_ZoningDistricts/MapServer'),
+      },
+      // Weld County — ArcGIS Online Zoning_open_data FeatureServer (layer 38, ZONE_SYMB field)
+      '/api/weld-zoning': {
+        target: 'https://services.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/weld-zoning/, '/ewjSqmSyHJnkfBLL/arcgis/rest/services/Zoning_open_data/FeatureServer'),
+      },
+      // Pueblo County — ZoningCountyOnly MapServer (layer 0, ZoneDist field)
+      '/api/pueblo-county-zoning': {
+        target: 'https://maps.co.pueblo.co.us',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/pueblo-county-zoning/, '/outside/rest/services/Landbase/PuebloCounty_ZoningCountyOnly/MapServer'),
+      },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
         target: 'https://hazards.fema.gov',
