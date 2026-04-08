@@ -835,11 +835,11 @@ export interface DouglasZoningRaw {
 
 export async function queryDouglasZoning(lat: number, lng: number): Promise<DouglasZoningRaw | null> {
   const params = new URLSearchParams({
-    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometry: `${lng},${lat}`,
     geometryType: 'esriGeometryPoint',
     inSR: '4326',
     spatialRel: 'esriSpatialRelIntersects',
-    outFields: 'ZONE_TYPE,ZONE_NAME',
+    outFields: 'ZONE_TYPE,FIRST_DESC',
     returnGeometry: 'false',
     f: 'json',
   });
@@ -850,7 +850,7 @@ export async function queryDouglasZoning(lat: number, lng: number): Promise<Doug
     if (data.error || !data.features?.length) return null;
     const a = data.features[0]!.attributes;
     const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
-    return { zoneType: s('ZONE_TYPE'), zoneName: s('ZONE_NAME') };
+    return { zoneType: s('ZONE_TYPE'), zoneName: s('FIRST_DESC') };
   } catch { return null; }
 }
 
@@ -865,7 +865,7 @@ export interface JeffersonZoningRaw {
 
 export async function queryJeffersonZoning(lat: number, lng: number): Promise<JeffersonZoningRaw | null> {
   const params = new URLSearchParams({
-    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometry: `${lng},${lat}`,
     geometryType: 'esriGeometryPoint',
     inSR: '4326',
     spatialRel: 'esriSpatialRelIntersects',
@@ -898,7 +898,7 @@ export interface LarimerZoningRaw {
 
 export async function queryLarimerZoning(lat: number, lng: number): Promise<LarimerZoningRaw | null> {
   const params = new URLSearchParams({
-    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometry: `${lng},${lat}`,
     geometryType: 'esriGeometryPoint',
     inSR: '4326',
     spatialRel: 'esriSpatialRelIntersects',
@@ -931,7 +931,7 @@ export interface ElPasoZoningRaw {
 
 export async function queryElPasoZoning(lat: number, lng: number): Promise<ElPasoZoningRaw | null> {
   const params = new URLSearchParams({
-    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometry: `${lng},${lat}`,
     geometryType: 'esriGeometryPoint',
     inSR: '4326',
     spatialRel: 'esriSpatialRelIntersects',
@@ -964,11 +964,11 @@ export interface ClearCreekZoningRaw {
 
 export async function queryClearCreekZoning(lat: number, lng: number): Promise<ClearCreekZoningRaw | null> {
   const params = new URLSearchParams({
-    geometry: JSON.stringify({ x: lng, y: lat }),
+    geometry: `${lng},${lat}`,
     geometryType: 'esriGeometryPoint',
     inSR: '4326',
     spatialRel: 'esriSpatialRelIntersects',
-    outFields: 'CURR_ZONE,ZONE_NAME,DESCRIPTION',
+    outFields: 'CURR_ZONE,ORIG_ZONE',
     returnGeometry: 'false',
     f: 'json',
   });
