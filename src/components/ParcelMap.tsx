@@ -17,6 +17,7 @@ import Map, {
   Layer,
   Marker,
   NavigationControl,
+  Popup,
 } from 'react-map-gl/maplibre';
 import type { MapRef, MapLayerMouseEvent } from 'react-map-gl/maplibre';
 
@@ -1045,6 +1046,7 @@ export function ParcelMap() {
   const [municipalBoundariesGeoJSON, setMunicipalBoundariesGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
   const [showDenverNeighborhoods, setShowDenverNeighborhoods] = useState(false);
   const [denverNeighborhoodsGeoJSON, setDenverNeighborhoodsGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [boundaryPopup, setBoundaryPopup] = useState<{ name: string; label: string; lat: number; lng: number } | null>(null);
   const [showBusinessDir, setShowBusinessDir] = useState(false);
   const [selectedBiz, setSelectedBiz] = useState<BizEntry | null>(null);
   const [bizSearch, setBizSearch] = useState('');
@@ -1278,8 +1280,28 @@ export function ParcelMap() {
       }
     }
     setSelectedBiz(null);
+    // Check if a boundary layer was clicked (county, city/town, Denver neighborhood)
+    if (mapRef.current) {
+      const activeBoundaryLayers: string[] = [
+        ...(showCountyBoundaries ? ['co-county-fill'] : []),
+        ...(showMunicipalBoundaries ? ['co-municipal-fill'] : []),
+        ...(showDenverNeighborhoods ? ['denver-nbhd-fill'] : []),
+      ];
+      if (activeBoundaryLayers.length > 0) {
+        const hits = mapRef.current.queryRenderedFeatures(e.point, { layers: activeBoundaryLayers });
+        if (hits.length > 0) {
+          const props = hits[0].properties as Record<string, string>;
+          const layerId = hits[0].layer?.id ?? '';
+          const name = props['COUNTY'] ?? props['NAME20'] ?? props['NBHD_NAME'] ?? 'Unknown';
+          const label = layerId === 'co-county-fill' ? 'County' : layerId === 'co-municipal-fill' ? 'Municipality' : 'Neighborhood';
+          setBoundaryPopup({ name, label, lat: e.lngLat.lat, lng: e.lngLat.lng });
+          return;
+        }
+      }
+    }
+    setBoundaryPopup(null);
     fetchParcel(e.lngLat.lng, e.lngLat.lat);
-  }, [fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, showBusinessDir]);
+  }, [fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, showBusinessDir, showCountyBoundaries, showMunicipalBoundaries, showDenverNeighborhoods]);
 
   // ── Close panel ───────────────────────────────────────────────────────────
 
@@ -1581,6 +1603,20 @@ export function ParcelMap() {
           <Source id="co-county-boundaries" type="geojson" data={countyBoundariesGeoJSON}>
             <Layer id="co-county-fill" type="fill" paint={{ 'fill-color': '#1d4ed8', 'fill-opacity': 0.04 }} />
             <Layer id="co-county-line" type="line" paint={{ 'line-color': '#1d4ed8', 'line-width': 1.5, 'line-opacity': 0.7 }} />
+            <Layer
+              id="co-county-label"
+              type="symbol"
+              minzoom={6}
+              layout={{
+                'text-field': ['get', 'COUNTY'],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': ['interpolate', ['linear'], ['zoom'], 6, 10, 10, 13],
+                'text-anchor': 'center',
+                'text-max-width': 8,
+                'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#1d4ed8', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 }}
+            />
           </Source>
         )}
 
@@ -1589,6 +1625,20 @@ export function ParcelMap() {
           <Source id="co-municipal-boundaries" type="geojson" data={municipalBoundariesGeoJSON}>
             <Layer id="co-municipal-fill" type="fill" paint={{ 'fill-color': '#b45309', 'fill-opacity': 0.05 }} />
             <Layer id="co-municipal-line" type="line" paint={{ 'line-color': '#b45309', 'line-width': 1, 'line-opacity': 0.85 }} />
+            <Layer
+              id="co-municipal-label"
+              type="symbol"
+              minzoom={8}
+              layout={{
+                'text-field': ['get', 'NAME20'],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': ['interpolate', ['linear'], ['zoom'], 8, 9, 13, 12],
+                'text-anchor': 'center',
+                'text-max-width': 7,
+                'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#92400e', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 }}
+            />
           </Source>
         )}
 
@@ -1597,6 +1647,20 @@ export function ParcelMap() {
           <Source id="denver-neighborhoods" type="geojson" data={denverNeighborhoodsGeoJSON}>
             <Layer id="denver-nbhd-fill" type="fill" paint={{ 'fill-color': '#7c3aed', 'fill-opacity': 0.06 }} />
             <Layer id="denver-nbhd-line" type="line" paint={{ 'line-color': '#7c3aed', 'line-width': 1.5, 'line-opacity': 0.9 }} />
+            <Layer
+              id="denver-nbhd-label"
+              type="symbol"
+              minzoom={11}
+              layout={{
+                'text-field': ['get', 'NBHD_NAME'],
+                'text-font': ['Noto Sans Regular'],
+                'text-size': ['interpolate', ['linear'], ['zoom'], 11, 9, 14, 12],
+                'text-anchor': 'center',
+                'text-max-width': 6,
+                'text-allow-overlap': false,
+              }}
+              paint={{ 'text-color': '#6d28d9', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 }}
+            />
           </Source>
         )}
 
@@ -1717,6 +1781,27 @@ export function ParcelMap() {
 
         {/* Navigation controls */}
         <NavigationControl position="bottom-right" />
+
+        {/* Boundary name popup */}
+        {boundaryPopup && (
+          <Popup
+            longitude={boundaryPopup.lng}
+            latitude={boundaryPopup.lat}
+            anchor="bottom"
+            onClose={() => setBoundaryPopup(null)}
+            closeOnClick={false}
+            style={{ zIndex: 10 }}
+          >
+            <div style={{ padding: '4px 2px', minWidth: 120 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#6b7280', marginBottom: 2 }}>
+                {boundaryPopup.label}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>
+                {boundaryPopup.name}
+              </div>
+            </div>
+          </Popup>
+        )}
       </Map>
 
       {/* ── Search bar ── */}
