@@ -136,6 +136,24 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/adams-zoning/, '/4PNQOtAivErR7nbT/arcgis/rest/services/Zoning/FeatureServer'),
       },
+      // Colorado county boundaries — CDPHE MapServer layer 5 (COUNTY, CNTY_FIPS fields)
+      '/api/co-county-boundaries': {
+        target: 'https://www.cohealthmaps.dphe.state.co.us',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/co-county-boundaries/, '/arcgis/rest/services/OPEN_DATA/cdphe_geographic_analysis_boundaries/MapServer/5'),
+      },
+      // Colorado municipal boundaries — ArcGIS Online FeatureServer (NAME20 field)
+      '/api/co-municipal-boundaries': {
+        target: 'https://services.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/co-municipal-boundaries/, '/yzB9WM8W0BO3Ql7d/arcgis/rest/services/Colorado_Municipalities/FeatureServer/0'),
+      },
+      // Denver neighborhoods — Denver MapServer layer 0 (NBHD_NAME field)
+      '/api/denver-neighborhoods': {
+        target: 'https://denvergov.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/denver-neighborhoods/, '/maps/data/Neighborhoods/MapServer/0'),
+      },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
         target: 'https://hazards.fema.gov',

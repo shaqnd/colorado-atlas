@@ -68,6 +68,35 @@ const FEMA_FLOOD_TILES = '/api/fema-nfhl/export?bbox={bbox-epsg-3857}&bboxSR=385
  */
 const WILDFIRE_TILES = '/api/wildfire/exportImage?bbox={bbox-epsg-3857}&bboxSR=3857&size=256,256&imageSR=3857&format=png&transparent=true&f=image';
 
+// ── Boundary layer GeoJSON fetch helpers (fetched once on first toggle) ────────
+
+async function fetchCountyBoundariesGeoJSON(): Promise<GeoJSON.FeatureCollection | null> {
+  try {
+    const params = new URLSearchParams({ where: '1=1', outFields: 'COUNTY,CNTY_FIPS', outSR: '4326', f: 'geojson' });
+    const res = await fetch(`/api/co-county-boundaries/query?${params}`);
+    if (!res.ok) return null;
+    return await res.json() as GeoJSON.FeatureCollection;
+  } catch { return null; }
+}
+
+async function fetchMunicipalBoundariesGeoJSON(): Promise<GeoJSON.FeatureCollection | null> {
+  try {
+    const params = new URLSearchParams({ where: '1=1', outFields: 'NAME20', outSR: '4326', resultRecordCount: '2000', f: 'geojson' });
+    const res = await fetch(`/api/co-municipal-boundaries/query?${params}`);
+    if (!res.ok) return null;
+    return await res.json() as GeoJSON.FeatureCollection;
+  } catch { return null; }
+}
+
+async function fetchDenverNeighborhoodsGeoJSON(): Promise<GeoJSON.FeatureCollection | null> {
+  try {
+    const params = new URLSearchParams({ where: '1=1', outFields: 'NBHD_NAME,NBHD_ID', outSR: '4326', f: 'geojson' });
+    const res = await fetch(`/api/denver-neighborhoods/query?${params}`);
+    if (!res.ok) return null;
+    return await res.json() as GeoJSON.FeatureCollection;
+  } catch { return null; }
+}
+
 /**
  * Denver City & County Zoning Districts — official MapServer (denvergov.org).
  * Layer 1 contains zoning polygons with ZONE_DISTRICT field.
@@ -1010,6 +1039,12 @@ export function ParcelMap() {
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showWildfireRisk, setShowWildfireRisk] = useState(false);
   const [showZoning, setShowZoning] = useState(false);
+  const [showCountyBoundaries, setShowCountyBoundaries] = useState(false);
+  const [countyBoundariesGeoJSON, setCountyBoundariesGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [showMunicipalBoundaries, setShowMunicipalBoundaries] = useState(false);
+  const [municipalBoundariesGeoJSON, setMunicipalBoundariesGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [showDenverNeighborhoods, setShowDenverNeighborhoods] = useState(false);
+  const [denverNeighborhoodsGeoJSON, setDenverNeighborhoodsGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
   const [showBusinessDir, setShowBusinessDir] = useState(false);
   const [selectedBiz, setSelectedBiz] = useState<BizEntry | null>(null);
   const [bizSearch, setBizSearch] = useState('');
@@ -1541,6 +1576,30 @@ export function ParcelMap() {
         )}
         {/* Broomfield and Weld — FeatureServer only (no tile export); data appears in parcel panel */}
 
+        {/* Colorado county boundaries overlay */}
+        {showCountyBoundaries && countyBoundariesGeoJSON && (
+          <Source id="co-county-boundaries" type="geojson" data={countyBoundariesGeoJSON}>
+            <Layer id="co-county-fill" type="fill" paint={{ 'fill-color': '#1d4ed8', 'fill-opacity': 0.04 }} />
+            <Layer id="co-county-line" type="line" paint={{ 'line-color': '#1d4ed8', 'line-width': 1.5, 'line-opacity': 0.7 }} />
+          </Source>
+        )}
+
+        {/* Colorado municipal boundaries overlay */}
+        {showMunicipalBoundaries && municipalBoundariesGeoJSON && (
+          <Source id="co-municipal-boundaries" type="geojson" data={municipalBoundariesGeoJSON}>
+            <Layer id="co-municipal-fill" type="fill" paint={{ 'fill-color': '#b45309', 'fill-opacity': 0.05 }} />
+            <Layer id="co-municipal-line" type="line" paint={{ 'line-color': '#b45309', 'line-width': 1, 'line-opacity': 0.85 }} />
+          </Source>
+        )}
+
+        {/* Denver neighborhood boundaries overlay */}
+        {showDenverNeighborhoods && denverNeighborhoodsGeoJSON && (
+          <Source id="denver-neighborhoods" type="geojson" data={denverNeighborhoodsGeoJSON}>
+            <Layer id="denver-nbhd-fill" type="fill" paint={{ 'fill-color': '#7c3aed', 'fill-opacity': 0.06 }} />
+            <Layer id="denver-nbhd-line" type="line" paint={{ 'line-color': '#7c3aed', 'line-width': 1.5, 'line-opacity': 0.9 }} />
+          </Source>
+        )}
+
         {/* ND parcel polygons */}
         {ndParcels.features.length > 0 && (
           <Source id="nd-parcels" type="geojson" data={ndParcels}>
@@ -1989,6 +2048,18 @@ export function ParcelMap() {
             { key: 'flood', label: 'Flood Zones', active: showFloodZones, color: '#4B9FE8', toggle: () => setShowFloodZones(v => !v) },
             { key: 'wildfire', label: 'Wildfire Risk', active: showWildfireRisk, color: '#d7191c', toggle: () => setShowWildfireRisk(v => !v) },
             { key: 'zoning', label: 'Zoning', active: showZoning, color: '#8b5cf6', toggle: () => setShowZoning(v => !v) },
+            { key: 'counties', label: 'County Lines', active: showCountyBoundaries, color: '#1d4ed8', toggle: () => {
+              if (!showCountyBoundaries && !countyBoundariesGeoJSON) fetchCountyBoundariesGeoJSON().then(d => d && setCountyBoundariesGeoJSON(d));
+              setShowCountyBoundaries(v => !v);
+            }},
+            { key: 'cities', label: 'City/Town Lines', active: showMunicipalBoundaries, color: '#b45309', toggle: () => {
+              if (!showMunicipalBoundaries && !municipalBoundariesGeoJSON) fetchMunicipalBoundariesGeoJSON().then(d => d && setMunicipalBoundariesGeoJSON(d));
+              setShowMunicipalBoundaries(v => !v);
+            }},
+            { key: 'denver-hoods', label: 'Denver Neighborhoods', active: showDenverNeighborhoods, color: '#7c3aed', toggle: () => {
+              if (!showDenverNeighborhoods && !denverNeighborhoodsGeoJSON) fetchDenverNeighborhoodsGeoJSON().then(d => d && setDenverNeighborhoodsGeoJSON(d));
+              setShowDenverNeighborhoods(v => !v);
+            }},
           ] as const).map(({ key, label, active, color, toggle }) => (
             <button
               key={key}
