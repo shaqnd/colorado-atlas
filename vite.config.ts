@@ -130,6 +130,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/pueblo-county-zoning/, '/outside/rest/services/Landbase/PuebloCounty_ZoningCountyOnly/MapServer'),
       },
+      // Adams County — Zoning FeatureServer (layer 0, ZONE_ field) — public ArcGIS Online
+      '/api/adams-zoning': {
+        target: 'https://services3.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/adams-zoning/, '/4PNQOtAivErR7nbT/arcgis/rest/services/Zoning/FeatureServer'),
+      },
       // FEMA National Flood Hazard Layer (NFHL) — dynamic MapServer, use /export not /tile
       '/api/fema-nfhl': {
         target: 'https://hazards.fema.gov',

@@ -800,6 +800,48 @@ export async function queryPuebloCountyZoning(lat: number, lng: number): Promise
   } catch { return null; }
 }
 
+// ── Adams County zoning lookup ────────────────────────────────────────────────
+
+const ADAMS_ZONING_API = '/api/adams-zoning/0/query';
+
+export interface AdamsZoningRaw {
+  zoneCode: string | null;
+  cityName: string | null;
+}
+
+/**
+ * Query Adams County's Zoning FeatureServer for the zone district at a lat/lng.
+ * Returns null if outside unincorporated Adams County or service unavailable.
+ *
+ * Source: services3.arcgis.com/4PNQOtAivErR7nbT — Zoning FeatureServer layer 0
+ * Key field: ZONE_ — e.g. "A-1", "R-1-A", "C-1"
+ * CITY_NAME: "Unincorporated" for county-zoned land; city name for incorporated areas.
+ */
+export async function queryAdamsZoning(lat: number, lng: number): Promise<AdamsZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONE_,CITY_NAME',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${ADAMS_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+    const zoneCode = s('ZONE_');
+    const cityName = s('CITY_NAME');
+    // Only return a result for unincorporated Adams County — cities have their own zoning layers
+    if (!zoneCode || (cityName && cityName.toLowerCase() !== 'unincorporated')) return null;
+    return { zoneCode, cityName };
+  } catch { return null; }
+}
+
 // ── Parcel lookup ─────────────────────────────────────────────────────────────
 
 /**
