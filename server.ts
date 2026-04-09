@@ -1153,6 +1153,122 @@ app.get('/api/geocode', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/jefferson-detail?pin=<parcel-id>
+ *
+ * Queries the Jefferson County Parcel FeatureServer (layer 20) for assessor data
+ * including land/improvement split, mill levy, and building characteristics.
+ *
+ * Source: gisportal.jeffco.us/server2/rest/services/Parcel/FeatureServer/20
+ *
+ * PIN format in the FeatureServer: "XX-XXX-XX-XXX" (e.g., "39-133-00-024").
+ * The ESRI statewide parcel layer stores the same value in parcel_id.
+ */
+type JeffersonParcelData = {
+  pin: string;
+  ain: string | null;
+  ownerName: string | null;
+  propertyAddress: string | null;
+  propertyCity: string | null;
+  totalActualValue: number | null;
+  landValue: number | null;
+  improvementValue: number | null;
+  assessedValue: number | null;
+  taxClass: string | null;
+  millLevy: number | null;
+  estimatedAnnualTax: number | null;
+  yearBuilt: number | null;
+  grossAreaSqft: number | null;
+  structureType: string | null;
+  detailUrl: string;
+};
+
+function formatJeffersonPin(raw: string): string {
+  // Normalize to digits only, then reformat as XX-XXX-XX-XXX if 10 digits
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `${digits.slice(0, 2)}-${digits.slice(2, 5)}-${digits.slice(5, 7)}-${digits.slice(7, 10)}`;
+  }
+  return raw; // return as-is if already formatted or different length
+}
+
+app.get('/api/jefferson-detail', async (req: Request, res: Response) => {
+  const rawPin = typeof req.query.pin === 'string' ? req.query.pin.trim() : '';
+  if (!rawPin) {
+    res.status(400).json({ error: 'pin query param required' });
+    return;
+  }
+
+  const candidates = [rawPin, formatJeffersonPin(rawPin)];
+  const uniqueCandidates = [...new Set(candidates)];
+
+  const JEFFCO_PARCEL_FS = 'https://gisportal.jeffco.us/server2/rest/services/Parcel/FeatureServer/20/query';
+  const outFields = 'PIN,AIN,OWNNAM,PRPADDRESS,PRPCTYNAM,TOTACTVAL,TOTACTLNDV,TOTACTIMPV,TAXCLS,MILL_LEVY,STTYRBLT,STTGRSAREA,STTSTRC';
+
+  let attributes: Record<string, unknown> | null = null;
+  let resolvedPin = rawPin;
+
+  for (const candidate of uniqueCandidates) {
+    const params = new URLSearchParams({
+      where: `PIN='${candidate}'`,
+      outFields,
+      returnGeometry: 'false',
+      f: 'json',
+    });
+    try {
+      const upstream = await fetch(`${JEFFCO_PARCEL_FS}?${params}`, { headers: { accept: 'application/json' } });
+      if (!upstream.ok) continue;
+      const json = await upstream.json() as { features?: Array<{ attributes: Record<string, unknown> }> };
+      if (json.features?.length) {
+        attributes = json.features[0]!.attributes;
+        resolvedPin = candidate;
+        break;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  if (!attributes) {
+    res.json({ data: null });
+    return;
+  }
+
+  const n = (k: string) => { const v = attributes![k]; if (v === null || v === undefined) return null; const n = Number(v); return isNaN(n) ? null : n; };
+  const s = (k: string) => { const v = attributes![k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim() || null; };
+
+  const totalActualValue = n('TOTACTVAL');
+  const landValue = n('TOTACTLNDV');
+  const improvementValue = n('TOTACTIMPV');
+  const millLevy = n('MILL_LEVY');
+  // Use Colorado 6.25% residential assessment rate as default for tax estimate
+  const assessedValue = totalActualValue !== null ? Math.round(totalActualValue * 0.0625) : null;
+  const estimatedAnnualTax = assessedValue !== null && millLevy !== null
+    ? Math.round((assessedValue * millLevy) / 1000)
+    : null;
+
+  const data: JeffersonParcelData = {
+    pin: resolvedPin,
+    ain: s('AIN'),
+    ownerName: s('OWNNAM'),
+    propertyAddress: s('PRPADDRESS'),
+    propertyCity: s('PRPCTYNAM'),
+    totalActualValue,
+    landValue,
+    improvementValue,
+    assessedValue,
+    taxClass: s('TAXCLS'),
+    millLevy,
+    estimatedAnnualTax,
+    yearBuilt: n('STTYRBLT'),
+    grossAreaSqft: n('STTGRSAREA'),
+    structureType: s('STTSTRC'),
+    detailUrl: `https://propertysearch.jeffco.us/propertyrecordssearch/pin?pin=${encodeURIComponent(resolvedPin)}`,
+  };
+
+  res.json({ data });
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });

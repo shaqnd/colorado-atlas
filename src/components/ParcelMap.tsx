@@ -21,8 +21,8 @@ import Map, {
 import type { MapRef, MapLayerMouseEvent } from 'react-map-gl/maplibre';
 
 import type { ParcelState, GeoJSONGeometry } from '../data/parcelTypes';
-import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning, queryAuroraZoning, queryCentennialZoning, queryDouglasZoning, queryJeffersonZoning, queryLarimerZoning, queryElPasoZoning, queryClearCreekZoning, queryLakewoodZoning, queryArvadaZoning, queryGreenwoodVillageZoning, queryLittletonZoning, queryThorntonZoning, queryArapahoeZoning, queryBroomfieldZoning, queryBoulderCountyZoning, queryWeldZoning, queryPuebloCountyZoning } from '../utils/parcelService';
-import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw } from '../utils/parcelService';
+import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning, queryAuroraZoning, queryCentennialZoning, queryDouglasZoning, queryJeffersonZoning, queryLarimerZoning, queryElPasoZoning, queryClearCreekZoning, queryLakewoodZoning, queryArvadaZoning, queryGreenwoodVillageZoning, queryLittletonZoning, queryThorntonZoning, queryArapahoeZoning, queryBroomfieldZoning, queryBoulderCountyZoning, queryWeldZoning, queryPuebloCountyZoning, fetchDenverBuilding, fetchDenverValuation, fetchDouglasDetail, fetchArapahoeDetail, fetchJeffersonDetail } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw, DenverBuildingData, DenverParcelValuationData, DouglasParcelData, ArapahoeParcelData, JeffersonParcelData } from '../utils/parcelService';
 import { ParcelPanel } from './ParcelPanel';
 
 // Business directory data — pre-geocoded at build time
@@ -1001,6 +1001,11 @@ export function ParcelMap() {
   const [boulderCountyZoning, setBoulderCountyZoning] = useState<BoulderCountyZoningRaw | null>(null);
   const [weldZoning, setWeldZoning] = useState<WeldZoningRaw | null>(null);
   const [puebloCountyZoning, setPuebloCountyZoning] = useState<PuebloCountyZoningRaw | null>(null);
+  const [denverBuilding, setDenverBuilding] = useState<DenverBuildingData | null>(null);
+  const [denverValuation, setDenverValuation] = useState<DenverParcelValuationData | null>(null);
+  const [douglasDetail, setDouglasDetail] = useState<DouglasParcelData | null>(null);
+  const [arapahoeDetail, setArapahoeDetail] = useState<ArapahoeParcelData | null>(null);
+  const [jeffersonDetail, setJeffersonDetail] = useState<JeffersonParcelData | null>(null);
   const [showFloodZones, setShowFloodZones] = useState(false);
   const [showWildfireRisk, setShowWildfireRisk] = useState(false);
   const [showZoning, setShowZoning] = useState(false);
@@ -1080,6 +1085,11 @@ export function ParcelMap() {
     setBoulderCountyZoning(null);
     setWeldZoning(null);
     setPuebloCountyZoning(null);
+    setDenverBuilding(null);
+    setDenverValuation(null);
+    setDouglasDetail(null);
+    setArapahoeDetail(null);
+    setJeffersonDetail(null);
     setSearchError(null);
 
     // Fly to location
@@ -1157,6 +1167,19 @@ export function ParcelMap() {
 
       if (parcel) {
         setParcelState({ status: 'loaded', feature: parcel });
+        // Fetch county assessor detail in the background (non-blocking)
+        const county = parcel.location.county;
+        const apn = parcel.identity.apn;
+        if (county === 'Denver') {
+          fetchDenverBuilding(apn).then(setDenverBuilding);
+          fetchDenverValuation(apn).then(setDenverValuation);
+        } else if (county === 'Douglas') {
+          fetchDouglasDetail(apn).then(setDouglasDetail);
+        } else if (county === 'Arapahoe') {
+          fetchArapahoeDetail(apn).then(setArapahoeDetail);
+        } else if (county === 'Jefferson') {
+          fetchJeffersonDetail(apn).then(setJeffersonDetail);
+        }
       } else {
         setParcelState({ status: 'not_found', lat, lng, address: addr });
       }
@@ -1675,6 +1698,11 @@ export function ParcelMap() {
           boulderCountyZoning={boulderCountyZoning}
           weldZoning={weldZoning}
           puebloCountyZoning={puebloCountyZoning}
+          denverBuilding={denverBuilding}
+          denverValuation={denverValuation}
+          douglasDetail={douglasDetail}
+          arapahoeDetail={arapahoeDetail}
+          jeffersonDetail={jeffersonDetail}
           onClose={handleClose}
         />
       )}

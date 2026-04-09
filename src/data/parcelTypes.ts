@@ -272,6 +272,25 @@ export interface ArapahoeZoningData {
   effectiveDate: string | null;
 }
 
+export interface JeffersonParcelData {
+  pin: string;
+  ain: string | null;
+  ownerName: string | null;
+  propertyAddress: string | null;
+  propertyCity: string | null;
+  totalActualValue: number | null;
+  landValue: number | null;
+  improvementValue: number | null;
+  assessedValue: number | null;
+  taxClass: string | null;
+  millLevy: number | null;
+  estimatedAnnualTax: number | null;
+  yearBuilt: number | null;
+  grossAreaSqft: number | null;
+  structureType: string | null;
+  detailUrl: string;
+}
+
 // ── Top-level feature ─────────────────────────────────────────────────────────
 export interface ParcelFeature {
   /** Stable ID for React keys and dedup */

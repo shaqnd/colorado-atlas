@@ -14,7 +14,14 @@ import type {
   ParcelFeature,
   EsriParcelAttributes,
   GeoJSONGeometry,
+  DenverBuildingData,
+  DenverParcelValuationData,
+  DouglasParcelData,
+  ArapahoeParcelData,
+  JeffersonParcelData,
 } from '../data/parcelTypes';
+
+export type { DenverBuildingData, DenverParcelValuationData, DouglasParcelData, ArapahoeParcelData, JeffersonParcelData };
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -956,6 +963,84 @@ function esriRingsToGeoJSON(rings?: number[][][]): GeoJSONGeometry {
     type: 'MultiPolygon',
     coordinates: rings.map(r => [r]) as unknown as [number, number][][][],
   };
+}
+
+// ── County assessor detail fetches ───────────────────────────────────────────
+
+/**
+ * Fetch Denver building characteristics from the server proxy.
+ * parid — the Denver schedule number (parcel_id from ESRI layer).
+ */
+export async function fetchDenverBuilding(parid: string): Promise<DenverBuildingData | null> {
+  try {
+    const res = await fetch(`/api/denver-building?parid=${encodeURIComponent(parid)}`);
+    if (!res.ok) return null;
+    const json = await res.json() as { data: DenverBuildingData | null };
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch Denver parcel valuation (land/improvement split) from the server proxy.
+ * parid — the Denver schedule number.
+ */
+export async function fetchDenverValuation(parid: string): Promise<DenverParcelValuationData | null> {
+  try {
+    const res = await fetch(`/api/denver-valuation?parid=${encodeURIComponent(parid)}`);
+    if (!res.ok) return null;
+    const json = await res.json() as { data: DenverParcelValuationData | null };
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch Douglas County assessor detail from the server proxy.
+ * accountNo — the Douglas account number (account field from ESRI layer).
+ */
+export async function fetchDouglasDetail(accountNo: string): Promise<DouglasParcelData | null> {
+  try {
+    const res = await fetch(`/api/douglas-detail?accountNo=${encodeURIComponent(accountNo)}`);
+    if (!res.ok) return null;
+    const json = await res.json() as { data: DouglasParcelData | null };
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch Arapahoe County assessor detail from the server proxy.
+ * ain — the Arapahoe parcel_id / AIN from the ESRI layer.
+ */
+export async function fetchArapahoeDetail(ain: string): Promise<ArapahoeParcelData | null> {
+  try {
+    const res = await fetch(`/api/arapahoe-detail?ain=${encodeURIComponent(ain)}`);
+    if (!res.ok) return null;
+    const json = await res.json() as { data: ArapahoeParcelData | null };
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch Jefferson County assessor detail from the server proxy.
+ * pin — the Jefferson County parcel PIN from the ESRI layer (parcel_id field).
+ * Format: "XX-XXX-XX-XXX" (e.g., "39-133-00-024")
+ */
+export async function fetchJeffersonDetail(pin: string): Promise<JeffersonParcelData | null> {
+  try {
+    const res = await fetch(`/api/jefferson-detail?pin=${encodeURIComponent(pin)}`);
+    if (!res.ok) return null;
+    const json = await res.json() as { data: JeffersonParcelData | null };
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // ── Small helpers ─────────────────────────────────────────────────────────────

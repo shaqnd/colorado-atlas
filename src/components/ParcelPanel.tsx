@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import type { ParcelFeature } from '../data/parcelTypes';
 import { formatCurrency, formatNumber, formatDate } from '../utils/parcelService';
+import type { DenverBuildingData, DenverParcelValuationData, DouglasParcelData, ArapahoeParcelData, JeffersonParcelData } from '../utils/parcelService';
 import { runHBUAnalysis } from '../utils/hbuAnalysis';
 import { zoneDistrictsByCode } from '../data/zoneDistricts';
 import { ALL_COMMUNITIES } from '../data/communities';
@@ -65,6 +66,11 @@ interface ParcelPanelProps {
   boulderCountyZoning?: BoulderCountyZoningRaw | null;
   weldZoning?: WeldZoningRaw | null;
   puebloCountyZoning?: PuebloCountyZoningRaw | null;
+  denverBuilding?: DenverBuildingData | null;
+  denverValuation?: DenverParcelValuationData | null;
+  douglasDetail?: DouglasParcelData | null;
+  arapahoeDetail?: ArapahoeParcelData | null;
+  jeffersonDetail?: JeffersonParcelData | null;
   onClose: () => void;
 }
 
@@ -357,31 +363,85 @@ function CommunityCard({ community }: { community: Community }) {
 
 // ── Tab content ───────────────────────────────────────────────────────────────
 
-function ParcelTab({ f, neighbourhood }: { f: ParcelFeature; neighbourhood?: string | null }) {
+function ParcelTab({ f, neighbourhood, denverBuilding, denverValuation, douglasDetail, arapahoeDetail, jeffersonDetail }: {
+  f: ParcelFeature;
+  neighbourhood?: string | null;
+  denverBuilding?: DenverBuildingData | null;
+  denverValuation?: DenverParcelValuationData | null;
+  douglasDetail?: DouglasParcelData | null;
+  arapahoeDetail?: ArapahoeParcelData | null;
+  jeffersonDetail?: JeffersonParcelData | null;
+}) {
   const sqftLabel = f.identity.sqft ? `${formatNumber(f.identity.sqft)} sf` : '—';
   const acreLabel = f.identity.acreage ? `${f.identity.acreage.toFixed(3)} ac` : '—';
   const community = findCommunity(f, neighbourhood);
+
+  // Prefer county-enriched values over ESRI statewide layer
+  const ownerDisplay = douglasDetail?.ownerName ?? arapahoeDetail?.ownerName ?? jeffersonDetail?.ownerName ?? f.owner.name;
+  const subdivisionDisplay = douglasDetail?.subdivision ?? f.identity.subdivision;
+  const legalDisplay = douglasDetail?.legalDescription ?? arapahoeDetail?.legalDescription ?? f.identity.legalDescription;
+
+  // Building data — pick from whichever county has it
+  const bldg = denverBuilding ?? douglasDetail?.primaryBuilding ?? null;
+  const bldgSqft = bldg
+    ? ('totalBuildingSqft' in bldg ? bldg.totalBuildingSqft : null)
+    : jeffersonDetail?.grossAreaSqft ?? null;
+  const bldgUnits = bldg ? bldg.units : null;
+  const bldgFloors = bldg ? bldg.floors : null;
+  const bldgYearBuilt = bldg ? bldg.yearBuilt : (jeffersonDetail?.yearBuilt ?? null);
+  const bldgStyle = bldg ? bldg.style : (jeffersonDetail?.structureType ?? null);
+  const hasBuildingData = !!(bldgSqft || bldgUnits || bldgFloors || bldgYearBuilt || bldgStyle);
+
+  const countyDetailSource = denverBuilding ? 'Denver Assessor'
+    : douglasDetail ? 'Douglas County Assessor'
+    : arapahoeDetail ? 'Arapahoe County Assessor'
+    : jeffersonDetail ? 'Jefferson County Assessor'
+    : null;
 
   return (
     <>
       <Section title="Identity">
         <Row label="Parcel ID"     value={f.identity.apn} />
-        <Row label="Owner"         value={f.owner.name} />
+        <Row label="Owner"         value={ownerDisplay} />
         <Row label="County"        value={f.location.county || '—'} />
-        <Row label="Subdivision"   value={f.identity.subdivision || '—'} />
+        <Row label="Subdivision"   value={subdivisionDisplay || '—'} />
       </Section>
 
       <Section title="Site">
-        <Row label="Address"       value={f.location.situsAddress || '—'} />
-        <Row label="City"          value={f.location.city || '—'} />
+        <Row label="Address"       value={(douglasDetail?.locationAddress ?? arapahoeDetail?.situsAddress ?? jeffersonDetail?.propertyAddress ?? f.location.situsAddress) || '—'} />
+        <Row label="City"          value={(douglasDetail?.cityName ?? arapahoeDetail?.situsCity ?? jeffersonDetail?.propertyCity ?? f.location.city) || '—'} />
         <Row label="Lot Size"      value={`${sqftLabel} · ${acreLabel}`} />
         <Row label="Coordinates"   value={`${f.location.lat.toFixed(5)}, ${f.location.lng.toFixed(5)}`} />
       </Section>
 
-      {f.identity.legalDescription && (
+      {hasBuildingData && (
+        <Section title="Building">
+          {bldgSqft    && <Row label="Building Sqft" value={formatNumber(bldgSqft)} />}
+          {bldgUnits   && <Row label="Units"         value={String(bldgUnits)} />}
+          {bldgFloors  && <Row label="Stories"       value={String(bldgFloors)} />}
+          {bldgYearBuilt && <Row label="Year Built"  value={String(bldgYearBuilt)} />}
+          {bldgStyle   && <Row label="Style"         value={bldgStyle} />}
+          {denverBuilding?.neighborhoodName && <Row label="Neighborhood" value={denverBuilding.neighborhoodName} />}
+        </Section>
+      )}
+
+      {/* Arapahoe building detail */}
+      {arapahoeDetail?.building && (
+        <Section title="Building">
+          {arapahoeDetail.building.totalBuildingSqft && <Row label="Building Sqft"    value={formatNumber(arapahoeDetail.building.totalBuildingSqft)} />}
+          {arapahoeDetail.building.floors            && <Row label="Stories"          value={String(arapahoeDetail.building.floors)} />}
+          {arapahoeDetail.building.yearBuilt         && <Row label="Year Built"       value={String(arapahoeDetail.building.yearBuilt)} />}
+          {arapahoeDetail.building.architecturalStyle && <Row label="Style"           value={arapahoeDetail.building.architecturalStyle} />}
+          {arapahoeDetail.building.bedrooms          && <Row label="Bedrooms"         value={String(arapahoeDetail.building.bedrooms)} />}
+          {arapahoeDetail.building.bathrooms         && <Row label="Bathrooms"        value={String(arapahoeDetail.building.bathrooms)} />}
+          {arapahoeDetail.building.improvementType   && <Row label="Improvement Type" value={arapahoeDetail.building.improvementType} />}
+        </Section>
+      )}
+
+      {legalDisplay && (
         <Section title="Legal Description">
           <p style={{ fontSize: 12, color: 'var(--ap-t2)', lineHeight: 1.6, margin: 0 }}>
-            {f.identity.legalDescription}
+            {legalDisplay}
           </p>
         </Section>
       )}
@@ -402,7 +462,9 @@ function ParcelTab({ f, neighbourhood }: { f: ParcelFeature; neighbourhood?: str
       )}
 
       <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 8, background: 'rgba(0,0,0,0.03)', fontSize: 11, color: 'var(--ap-t3)' }}>
-        Source: Colorado Statewide Parcels · ESRI REST Service
+        {countyDetailSource
+          ? `Parcel: Colorado Statewide Parcels · ESRI · Detail: ${countyDetailSource}`
+          : 'Source: Colorado Statewide Parcels · ESRI REST Service'}
       </div>
     </>
   );
@@ -1647,9 +1709,19 @@ function estimateDenverTax(assessedValue: number | null, propertyClass: Property
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZoningRaw | null }) {
+function TaxTab({ f, denverZoning, denverValuation, douglasDetail, arapahoeDetail, jeffersonDetail }: {
+  f: ParcelFeature;
+  denverZoning?: DenverZoningRaw | null;
+  denverValuation?: DenverParcelValuationData | null;
+  douglasDetail?: DouglasParcelData | null;
+  arapahoeDetail?: ArapahoeParcelData | null;
+  jeffersonDetail?: JeffersonParcelData | null;
+}) {
   const v = f.valuation;
   const isDenver = !!denverZoning?.zoneDistrict;
+  const isDouglas = !!douglasDetail;
+  const isArapahoe = !!arapahoeDetail;
+  const isJefferson = !!jeffersonDetail;
   const zoneCode = denverZoning?.zoneDistrict ?? f.zoning.code ?? '';
   const propertyClass = classifyPropertyType(zoneCode, f.zoning.landUseDescription, f.zoning.landUseCode);
   const taxEstimate = isDenver ? estimateDenverTax(v.assessedValue ?? v.improvementValue ?? null, propertyClass) : null;
@@ -1748,8 +1820,104 @@ function TaxTab({ f, denverZoning }: { f: ParcelFeature; denverZoning?: DenverZo
         </div>
       )}
 
+      {/* ── Denver enriched valuation (land/improvement split) ── */}
+      {isDenver && denverValuation && (
+        <Section title="Valuation (Denver Assessor)">
+          <Row label="Appraised Land"        value={formatCurrency(denverValuation.appraisedLandValue)} />
+          <Row label="Appraised Improvement" value={formatCurrency(denverValuation.appraisedImprovementValue)} />
+          <Row label="Appraised Total"       value={formatCurrency(denverValuation.appraisedTotalValue)} />
+          <Row label="Assessed Land"         value={formatCurrency(denverValuation.assessedLandValue)} />
+          <Row label="Assessed Improvement"  value={formatCurrency(denverValuation.assessedImprovementValue)} />
+          <Row label="Assessed Total"        value={formatCurrency(denverValuation.assessedTotalValue)} />
+        </Section>
+      )}
+
+      {/* ── Douglas County tax detail ── */}
+      {isDouglas && (
+        <>
+          <Section title="Valuation (Douglas County Assessor)">
+            <Row label="Appraised Total Value" value={formatCurrency(douglasDetail!.totalActualValue)} />
+            <Row label="Assessed Value"        value={formatCurrency(douglasDetail!.totalAssessedValue)} />
+            <Row label="Property Type"         value={douglasDetail!.propertyType || douglasDetail!.accountSubtypeCode || '—'} />
+          </Section>
+          <Section title="Tax (Douglas County)">
+            {douglasDetail!.latestTaxReport ? (
+              <>
+                <Row label="Tax Year"           value={douglasDetail!.latestTaxReport.taxYear ? String(douglasDetail!.latestTaxReport.taxYear) : '—'} />
+                <Row label="Total Actual Value" value={formatCurrency(douglasDetail!.latestTaxReport.totalActualValue)} />
+                <Row label="Taxable Assessed"   value={formatCurrency(douglasDetail!.latestTaxReport.taxableAssessedValue)} />
+                <Row label="Mill Levy"          value={douglasDetail!.latestTaxReport.millLevy ? `${douglasDetail!.latestTaxReport.millLevy.toFixed(3)} mills` : '—'} />
+                <Row label="Estimated Tax"      value={formatCurrency(douglasDetail!.latestTaxReport.estimatedTaxes)} />
+              </>
+            ) : (
+              <>
+                <Row label="Assessed Value"  value={formatCurrency(douglasDetail!.totalAssessedValue)} />
+                <Row label="Mill Levy"       value={douglasDetail!.fullMillLevy ? `${douglasDetail!.fullMillLevy.toFixed(3)} mills` : '—'} />
+                <Row label="Estimated Tax"   value={formatCurrency(douglasDetail!.estimatedAnnualTax)} />
+              </>
+            )}
+            <Row label="Assessor Detail" value={
+              <a href={douglasDetail!.detailUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ap-blue)', fontSize: 11 }}>
+                Douglas Assessor ↗
+              </a>
+            } />
+          </Section>
+        </>
+      )}
+
+      {/* ── Arapahoe County tax detail ── */}
+      {isArapahoe && (
+        <>
+          <Section title="Valuation (Arapahoe County Assessor)">
+            <Row label="Appraised Land"        value={formatCurrency(arapahoeDetail!.appraisedLandValue)} />
+            <Row label="Appraised Improvement" value={formatCurrency(arapahoeDetail!.appraisedBuildingValue)} />
+            <Row label="Appraised Total"       value={formatCurrency(arapahoeDetail!.appraisedTotalValue)} />
+            <Row label="Assessed Land"         value={formatCurrency(arapahoeDetail!.assessedLandValue)} />
+            <Row label="Assessed Improvement"  value={formatCurrency(arapahoeDetail!.assessedBuildingValue)} />
+            <Row label="Assessed Total"        value={formatCurrency(arapahoeDetail!.assessedTotalValue)} />
+            <Row label="Land Use"              value={arapahoeDetail!.landUse || '—'} />
+          </Section>
+          {arapahoeDetail!.tax && (
+            <Section title="Tax (Arapahoe County)">
+              <Row label="Tax Year"        value={arapahoeDetail!.tax.taxYear ? String(arapahoeDetail!.tax.taxYear) : '—'} />
+              <Row label="Taxable Value"   value={formatCurrency(arapahoeDetail!.tax.taxableValue)} />
+              <Row label="Tax Rate"        value={arapahoeDetail!.tax.totalTaxRate ? `${arapahoeDetail!.tax.totalTaxRate.toFixed(3)} mills` : '—'} />
+              <Row label="Assessed Tax"    value={formatCurrency(arapahoeDetail!.tax.assessedTax)} />
+              <Row label="Total Due"       value={formatCurrency(arapahoeDetail!.tax.totalDue)} />
+              <Row label="Assessor Detail" value={
+                <a href={arapahoeDetail!.detailUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ap-blue)', fontSize: 11 }}>
+                  Arapahoe Assessor ↗
+                </a>
+              } />
+            </Section>
+          )}
+        </>
+      )}
+
+      {/* ── Jefferson County tax detail ── */}
+      {isJefferson && (
+        <>
+          <Section title="Valuation (Jefferson County Assessor)">
+            <Row label="Appraised Land"        value={formatCurrency(jeffersonDetail!.landValue)} />
+            <Row label="Appraised Improvement" value={formatCurrency(jeffersonDetail!.improvementValue)} />
+            <Row label="Appraised Total"       value={formatCurrency(jeffersonDetail!.totalActualValue)} />
+            <Row label="Assessed Value"        value={formatCurrency(jeffersonDetail!.assessedValue)} />
+            <Row label="Tax Class"             value={jeffersonDetail!.taxClass || '—'} />
+          </Section>
+          <Section title="Tax (Jefferson County)">
+            <Row label="Mill Levy"      value={jeffersonDetail!.millLevy ? `${jeffersonDetail!.millLevy.toFixed(3)} mills` : '—'} />
+            <Row label="Estimated Tax"  value={formatCurrency(jeffersonDetail!.estimatedAnnualTax)} />
+            <Row label="Assessor Detail" value={
+              <a href={jeffersonDetail!.detailUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--ap-blue)', fontSize: 11 }}>
+                Jefferson Assessor ↗
+              </a>
+            } />
+          </Section>
+        </>
+      )}
+
       {/* ── Valuation from ESRI ── */}
-      <Section title="Valuation (ESRI Statewide Layer)">
+      <Section title={isDenver || isDouglas || isArapahoe || isJefferson ? 'Valuation (ESRI Statewide Layer)' : 'Valuation'}>
         <Row label="Total Market Value"  value={formatCurrency(v.marketValue)} />
         <Row label="Assessed Value"      value={formatCurrency(v.assessedValue)} />
         <Row label="Land Value"          value={
@@ -1814,7 +1982,7 @@ function ActivityTab({ f }: { f: ParcelFeature }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning, onClose }: ParcelPanelProps) {
+export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning, denverBuilding, denverValuation, douglasDetail, arapahoeDetail, jeffersonDetail, onClose }: ParcelPanelProps) {
   const [activeTab, setActiveTab] = useState<PanelTab>('parcel');
 
   const panelW = 380;
@@ -1956,9 +2124,9 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
           </div>
         ) : (
           <>
-            {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} />}
+            {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} denverBuilding={denverBuilding} denverValuation={denverValuation} douglasDetail={douglasDetail} arapahoeDetail={arapahoeDetail} jeffersonDetail={jeffersonDetail} />}
             {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} auroraZoning={auroraZoning} centennialZoning={centennialZoning} douglasZoning={douglasZoning} jeffersonZoning={jeffersonZoning} larimerZoning={larimerZoning} elpasoZoning={elpasoZoning} clearcreekZoning={clearcreekZoning} lakewoodZoning={lakewoodZoning} arvadaZoning={arvadaZoning} greenwoodvillageZoning={greenwoodvillageZoning} littletonZoning={littletonZoning} thorntonZoning={thorntonZoning} arapahoeZoning={arapahoeZoning} broomfieldZoning={broomfieldZoning} boulderCountyZoning={boulderCountyZoning} weldZoning={weldZoning} puebloCountyZoning={puebloCountyZoning} />}
-            {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={denverZoning} />}
+            {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={denverZoning} denverValuation={denverValuation} douglasDetail={douglasDetail} arapahoeDetail={arapahoeDetail} jeffersonDetail={jeffersonDetail} />}
             {activeTab === 'council'  && <CouncilTab f={feature} />}
             {activeTab === 'activity' && <ActivityTab f={feature} />}
           </>
