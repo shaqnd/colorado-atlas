@@ -22,8 +22,8 @@ import Map, {
 import type { MapRef, MapLayerMouseEvent } from 'react-map-gl/maplibre';
 
 import type { ParcelState, GeoJSONGeometry } from '../data/parcelTypes';
-import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning, queryAuroraZoning, queryCentennialZoning, queryDouglasZoning, queryJeffersonZoning, queryLarimerZoning, queryElPasoZoning, queryClearCreekZoning, queryLakewoodZoning, queryArvadaZoning, queryGreenwoodVillageZoning, queryLittletonZoning, queryThorntonZoning, queryArapahoeZoning, queryBroomfieldZoning, queryBoulderCountyZoning, queryWeldZoning, queryPuebloCountyZoning, queryAdamsZoning, fetchDenverBuilding, fetchDenverValuation, fetchDouglasDetail, fetchArapahoeDetail, fetchJeffersonDetail } from '../utils/parcelService';
-import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw, AdamsZoningRaw, DenverBuildingData, DenverParcelValuationData, DouglasParcelData, ArapahoeParcelData, JeffersonParcelData } from '../utils/parcelService';
+import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning, queryAuroraZoning, queryCentennialZoning, queryDouglasZoning, queryJeffersonZoning, queryLarimerZoning, queryElPasoZoning, queryClearCreekZoning, queryLakewoodZoning, queryArvadaZoning, queryGreenwoodVillageZoning, queryLittletonZoning, queryThorntonZoning, queryArapahoeZoning, queryBroomfieldZoning, queryBoulderCountyZoning, queryWeldZoning, queryPuebloCountyZoning, queryAdamsZoning, queryColoradoSpringsZoning, queryFortCollinsZoning, queryPuebloCityZoning, queryGrandJunctionZoning, querySteamboatSpringsZoning, querySanMiguelZoning, querySilvertonZoning, fetchDenverBuilding, fetchDenverValuation, fetchDouglasDetail, fetchArapahoeDetail, fetchJeffersonDetail } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw, AdamsZoningRaw, ColoradoSpringsZoningRaw, FortCollinsZoningRaw, PuebloCityZoningRaw, GrandJunctionZoningRaw, SteamboatSpringsZoningRaw, SanMiguelZoningRaw, SilvertonZoningRaw, DenverBuildingData, DenverParcelValuationData, DouglasParcelData, ArapahoeParcelData, JeffersonParcelData } from '../utils/parcelService';
 import { ParcelPanel } from './ParcelPanel';
 
 // Business directory data — pre-geocoded at build time
@@ -1032,6 +1032,13 @@ export function ParcelMap() {
   const [weldZoning, setWeldZoning] = useState<WeldZoningRaw | null>(null);
   const [puebloCountyZoning, setPuebloCountyZoning] = useState<PuebloCountyZoningRaw | null>(null);
   const [adamsZoning, setAdamsZoning] = useState<AdamsZoningRaw | null>(null);
+  const [coloradoSpringsZoning, setColoradoSpringsZoning] = useState<ColoradoSpringsZoningRaw | null>(null);
+  const [fortCollinsZoning, setFortCollinsZoning] = useState<FortCollinsZoningRaw | null>(null);
+  const [puebloCityZoning, setPuebloCityZoning] = useState<PuebloCityZoningRaw | null>(null);
+  const [grandJunctionZoning, setGrandJunctionZoning] = useState<GrandJunctionZoningRaw | null>(null);
+  const [steamboatZoning, setSteamboatZoning] = useState<SteamboatSpringsZoningRaw | null>(null);
+  const [sanMiguelZoning, setSanMiguelZoning] = useState<SanMiguelZoningRaw | null>(null);
+  const [silvertonZoning, setSilvertonZoning] = useState<SilvertonZoningRaw | null>(null);
   const [denverBuilding, setDenverBuilding] = useState<DenverBuildingData | null>(null);
   const [denverValuation, setDenverValuation] = useState<DenverParcelValuationData | null>(null);
   const [douglasDetail, setDouglasDetail] = useState<DouglasParcelData | null>(null);
@@ -1124,6 +1131,13 @@ export function ParcelMap() {
     setWeldZoning(null);
     setPuebloCountyZoning(null);
     setAdamsZoning(null);
+    setColoradoSpringsZoning(null);
+    setFortCollinsZoning(null);
+    setPuebloCityZoning(null);
+    setGrandJunctionZoning(null);
+    setSteamboatZoning(null);
+    setSanMiguelZoning(null);
+    setSilvertonZoning(null);
     setDenverBuilding(null);
     setDenverValuation(null);
     setDouglasDetail(null);
@@ -1141,7 +1155,7 @@ export function ParcelMap() {
 
     try {
       // Run parcel lookup, reverse geocode, and city/county zoning queries all in parallel
-      const [parcelResult, nbResult, denverResult, auroraResult, centennialResult, douglasResult, jeffersonResult, larimerResult, elpasoResult, clearcreekResult, lakewoodResult, arvadaResult, gvResult, littletonResult, thorntonResult, arapahoeResult, broomfieldResult, boulderCountyResult, weldResult, puebloCountyResult, adamsResult] = await Promise.allSettled([
+      const [parcelResult, nbResult, denverResult, auroraResult, centennialResult, douglasResult, jeffersonResult, larimerResult, elpasoResult, clearcreekResult, lakewoodResult, arvadaResult, gvResult, littletonResult, thorntonResult, arapahoeResult, broomfieldResult, boulderCountyResult, weldResult, puebloCountyResult, adamsResult, cspringsResult, fortCollinsResult, puebloCityResult, grandJunctionResult, steamboatResult, sanMiguelResult, silvertonResult] = await Promise.allSettled([
         queryParcelByPoint(lng, lat),
         reverseGeocodeNeighborhood(lat, lng),
         queryDenverZoning(lat, lng),
@@ -1163,6 +1177,13 @@ export function ParcelMap() {
         queryWeldZoning(lat, lng),
         queryPuebloCountyZoning(lat, lng),
         queryAdamsZoning(lat, lng),
+        queryColoradoSpringsZoning(lat, lng),
+        queryFortCollinsZoning(lat, lng),
+        queryPuebloCityZoning(lat, lng),
+        queryGrandJunctionZoning(lat, lng),
+        querySteamboatSpringsZoning(lat, lng),
+        querySanMiguelZoning(lat, lng),
+        querySilvertonZoning(lat, lng),
       ]);
 
       const parcel = parcelResult.status === 'fulfilled' ? parcelResult.value : null;
@@ -1206,6 +1227,20 @@ export function ParcelMap() {
       setPuebloCountyZoning(pueblo?.zoneCode ? pueblo : null);
       const adams = adamsResult.status === 'fulfilled' ? adamsResult.value : null;
       setAdamsZoning(adams?.zoneCode ? adams : null);
+      const csprings = cspringsResult.status === 'fulfilled' ? cspringsResult.value : null;
+      setColoradoSpringsZoning(csprings?.zoneCode ? csprings : null);
+      const ftc = fortCollinsResult.status === 'fulfilled' ? fortCollinsResult.value : null;
+      setFortCollinsZoning(ftc?.zoneCode ? ftc : null);
+      const puebCity = puebloCityResult.status === 'fulfilled' ? puebloCityResult.value : null;
+      setPuebloCityZoning(puebCity?.zoneCode ? puebCity : null);
+      const gj = grandJunctionResult.status === 'fulfilled' ? grandJunctionResult.value : null;
+      setGrandJunctionZoning(gj?.zoneCode ? gj : null);
+      const steamboat = steamboatResult.status === 'fulfilled' ? steamboatResult.value : null;
+      setSteamboatZoning((steamboat?.zoneDomainInt !== null && steamboat?.zoneDomainInt !== undefined) ? steamboat : null);
+      const sanMig = sanMiguelResult.status === 'fulfilled' ? sanMiguelResult.value : null;
+      setSanMiguelZoning(sanMig?.zoneCode ? sanMig : null);
+      const silverton = silvertonResult.status === 'fulfilled' ? silvertonResult.value : null;
+      setSilvertonZoning(silverton?.zoneCode ? silverton : null);
 
       if (parcel) {
         setParcelState({ status: 'loaded', feature: parcel });
@@ -1853,6 +1888,13 @@ export function ParcelMap() {
           arapahoeDetail={arapahoeDetail}
           jeffersonDetail={jeffersonDetail}
           adamsZoning={adamsZoning}
+          coloradoSpringsZoning={coloradoSpringsZoning}
+          fortCollinsZoning={fortCollinsZoning}
+          puebloCityZoning={puebloCityZoning}
+          grandJunctionZoning={grandJunctionZoning}
+          steamboatZoning={steamboatZoning}
+          sanMiguelZoning={sanMiguelZoning}
+          silvertonZoning={silvertonZoning}
           onClose={handleClose}
         />
       )}

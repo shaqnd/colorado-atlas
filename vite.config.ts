@@ -130,6 +130,48 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/pueblo-county-zoning/, '/outside/rest/services/Landbase/PuebloCounty_ZoningCountyOnly/MapServer'),
       },
+      // Colorado Springs — PlanningZoning MapServer layer 11 (LABEL / ECP_Zoning_Code fields)
+      '/api/csprings-zoning': {
+        target: 'https://gis.coloradosprings.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/csprings-zoning/, '/arcgis/rest/services/GeneralUse/PlanningZoning/MapServer'),
+      },
+      // Fort Collins — Zoning FeatureServer layer 0 (ZONE, ZONE_NAME fields) — ArcGIS Online
+      '/api/fort-collins-zoning': {
+        target: 'https://services1.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/fort-collins-zoning/, '/dLpFH5mwVvxSN4OE/arcgis/rest/services/Zoning/FeatureServer'),
+      },
+      // Pueblo (city) — Zoning_Districts FeatureServer layer 40 (ZONING field) — ArcGIS Online
+      '/api/pueblo-city-zoning': {
+        target: 'https://services1.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/pueblo-city-zoning/, '/IL17xsvNU5Bmw3RY/ArcGIS/rest/services/Zoning_Districts/FeatureServer'),
+      },
+      // Grand Junction — Development_Hub MapServer layer 76 (ZONE_PRIM field)
+      '/api/grand-junction-zoning': {
+        target: 'https://external22-gis.gjcity.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/grand-junction-zoning/, '/arcgis/rest/services/Hub/Development_Hub/MapServer'),
+      },
+      // Steamboat Springs — Zoning MapServer layer 0 (Zoning coded int field)
+      '/api/steamboat-zoning': {
+        target: 'https://gis.steamboatsprings.net',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/steamboat-zoning/, '/arcgis/rest/services/Zoning/MapServer'),
+      },
+      // San Miguel County / Telluride — SanMiguelZoning FeatureServer layer 5 (ZONING, ZONE_AUTH)
+      '/api/san-miguel-zoning': {
+        target: 'https://services.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/san-miguel-zoning/, '/aXqye4IXyXsdIpPb/arcgis/rest/services/SanMiguelZoning/FeatureServer'),
+      },
+      // Silverton / San Juan County — Zoning_Silverton FeatureServer layer 100 (PropZonAbbr field)
+      '/api/silverton-zoning': {
+        target: 'https://services9.arcgis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/silverton-zoning/, '/wkH46IqOhYntFxVp/arcgis/rest/services/Zoning_Silverton/FeatureServer'),
+      },
       // Adams County — Zoning FeatureServer (layer 0, ZONE_ field) — public ArcGIS Online
       '/api/adams-zoning': {
         target: 'https://services3.arcgis.com',

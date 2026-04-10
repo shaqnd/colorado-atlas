@@ -800,6 +800,215 @@ export async function queryPuebloCountyZoning(lat: number, lng: number): Promise
   } catch { return null; }
 }
 
+// ── Colorado Springs zoning lookup ───────────────────────────────────────────
+
+const CSPRINGS_ZONING_API = '/api/csprings-zoning/11/query';
+
+export interface ColoradoSpringsZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryColoradoSpringsZoning(lat: number, lng: number): Promise<ColoradoSpringsZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'LABEL,ECP_Zoning_Code,ECP_Zone_Description',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${CSPRINGS_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    const zoneCode = s('LABEL') ?? s('ECP_Zoning_Code') ?? null;
+    return { zoneCode, zoneName: s('ECP_Zone_Description') ?? null };
+  } catch { return null; }
+}
+
+// ── Fort Collins zoning lookup ────────────────────────────────────────────────
+
+const FORT_COLLINS_ZONING_API = '/api/fort-collins-zoning/0/query';
+
+export interface FortCollinsZoningRaw {
+  zoneCode: string | null;
+  zoneName: string | null;
+}
+
+export async function queryFortCollinsZoning(lat: number, lng: number): Promise<FortCollinsZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONE,ZONE_NAME',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${FORT_COLLINS_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE') ?? null, zoneName: s('ZONE_NAME') ?? null };
+  } catch { return null; }
+}
+
+// ── Pueblo (city) zoning lookup ───────────────────────────────────────────────
+
+const PUEBLO_CITY_ZONING_API = '/api/pueblo-city-zoning/40/query';
+
+export interface PuebloCityZoningRaw {
+  zoneCode: string | null;
+}
+
+export async function queryPuebloCityZoning(lat: number, lng: number): Promise<PuebloCityZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONING',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${PUEBLO_CITY_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONING') ?? null };
+  } catch { return null; }
+}
+
+// ── Grand Junction zoning lookup ──────────────────────────────────────────────
+
+const GRAND_JUNCTION_ZONING_API = '/api/grand-junction-zoning/76/query';
+
+export interface GrandJunctionZoningRaw {
+  zoneCode: string | null;
+}
+
+export async function queryGrandJunctionZoning(lat: number, lng: number): Promise<GrandJunctionZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONE_PRIM',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${GRAND_JUNCTION_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONE_PRIM') ?? null };
+  } catch { return null; }
+}
+
+// ── Steamboat Springs zoning lookup ──────────────────────────────────────────
+
+const STEAMBOAT_ZONING_API = '/api/steamboat-zoning/0/query';
+
+export interface SteamboatSpringsZoningRaw {
+  zoneCode: string | null;
+  zoneDomainInt: number | null;
+}
+
+export async function querySteamboatSpringsZoning(lat: number, lng: number): Promise<SteamboatSpringsZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'Zoning',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${STEAMBOAT_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const raw = a['Zoning'];
+    const domainInt = (raw !== null && raw !== undefined) ? Number(raw) : null;
+    return { zoneDomainInt: domainInt, zoneCode: null }; // code resolved in UI via getSteamboatSpringsZoneCode
+  } catch { return null; }
+}
+
+// ── San Miguel County / Telluride zoning lookup ───────────────────────────────
+
+const SAN_MIGUEL_ZONING_API = '/api/san-miguel-zoning/5/query';
+
+export interface SanMiguelZoningRaw {
+  zoneCode: string | null;
+  zoneAuthority: string | null;
+}
+
+export async function querySanMiguelZoning(lat: number, lng: number): Promise<SanMiguelZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'ZONING,ZONE_AUTH',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${SAN_MIGUEL_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('ZONING') ?? null, zoneAuthority: s('ZONE_AUTH') ?? null };
+  } catch { return null; }
+}
+
+// ── Silverton / San Juan County zoning lookup ─────────────────────────────────
+
+const SILVERTON_ZONING_API = '/api/silverton-zoning/100/query';
+
+export interface SilvertonZoningRaw {
+  zoneCode: string | null;
+}
+
+export async function querySilvertonZoning(lat: number, lng: number): Promise<SilvertonZoningRaw | null> {
+  const params = new URLSearchParams({
+    geometry: `${lng},${lat}`,
+    geometryType: 'esriGeometryPoint',
+    inSR: '4326',
+    spatialRel: 'esriSpatialRelIntersects',
+    outFields: 'PropZonAbbr,PropZonName',
+    returnGeometry: 'false',
+    f: 'json',
+  });
+  try {
+    const res = await fetch(`${SILVERTON_ZONING_API}?${params}`);
+    if (!res.ok) return null;
+    const data = await res.json() as { features?: { attributes: Record<string, unknown> }[]; error?: unknown };
+    if ((data as { error?: unknown }).error || !data.features?.length) return null;
+    const a = data.features[0]!.attributes;
+    const s = (k: string) => { const v = a[k]; return (v === null || v === undefined || String(v).trim() === '') ? null : String(v).trim(); };
+    return { zoneCode: s('PropZonAbbr') ?? null };
+  } catch { return null; }
+}
+
 // ── Adams County zoning lookup ────────────────────────────────────────────────
 
 const ADAMS_ZONING_API = '/api/adams-zoning/0/query';

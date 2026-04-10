@@ -11,7 +11,7 @@ import { runHBUAnalysis } from '../utils/hbuAnalysis';
 import { zoneDistrictsByCode } from '../data/zoneDistricts';
 import { ALL_COMMUNITIES } from '../data/communities';
 import { getDenverZoneDistrict, DENVER_CATEGORY_LABELS } from '../data/denverZoning';
-import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw, AdamsZoningRaw } from '../utils/parcelService';
+import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw, AdamsZoningRaw, ColoradoSpringsZoningRaw, FortCollinsZoningRaw, PuebloCityZoningRaw, GrandJunctionZoningRaw, SteamboatSpringsZoningRaw, SanMiguelZoningRaw, SilvertonZoningRaw } from '../utils/parcelService';
 import { getAuroraZoneDistrict, AURORA_CATEGORY_LABELS } from '../data/auroraZoning';
 import { getCentennialLandUseDistrict, CENTENNIAL_CATEGORY_LABELS } from '../data/centennialZoning';
 import { getDouglasZoneDistrict, DOUGLAS_CATEGORY_LABELS } from '../data/douglasZoning';
@@ -30,6 +30,13 @@ import { getBoulderCountyZoneDistrict, BOULDER_COUNTY_CATEGORY_LABELS } from '..
 import { getWeldZoneDistrict, WELD_CATEGORY_LABELS } from '../data/weldZoning';
 import { getPuebloCountyZoneDistrict, PUEBLO_COUNTY_CATEGORY_LABELS } from '../data/puebloCountyZoning';
 import { getAdamsZoneDistrict, ADAMS_CATEGORY_LABELS } from '../data/adamsZoning';
+import { getColoradoSpringsZoneDistrict, COLORADO_SPRINGS_CATEGORY_LABELS } from '../data/coloradoSpringsZoning';
+import { getFortCollinsZoneDistrict, FORT_COLLINS_CATEGORY_LABELS } from '../data/fortCollinsZoning';
+import { getPuebloCityZoneDistrict, PUEBLO_CITY_CATEGORY_LABELS } from '../data/puebloCityZoning';
+import { getGrandJunctionZoneDistrict, GRAND_JUNCTION_CATEGORY_LABELS } from '../data/grandJunctionZoning';
+import { getSteamboatSpringsZoneDistrict, getSteamboatSpringsZoneCode, STEAMBOAT_SPRINGS_CATEGORY_LABELS } from '../data/steamboatSpringsZoning';
+import { getSanMiguelZoneDistrict, SAN_MIGUEL_CATEGORY_LABELS } from '../data/sanMiguelZoning';
+import { getSilvertonZoneDistrict, SILVERTON_CATEGORY_LABELS } from '../data/silvertonZoning';
 import type { Community } from '../data/communities';
 import type { HBUResult } from '../data/types';
 
@@ -68,6 +75,13 @@ interface ParcelPanelProps {
   weldZoning?: WeldZoningRaw | null;
   puebloCountyZoning?: PuebloCountyZoningRaw | null;
   adamsZoning?: AdamsZoningRaw | null;
+  coloradoSpringsZoning?: ColoradoSpringsZoningRaw | null;
+  fortCollinsZoning?: FortCollinsZoningRaw | null;
+  puebloCityZoning?: PuebloCityZoningRaw | null;
+  grandJunctionZoning?: GrandJunctionZoningRaw | null;
+  steamboatZoning?: SteamboatSpringsZoningRaw | null;
+  sanMiguelZoning?: SanMiguelZoningRaw | null;
+  silvertonZoning?: SilvertonZoningRaw | null;
   denverBuilding?: DenverBuildingData | null;
   denverValuation?: DenverParcelValuationData | null;
   douglasDetail?: DouglasParcelData | null;
@@ -472,7 +486,7 @@ function ParcelTab({ f, neighbourhood, denverBuilding, denverValuation, douglasD
   );
 }
 
-function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning, adamsZoning }: { f: ParcelFeature; denverZoning?: DenverZoningRaw | null; auroraZoning?: AuroraZoningRaw | null; centennialZoning?: CentennialZoningRaw | null; douglasZoning?: DouglasZoningRaw | null; jeffersonZoning?: JeffersonZoningRaw | null; larimerZoning?: LarimerZoningRaw | null; elpasoZoning?: ElPasoZoningRaw | null; clearcreekZoning?: ClearCreekZoningRaw | null; lakewoodZoning?: LakewoodZoningRaw | null; arvadaZoning?: ArvadaZoningRaw | null; greenwoodvillageZoning?: GreenwoodVillageZoningRaw | null; littletonZoning?: LittletonZoningRaw | null; thorntonZoning?: ThorntonZoningRaw | null; arapahoeZoning?: ArapahoeZoningRaw | null; broomfieldZoning?: BroomfieldZoningRaw | null; boulderCountyZoning?: BoulderCountyZoningRaw | null; weldZoning?: WeldZoningRaw | null; puebloCountyZoning?: PuebloCountyZoningRaw | null; adamsZoning?: AdamsZoningRaw | null }) {
+function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning, adamsZoning, coloradoSpringsZoning, fortCollinsZoning, puebloCityZoning, grandJunctionZoning, steamboatZoning, sanMiguelZoning, silvertonZoning }: { f: ParcelFeature; denverZoning?: DenverZoningRaw | null; auroraZoning?: AuroraZoningRaw | null; centennialZoning?: CentennialZoningRaw | null; douglasZoning?: DouglasZoningRaw | null; jeffersonZoning?: JeffersonZoningRaw | null; larimerZoning?: LarimerZoningRaw | null; elpasoZoning?: ElPasoZoningRaw | null; clearcreekZoning?: ClearCreekZoningRaw | null; lakewoodZoning?: LakewoodZoningRaw | null; arvadaZoning?: ArvadaZoningRaw | null; greenwoodvillageZoning?: GreenwoodVillageZoningRaw | null; littletonZoning?: LittletonZoningRaw | null; thorntonZoning?: ThorntonZoningRaw | null; arapahoeZoning?: ArapahoeZoningRaw | null; broomfieldZoning?: BroomfieldZoningRaw | null; boulderCountyZoning?: BoulderCountyZoningRaw | null; weldZoning?: WeldZoningRaw | null; puebloCountyZoning?: PuebloCountyZoningRaw | null; adamsZoning?: AdamsZoningRaw | null; coloradoSpringsZoning?: ColoradoSpringsZoningRaw | null; fortCollinsZoning?: FortCollinsZoningRaw | null; puebloCityZoning?: PuebloCityZoningRaw | null; grandJunctionZoning?: GrandJunctionZoningRaw | null; steamboatZoning?: SteamboatSpringsZoningRaw | null; sanMiguelZoning?: SanMiguelZoningRaw | null; silvertonZoning?: SilvertonZoningRaw | null }) {
   const z = f.zoning;
   const dzDistrict = denverZoning?.zoneDistrict ? getDenverZoneDistrict(denverZoning.zoneDistrict) : null;
   const isDenver = !!denverZoning?.zoneDistrict;
@@ -512,6 +526,21 @@ function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZon
   const isPuebloCounty = !!puebloCountyZoning?.zoneCode;
   const adamsDistrict = adamsZoning?.zoneCode ? getAdamsZoneDistrict(adamsZoning.zoneCode) : null;
   const isAdams = !!adamsZoning?.zoneCode;
+  const cspringsDistrict = coloradoSpringsZoning?.zoneCode ? getColoradoSpringsZoneDistrict(coloradoSpringsZoning.zoneCode) : null;
+  const isColoradoSprings = !!coloradoSpringsZoning?.zoneCode;
+  const ftcDistrict = fortCollinsZoning?.zoneCode ? getFortCollinsZoneDistrict(fortCollinsZoning.zoneCode) : null;
+  const isFortCollins = !!fortCollinsZoning?.zoneCode;
+  const puebloCityDistrict = puebloCityZoning?.zoneCode ? getPuebloCityZoneDistrict(puebloCityZoning.zoneCode) : null;
+  const isPuebloCity = !!puebloCityZoning?.zoneCode;
+  const gjDistrict = grandJunctionZoning?.zoneCode ? getGrandJunctionZoneDistrict(grandJunctionZoning.zoneCode) : null;
+  const isGrandJunction = !!grandJunctionZoning?.zoneCode;
+  const steamboatCode = (steamboatZoning?.zoneDomainInt !== null && steamboatZoning?.zoneDomainInt !== undefined) ? getSteamboatSpringsZoneCode(steamboatZoning.zoneDomainInt) : null;
+  const steamboatDistrict = steamboatCode ? getSteamboatSpringsZoneDistrict(steamboatCode) : null;
+  const isSteamboat = !!steamboatCode;
+  const sanMiguelDistrict = sanMiguelZoning?.zoneCode ? getSanMiguelZoneDistrict(sanMiguelZoning.zoneCode) : null;
+  const isSanMiguel = !!sanMiguelZoning?.zoneCode;
+  const silvertonDistrict = silvertonZoning?.zoneCode ? getSilvertonZoneDistrict(silvertonZoning.zoneCode) : null;
+  const isSilverton = !!silvertonZoning?.zoneCode;
 
   // For HBU: prefer city/county official zone, fall back to ESRI
   const officialZoneCode = isDenver ? denverZoning!.zoneDistrict
@@ -532,6 +561,13 @@ function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZon
     : isWeld ? weldZoning!.zoneCode
     : isPuebloCounty ? puebloCountyZoning!.zoneCode
     : isAdams ? adamsZoning!.zoneCode
+    : isColoradoSprings ? coloradoSpringsZoning!.zoneCode
+    : isFortCollins ? fortCollinsZoning!.zoneCode
+    : isPuebloCity ? puebloCityZoning!.zoneCode
+    : isGrandJunction ? grandJunctionZoning!.zoneCode
+    : isSteamboat ? steamboatCode
+    : isSanMiguel ? sanMiguelZoning!.zoneCode
+    : isSilverton ? silvertonZoning!.zoneCode
     : null;
   const zoneCodeForHbu = officialZoneCode ? inferZoneCode(officialZoneCode) : inferZoneCode(z.code);
   const mappedUse = inferUseCode(z.landUseDescription, z.landUseCode);
@@ -1541,8 +1577,134 @@ function ZoningTab({ f, denverZoning, auroraZoning, centennialZoning, douglasZon
         </div>
       )}
 
+      {isColoradoSprings && (
+        <div style={{ marginBottom: 20 }}>
+          <Section title="Zoning — City of Colorado Springs">
+            {cspringsDistrict ? (
+              <>
+                <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#b91c1c' }}>{coloradoSpringsZoning!.zoneCode}</span> — {cspringsDistrict.name}</>} />
+                <Row label="Category" value={COLORADO_SPRINGS_CATEGORY_LABELS[cspringsDistrict.category]} />
+                {cspringsDistrict.summary && <Row label="Summary" value={cspringsDistrict.summary} />}
+              </>
+            ) : (
+              <>
+                <Row label="Zone Code" value={coloradoSpringsZoning!.zoneCode ?? '—'} />
+                {coloradoSpringsZoning!.zoneName && <Row label="Name" value={coloradoSpringsZoning!.zoneName} />}
+              </>
+            )}
+            <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: City of Colorado Springs — Planning &amp; Zoning MapServer</div>
+          </Section>
+        </div>
+      )}
+
+      {isFortCollins && (
+        <div style={{ marginBottom: 20 }}>
+          <Section title="Zoning — City of Fort Collins">
+            {ftcDistrict ? (
+              <>
+                <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#0f766e' }}>{fortCollinsZoning!.zoneCode}</span> — {ftcDistrict.name}</>} />
+                <Row label="Category" value={FORT_COLLINS_CATEGORY_LABELS[ftcDistrict.category]} />
+                {ftcDistrict.summary && <Row label="Summary" value={ftcDistrict.summary} />}
+              </>
+            ) : (
+              <>
+                <Row label="Zone Code" value={fortCollinsZoning!.zoneCode ?? '—'} />
+                {fortCollinsZoning!.zoneName && <Row label="Name" value={fortCollinsZoning!.zoneName} />}
+              </>
+            )}
+            <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: City of Fort Collins — Zoning FeatureServer (ArcGIS Online)</div>
+          </Section>
+        </div>
+      )}
+
+      {isPuebloCity && (
+        <div style={{ marginBottom: 20 }}>
+          <Section title="Zoning — City of Pueblo">
+            {puebloCityDistrict ? (
+              <>
+                <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#7c3aed' }}>{puebloCityZoning!.zoneCode}</span> — {puebloCityDistrict.name}</>} />
+                <Row label="Category" value={PUEBLO_CITY_CATEGORY_LABELS[puebloCityDistrict.category]} />
+                {puebloCityDistrict.summary && <Row label="Summary" value={puebloCityDistrict.summary} />}
+              </>
+            ) : (
+              <Row label="Zone Code" value={puebloCityZoning!.zoneCode ?? '—'} />
+            )}
+            <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: City of Pueblo — Zoning Districts FeatureServer (ArcGIS Online)</div>
+          </Section>
+        </div>
+      )}
+
+      {isGrandJunction && (
+        <div style={{ marginBottom: 20 }}>
+          <Section title="Zoning — City of Grand Junction">
+            {gjDistrict ? (
+              <>
+                <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#b45309' }}>{grandJunctionZoning!.zoneCode}</span> — {gjDistrict.name}</>} />
+                <Row label="Category" value={GRAND_JUNCTION_CATEGORY_LABELS[gjDistrict.category]} />
+                {gjDistrict.summary && <Row label="Summary" value={gjDistrict.summary} />}
+              </>
+            ) : (
+              <Row label="Zone Code" value={grandJunctionZoning!.zoneCode ?? '—'} />
+            )}
+            <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: City of Grand Junction — Development Hub MapServer</div>
+          </Section>
+        </div>
+      )}
+
+      {isSteamboat && (
+        <div style={{ marginBottom: 20 }}>
+          <Section title="Zoning — City of Steamboat Springs">
+            {steamboatDistrict ? (
+              <>
+                <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#1d4ed8' }}>{steamboatCode}</span> — {steamboatDistrict.name}</>} />
+                <Row label="Category" value={STEAMBOAT_SPRINGS_CATEGORY_LABELS[steamboatDistrict.category]} />
+                {steamboatDistrict.summary && <Row label="Summary" value={steamboatDistrict.summary} />}
+              </>
+            ) : (
+              <Row label="Zone Code" value={steamboatCode ?? '—'} />
+            )}
+            <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: City of Steamboat Springs — Zoning MapServer</div>
+          </Section>
+        </div>
+      )}
+
+      {isSanMiguel && (
+        <div style={{ marginBottom: 20 }}>
+          <Section title={`Zoning — ${sanMiguelZoning!.zoneAuthority ?? 'San Miguel County / Telluride'}`}>
+            {sanMiguelDistrict ? (
+              <>
+                <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#0369a1' }}>{sanMiguelZoning!.zoneCode}</span> — {sanMiguelDistrict.name}</>} />
+                <Row label="Category" value={SAN_MIGUEL_CATEGORY_LABELS[sanMiguelDistrict.category]} />
+                {sanMiguelDistrict.summary && <Row label="Summary" value={sanMiguelDistrict.summary} />}
+              </>
+            ) : (
+              <Row label="Zone Code" value={sanMiguelZoning!.zoneCode ?? '—'} />
+            )}
+            {sanMiguelZoning!.zoneAuthority && <Row label="Authority" value={sanMiguelZoning!.zoneAuthority} />}
+            <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: San Miguel County — SanMiguelZoning FeatureServer (ArcGIS Online)</div>
+          </Section>
+        </div>
+      )}
+
+      {isSilverton && (
+        <div style={{ marginBottom: 20 }}>
+          <Section title="Zoning — Town of Silverton (San Juan County)">
+            {silvertonDistrict ? (
+              <>
+                <Row label="Zone" value={<><span style={{ fontWeight: 700, color: '#92400e' }}>{silvertonZoning!.zoneCode}</span> — {silvertonDistrict.name}</>} />
+                <Row label="Category" value={SILVERTON_CATEGORY_LABELS[silvertonDistrict.category]} />
+                {silvertonDistrict.summary && <Row label="Summary" value={silvertonDistrict.summary} />}
+              </>
+            ) : (
+              <Row label="Zone Code" value={silvertonZoning!.zoneCode ?? '—'} />
+            )}
+            <div style={{ fontSize: 10, color: 'var(--ap-t3)', marginTop: 8 }}>Source: Town of Silverton — Zoning_Silverton FeatureServer (ArcGIS Online)</div>
+          </Section>
+        </div>
+      )}
+
       {/* ── Statewide ESRI zoning (fallback / supplement) ── */}
-      {!isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && !isArapahoe && !isBroomfield && !isBoulderCounty && !isWeld && !isPuebloCounty && !isAdams && (
+      {!isDenver && !isAurora && !isCentennial && !isDouglas && !isJefferson && !isLarimer && !isElPaso && !isClearCreek && !isLakewood && !isArvada && !isGreenwoodVillage && !isLittleton && !isThornton && !isArapahoe && !isBroomfield && !isBoulderCounty && !isWeld && !isPuebloCounty && !isAdams && !isColoradoSprings && !isFortCollins && !isPuebloCity && !isGrandJunction && !isSteamboat && !isSanMiguel && !isSilverton && (
         <>
           {(z.code || z.description || z.landUseCode || z.landUseDescription) ? (
             <Section title="Zoning (Statewide Layer)">
@@ -2004,7 +2166,7 @@ function ActivityTab({ f }: { f: ParcelFeature }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning, adamsZoning, denverBuilding, denverValuation, douglasDetail, arapahoeDetail, jeffersonDetail, onClose }: ParcelPanelProps) {
+export function ParcelPanel({ feature, open, address, neighbourhood, denverZoning, auroraZoning, centennialZoning, douglasZoning, jeffersonZoning, larimerZoning, elpasoZoning, clearcreekZoning, lakewoodZoning, arvadaZoning, greenwoodvillageZoning, littletonZoning, thorntonZoning, arapahoeZoning, broomfieldZoning, boulderCountyZoning, weldZoning, puebloCountyZoning, adamsZoning, coloradoSpringsZoning, fortCollinsZoning, puebloCityZoning, grandJunctionZoning, steamboatZoning, sanMiguelZoning, silvertonZoning, denverBuilding, denverValuation, douglasDetail, arapahoeDetail, jeffersonDetail, onClose }: ParcelPanelProps) {
   const [activeTab, setActiveTab] = useState<PanelTab>('parcel');
 
   const panelW = 380;
@@ -2147,7 +2309,7 @@ export function ParcelPanel({ feature, open, address, neighbourhood, denverZonin
         ) : (
           <>
             {activeTab === 'parcel'   && <ParcelTab f={feature} neighbourhood={neighbourhood} denverBuilding={denverBuilding} denverValuation={denverValuation} douglasDetail={douglasDetail} arapahoeDetail={arapahoeDetail} jeffersonDetail={jeffersonDetail} />}
-            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} auroraZoning={auroraZoning} centennialZoning={centennialZoning} douglasZoning={douglasZoning} jeffersonZoning={jeffersonZoning} larimerZoning={larimerZoning} elpasoZoning={elpasoZoning} clearcreekZoning={clearcreekZoning} lakewoodZoning={lakewoodZoning} arvadaZoning={arvadaZoning} greenwoodvillageZoning={greenwoodvillageZoning} littletonZoning={littletonZoning} thorntonZoning={thorntonZoning} arapahoeZoning={arapahoeZoning} broomfieldZoning={broomfieldZoning} boulderCountyZoning={boulderCountyZoning} weldZoning={weldZoning} puebloCountyZoning={puebloCountyZoning} adamsZoning={adamsZoning} />}
+            {activeTab === 'zoning'   && <ZoningTab f={feature} denverZoning={denverZoning} auroraZoning={auroraZoning} centennialZoning={centennialZoning} douglasZoning={douglasZoning} jeffersonZoning={jeffersonZoning} larimerZoning={larimerZoning} elpasoZoning={elpasoZoning} clearcreekZoning={clearcreekZoning} lakewoodZoning={lakewoodZoning} arvadaZoning={arvadaZoning} greenwoodvillageZoning={greenwoodvillageZoning} littletonZoning={littletonZoning} thorntonZoning={thorntonZoning} arapahoeZoning={arapahoeZoning} broomfieldZoning={broomfieldZoning} boulderCountyZoning={boulderCountyZoning} weldZoning={weldZoning} puebloCountyZoning={puebloCountyZoning} adamsZoning={adamsZoning} coloradoSpringsZoning={coloradoSpringsZoning} fortCollinsZoning={fortCollinsZoning} puebloCityZoning={puebloCityZoning} grandJunctionZoning={grandJunctionZoning} steamboatZoning={steamboatZoning} sanMiguelZoning={sanMiguelZoning} silvertonZoning={silvertonZoning} />}
             {activeTab === 'tax'      && <TaxTab f={feature} denverZoning={denverZoning} denverValuation={denverValuation} douglasDetail={douglasDetail} arapahoeDetail={arapahoeDetail} jeffersonDetail={jeffersonDetail} />}
             {activeTab === 'council'  && <CouncilTab f={feature} />}
             {activeTab === 'activity' && <ActivityTab f={feature} />}
