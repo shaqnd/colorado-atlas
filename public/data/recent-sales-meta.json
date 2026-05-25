@@ -1,0 +1,10 @@
+{
+  "updatedAt": null,
+  "count": 0,
+  "lookbackDays": 90,
+  "cutoffDate": null,
+  "minSalePrice": 10000,
+  "source": "Colorado Public Parcels ESRI FeatureServer — gis.colorado.gov",
+  "cadence": "Weekly (every Monday 8 AM MT)",
+  "note": "Run `npm run update:sales` locally or wait for the weekly GitHub Actions job."
+}

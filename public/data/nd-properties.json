@@ -1,0 +1,23 @@
+{
+  "updatedAt": "2026-05-25T20:00:00.000Z",
+  "count": 1,
+  "geocodedCount": 1,
+  "properties": [
+    {
+      "id": "milwaukee-place-242-milwaukee-street-denver",
+      "title": "Milwaukee Place",
+      "url": "https://www.nakeddenver.com/properties/milwaukee-place-242-milwaukee-street-denver",
+      "address": "242 Milwaukee Street, Denver, CO",
+      "lat": 39.7196,
+      "lng": -104.9564,
+      "type": "Residential",
+      "status": null,
+      "description": "242 Milwaukee Street, Denver \u2014 a Naked Denver featured property.",
+      "imageUrl": null,
+      "linkedBizIds": [
+        1
+      ],
+      "linkedArticleIds": []
+    }
+  ]
+}
