@@ -69,6 +69,59 @@ const FEMA_FLOOD_TILES = '/api/fema-nfhl/export?bbox={bbox-epsg-3857}&bboxSR=385
  */
 const WILDFIRE_TILES = '/api/wildfire/exportImage?bbox={bbox-epsg-3857}&bboxSR=3857&size=256,256&imageSR=3857&format=png&transparent=true&f=image';
 
+// ── Recent Sales layer helpers ─────────────────────────────────────────────────
+
+interface RecentSaleMeta {
+  updatedAt: string | null;
+  count: number;
+  lookbackDays: number;
+  cutoffDate: string | null;
+}
+
+interface RecentSalePopupData {
+  lng: number;
+  lat: number;
+  address: string | null;
+  county: string;
+  salePrice: number;
+  saleDate: string;
+  landUse: string | null;
+  acres: number | null;
+}
+
+async function fetchRecentSalesData(): Promise<{ geo: GeoJSON.FeatureCollection; meta: RecentSaleMeta } | null> {
+  try {
+    const [geoRes, metaRes] = await Promise.all([
+      fetch('/data/recent-sales.json'),
+      fetch('/data/recent-sales-meta.json'),
+    ]);
+    if (!geoRes.ok) return null;
+    const geo = await geoRes.json() as GeoJSON.FeatureCollection;
+    const meta = metaRes.ok ? (await metaRes.json() as RecentSaleMeta) : { updatedAt: null, count: 0, lookbackDays: 90, cutoffDate: null };
+    return { geo, meta };
+  } catch { return null; }
+}
+
+function formatPrice(price: number): string {
+  if (price >= 1_000_000) return `$${(price / 1_000_000).toFixed(2)}M`;
+  if (price >= 1_000)     return `$${Math.round(price / 1_000)}K`;
+  return `$${price.toLocaleString()}`;
+}
+
+function salePriceTier(price: number): string {
+  if (price >= 1_000_000) return 'luxury';   // purple
+  if (price >= 500_000)   return 'high';     // orange
+  if (price >= 200_000)   return 'mid';      // blue
+  return 'entry';                             // green
+}
+
+const SALE_TIER_COLORS: Record<string, string> = {
+  entry:  '#16a34a',
+  mid:    '#2563eb',
+  high:   '#ea580c',
+  luxury: '#7c3aed',
+};
+
 // ── Boundary layer GeoJSON fetch helpers (fetched once on first toggle) ────────
 
 async function fetchCountyBoundariesGeoJSON(): Promise<GeoJSON.FeatureCollection | null> {
@@ -1066,6 +1119,10 @@ export function ParcelMap() {
   const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedParcels, setSelectedParcels] = useState<ParcelFeature[]>([]);
   const [multiSelectLoading, setMultiSelectLoading] = useState(false);
+  const [showRecentSales, setShowRecentSales] = useState(false);
+  const [recentSalesGeoJSON, setRecentSalesGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [recentSalesMeta, setRecentSalesMeta] = useState<RecentSaleMeta | null>(null);
+  const [recentSalesPopup, setRecentSalesPopup] = useState<RecentSalePopupData | null>(null);
 
   const panelOpen = !multiSelectMode && (parcelState.status === 'loaded' || parcelState.status === 'not_found');
   const leftPanelOpen = multiSelectMode || panelOpen;
@@ -1315,6 +1372,32 @@ export function ParcelMap() {
       }
     }
     setSelectedBiz(null);
+    // Check if a recent-sales dot was clicked
+    if (showRecentSales && mapRef.current) {
+      const salesDots = mapRef.current.queryRenderedFeatures(e.point, { layers: ['sales-dots'] });
+      if (salesDots.length > 0) {
+        const props = salesDots[0].properties as {
+          address: string | null;
+          county: string;
+          salePrice: number;
+          saleDate: string;
+          landUse: string | null;
+          acres: number | null;
+        };
+        setRecentSalesPopup({
+          lng: e.lngLat.lng,
+          lat: e.lngLat.lat,
+          address: props.address,
+          county: props.county,
+          salePrice: props.salePrice,
+          saleDate: props.saleDate,
+          landUse: props.landUse,
+          acres: props.acres,
+        });
+        return;
+      }
+    }
+    setRecentSalesPopup(null);
     // Check if a boundary layer was clicked (county, city/town, Denver neighborhood)
     if (mapRef.current) {
       const activeBoundaryLayers: string[] = [
@@ -1336,7 +1419,7 @@ export function ParcelMap() {
     }
     setBoundaryPopup(null);
     fetchParcel(e.lngLat.lng, e.lngLat.lat);
-  }, [fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, showBusinessDir, showCountyBoundaries, showMunicipalBoundaries, showDenverNeighborhoods]);
+  }, [fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, showBusinessDir, showCountyBoundaries, showMunicipalBoundaries, showDenverNeighborhoods, showRecentSales]);
 
   // ── Close panel ───────────────────────────────────────────────────────────
 
@@ -1704,6 +1787,55 @@ export function ParcelMap() {
           <Source id="nd-parcels" type="geojson" data={ndParcels}>
             <Layer id="nd-parcels-fill" type="fill" paint={{ 'fill-color': '#f59e0b', 'fill-opacity': 0.18 }} />
             <Layer id="nd-parcels-line" type="line" paint={{ 'line-color': '#d97706', 'line-width': 2.5, 'line-opacity': 0.9 }} />
+          </Source>
+        )}
+
+        {/* Recent Sales dots */}
+        {showRecentSales && recentSalesGeoJSON && recentSalesGeoJSON.features.length > 0 && (
+          <Source id="recent-sales" type="geojson" data={recentSalesGeoJSON} cluster clusterMaxZoom={13} clusterRadius={35}>
+            {/* Cluster circles */}
+            <Layer
+              id="sales-clusters"
+              type="circle"
+              filter={['has', 'point_count']}
+              paint={{
+                'circle-color': ['step', ['get', 'point_count'], '#16a34a', 20, '#2563eb', 100, '#ea580c'],
+                'circle-radius': ['step', ['get', 'point_count'], 14, 20, 20, 100, 26],
+                'circle-opacity': 0.88,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#fff',
+              }}
+            />
+            <Layer
+              id="sales-cluster-count"
+              type="symbol"
+              filter={['has', 'point_count']}
+              layout={{
+                'text-field': '{point_count_abbreviated}',
+                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                'text-size': 11,
+              }}
+              paint={{ 'text-color': '#fff' }}
+            />
+            {/* Individual sale dots — color by price tier */}
+            <Layer
+              id="sales-dots"
+              type="circle"
+              filter={['!', ['has', 'point_count']]}
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 15, 9],
+                'circle-color': [
+                  'step', ['get', 'salePrice'],
+                  '#16a34a',    // < $200K  — green (entry)
+                  200_000, '#2563eb',   // $200K–$500K — blue (mid)
+                  500_000, '#ea580c',   // $500K–$1M — orange (high)
+                  1_000_000, '#7c3aed', // > $1M — purple (luxury)
+                ],
+                'circle-opacity': 0.85,
+                'circle-stroke-width': 1.5,
+                'circle-stroke-color': '#fff',
+              }}
+            />
           </Source>
         )}
 
@@ -2109,6 +2241,42 @@ export function ParcelMap() {
         gap: 5,
         alignItems: 'flex-end',
       }}>
+        {/* Recent Sales legend */}
+        {showRecentSales && (
+          <div style={{
+            background: 'rgba(255,255,255,0.96)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: 10,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            border: '1px solid rgba(0,0,0,0.08)',
+            padding: '8px 12px',
+            minWidth: 180,
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ap-t3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
+              Recent Sales (90 days)
+            </div>
+            {[
+              { color: '#16a34a', label: 'Under $200K' },
+              { color: '#2563eb', label: '$200K – $500K' },
+              { color: '#ea580c', label: '$500K – $1M' },
+              { color: '#7c3aed', label: 'Over $1M' },
+            ].map(({ color, label }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: '1.5px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.15)', flexShrink: 0 }} />
+                <span style={{ fontSize: 10, color: 'var(--ap-t2)' }}>{label}</span>
+              </div>
+            ))}
+            {recentSalesMeta && (
+              <div style={{ marginTop: 6, paddingTop: 5, borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: 9, color: 'var(--ap-t3)', lineHeight: 1.4 }}>
+                {recentSalesMeta.count > 0
+                  ? `${recentSalesMeta.count.toLocaleString()} sales · updated ${recentSalesMeta.updatedAt ? new Date(recentSalesMeta.updatedAt).toLocaleDateString() : 'never'}`
+                  : 'Run npm run update:sales to load data'}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Legend (shown when any overlay is active) */}
         {(showFloodZones || showWildfireRisk) && (
           <div style={{
@@ -2171,7 +2339,20 @@ export function ParcelMap() {
           border: '1px solid rgba(255,255,255,0.3)',
         }}>
           {([
-            { key: 'directory', label: 'Directory', active: showBusinessDir, color: '#6366f1', toggle: () => { setShowBusinessDir(v => !v); setSelectedBiz(null); } },
+            { key: 'sales', label: 'Recent Sales', active: showRecentSales, color: '#16a34a', toggle: () => {
+            const next = !showRecentSales;
+            setShowRecentSales(next);
+            setRecentSalesPopup(null);
+            if (next && !recentSalesGeoJSON) {
+              fetchRecentSalesData().then(result => {
+                if (result) {
+                  setRecentSalesGeoJSON(result.geo);
+                  setRecentSalesMeta(result.meta);
+                }
+              });
+            }
+          }},
+          { key: 'directory', label: 'Directory', active: showBusinessDir, color: '#6366f1', toggle: () => { setShowBusinessDir(v => !v); setSelectedBiz(null); } },
             { key: 'flood', label: 'Flood Zones', active: showFloodZones, color: '#4B9FE8', toggle: () => setShowFloodZones(v => !v) },
             { key: 'wildfire', label: 'Wildfire Risk', active: showWildfireRisk, color: '#d7191c', toggle: () => setShowWildfireRisk(v => !v) },
             { key: 'zoning', label: 'Zoning', active: showZoning, color: '#8b5cf6', toggle: () => setShowZoning(v => !v) },
@@ -2267,6 +2448,69 @@ export function ParcelMap() {
           onClose={() => setSelectedBiz(null)}
           onLoadParcel={handleLoadNDParcel}
         />
+      )}
+
+      {/* ── Recent Sales popup ── */}
+      {recentSalesPopup && (
+        <div style={{
+          position: 'absolute',
+          bottom: 80,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 40,
+          width: 300,
+          background: 'rgba(255,255,255,0.98)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: 14,
+          boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
+          border: '1px solid rgba(0,0,0,0.07)',
+          overflow: 'hidden',
+        }}>
+          <div style={{ height: 3, background: SALE_TIER_COLORS[salePriceTier(recentSalesPopup.salePrice)] ?? '#16a34a' }} />
+          <div style={{ padding: '12px 14px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: '#1c1c1e', lineHeight: 1.1, marginBottom: 2 }}>
+                  {formatPrice(recentSalesPopup.salePrice)}
+                </div>
+                <div style={{ fontSize: 11, color: '#8e8e93' }}>
+                  {new Date(recentSalesPopup.saleDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+              <button
+                onClick={() => setRecentSalesPopup(null)}
+                style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.07)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5" stroke="rgba(0,0,0,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {recentSalesPopup.address && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, marginTop: 1, color: '#8e8e93' }}>
+                    <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.5 3.5 6.5 3.5 6.5s3.5-4 3.5-6.5C9.5 2.567 7.933 1 6 1z" stroke="currentColor" strokeWidth="1.2"/>
+                    <circle cx="6" cy="4.5" r="1.25" stroke="currentColor" strokeWidth="1.2"/>
+                  </svg>
+                  <span style={{ fontSize: 12, color: '#3c3c3e', lineHeight: 1.4 }}>{recentSalesPopup.address}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {recentSalesPopup.county && (
+                  <span style={{ fontSize: 11, color: '#8e8e93' }}>{recentSalesPopup.county} County</span>
+                )}
+                {recentSalesPopup.acres !== null && recentSalesPopup.acres !== undefined && (
+                  <span style={{ fontSize: 11, color: '#8e8e93' }}>{recentSalesPopup.acres.toFixed(2)} ac</span>
+                )}
+                {recentSalesPopup.landUse && (
+                  <span style={{ fontSize: 11, color: '#8e8e93' }}>{recentSalesPopup.landUse}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Hint pill ── */}

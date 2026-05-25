@@ -9,7 +9,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "import:nd-rss": "node scripts/importNakedDenverRss.cjs"
+    "import:nd-rss": "node scripts/importNakedDenverRss.cjs",
+    "update:sales": "node scripts/updateRecentSales.cjs"
   },
   "dependencies": {
     "cors": "^2.8.6",

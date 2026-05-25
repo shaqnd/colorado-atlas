@@ -1,0 +1,55 @@
+name: Update Recent Sales Data
+
+# Runs every Monday at 8:00 AM Mountain Time (14:00 UTC).
+#
+# Why weekly?
+# Colorado county assessors process recorded deeds on a weekly cycle and submit
+# updates to the statewide GIS layer on a similar schedule. Daily would fetch
+# near-identical data; monthly would miss 3-4 weeks of market activity.
+#
+# The script queries the last 90 days so the rolling window always stays fresh
+# even if one week's run is skipped due to a transient API outage.
+
+on:
+  schedule:
+    - cron: '0 14 * * 1'   # Monday 08:00 AM MT (UTC-6 in MDT, UTC-7 in MST)
+  workflow_dispatch:        # Allow manual trigger from the Actions tab
+
+jobs:
+  update-sales:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # Allow committing the updated data file back to the repo
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Fetch recent Colorado property sales
+        run: node scripts/updateRecentSales.cjs
+
+      - name: Commit updated data if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add public/data/recent-sales.json public/data/recent-sales-meta.json
+
+          if git diff --staged --quiet; then
+            echo "Sales data unchanged — no commit needed."
+          else
+            SALE_COUNT=$(node -e "
+              const m = require('./public/data/recent-sales-meta.json');
+              process.stdout.write(String(m.count));
+            ")
+            git commit -m "data: update recent property sales — ${SALE_COUNT} sales (last 90 days)"
+            git push
+            echo "Committed and pushed ${SALE_COUNT} sales."
+          fi
