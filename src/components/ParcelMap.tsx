@@ -25,6 +25,8 @@ import type { ParcelState, GeoJSONGeometry } from '../data/parcelTypes';
 import { geocodeAddress, queryParcelByPoint, reverseGeocodeNeighborhood, queryDenverZoning, queryAuroraZoning, queryCentennialZoning, queryDouglasZoning, queryJeffersonZoning, queryLarimerZoning, queryElPasoZoning, queryClearCreekZoning, queryLakewoodZoning, queryArvadaZoning, queryGreenwoodVillageZoning, queryLittletonZoning, queryThorntonZoning, queryArapahoeZoning, queryBroomfieldZoning, queryBoulderCountyZoning, queryWeldZoning, queryPuebloCountyZoning, queryAdamsZoning, queryColoradoSpringsZoning, queryFortCollinsZoning, queryPuebloCityZoning, queryGrandJunctionZoning, querySteamboatSpringsZoning, querySanMiguelZoning, querySilvertonZoning, fetchDenverBuilding, fetchDenverValuation, fetchDouglasDetail, fetchArapahoeDetail, fetchJeffersonDetail } from '../utils/parcelService';
 import type { DenverZoningRaw, AuroraZoningRaw, CentennialZoningRaw, DouglasZoningRaw, JeffersonZoningRaw, LarimerZoningRaw, ElPasoZoningRaw, ClearCreekZoningRaw, LakewoodZoningRaw, ArvadaZoningRaw, GreenwoodVillageZoningRaw, LittletonZoningRaw, ThorntonZoningRaw, ArapahoeZoningRaw, BroomfieldZoningRaw, BoulderCountyZoningRaw, WeldZoningRaw, PuebloCountyZoningRaw, AdamsZoningRaw, ColoradoSpringsZoningRaw, FortCollinsZoningRaw, PuebloCityZoningRaw, GrandJunctionZoningRaw, SteamboatSpringsZoningRaw, SanMiguelZoningRaw, SilvertonZoningRaw, DenverBuildingData, DenverParcelValuationData, DouglasParcelData, ArapahoeParcelData, JeffersonParcelData } from '../utils/parcelService';
 import { ParcelPanel } from './ParcelPanel';
+import { NDContentPanel } from './NDContentPanel';
+import type { NDArticle, NDProperty, NDMeta } from './NDContentPanel';
 
 // Business directory data — pre-geocoded at build time
 import businessDirectoryRaw from '../data/businessDirectory.json';
@@ -121,6 +123,24 @@ const SALE_TIER_COLORS: Record<string, string> = {
   high:   '#ea580c',
   luxury: '#7c3aed',
 };
+
+async function fetchNDArticles(): Promise<{ articles: NDArticle[]; meta: NDMeta } | null> {
+  try {
+    const res = await fetch('/data/nd-articles.json');
+    if (!res.ok) return null;
+    const data = await res.json() as { updatedAt: string | null; count: number; geocodedCount: number; articles: NDArticle[] };
+    return { articles: data.articles, meta: { updatedAt: data.updatedAt, count: data.count, geocodedCount: data.geocodedCount } };
+  } catch { return null; }
+}
+
+async function fetchNDProperties(): Promise<{ properties: NDProperty[]; meta: NDMeta } | null> {
+  try {
+    const res = await fetch('/data/nd-properties.json');
+    if (!res.ok) return null;
+    const data = await res.json() as { updatedAt: string | null; count: number; geocodedCount: number; properties: NDProperty[] };
+    return { properties: data.properties, meta: { updatedAt: data.updatedAt, count: data.count, geocodedCount: data.geocodedCount } };
+  } catch { return null; }
+}
 
 // ── Boundary layer GeoJSON fetch helpers (fetched once on first toggle) ────────
 
@@ -1123,6 +1143,13 @@ export function ParcelMap() {
   const [recentSalesGeoJSON, setRecentSalesGeoJSON] = useState<GeoJSON.FeatureCollection | null>(null);
   const [recentSalesMeta, setRecentSalesMeta] = useState<RecentSaleMeta | null>(null);
   const [recentSalesPopup, setRecentSalesPopup] = useState<RecentSalePopupData | null>(null);
+  const [showNDArticles, setShowNDArticles] = useState(false);
+  const [showNDProperties, setShowNDProperties] = useState(false);
+  const [ndArticles, setNDArticles] = useState<NDArticle[]>([]);
+  const [ndProperties, setNDProperties] = useState<NDProperty[]>([]);
+  const [ndArticlesMeta, setNDArticlesMeta] = useState<NDMeta | null>(null);
+  const [ndPropertiesMeta, setNDPropertiesMeta] = useState<NDMeta | null>(null);
+  const [ndContentPanelOpen, setNdContentPanelOpen] = useState(false);
 
   const panelOpen = !multiSelectMode && (parcelState.status === 'loaded' || parcelState.status === 'not_found');
   const leftPanelOpen = multiSelectMode || panelOpen;
@@ -1398,6 +1425,32 @@ export function ParcelMap() {
       }
     }
     setRecentSalesPopup(null);
+    // Check if an ND article dot was clicked
+    if (showNDArticles && mapRef.current) {
+      const artClusters = mapRef.current.queryRenderedFeatures(e.point, { layers: ['nd-article-clusters'] });
+      if (artClusters.length > 0) {
+        mapRef.current.flyTo({ center: e.lngLat, zoom: mapRef.current.getZoom() + 2, duration: 600, essential: true });
+        return;
+      }
+      const artDots = mapRef.current.queryRenderedFeatures(e.point, { layers: ['nd-article-dots'] });
+      if (artDots.length > 0) {
+        setNdContentPanelOpen(true);
+        return;
+      }
+    }
+    // Check if an ND property dot was clicked
+    if (showNDProperties && mapRef.current) {
+      const propClusters = mapRef.current.queryRenderedFeatures(e.point, { layers: ['nd-prop-clusters'] });
+      if (propClusters.length > 0) {
+        mapRef.current.flyTo({ center: e.lngLat, zoom: mapRef.current.getZoom() + 2, duration: 600, essential: true });
+        return;
+      }
+      const propDots = mapRef.current.queryRenderedFeatures(e.point, { layers: ['nd-property-dots'] });
+      if (propDots.length > 0) {
+        setNdContentPanelOpen(true);
+        return;
+      }
+    }
     // Check if a boundary layer was clicked (county, city/town, Denver neighborhood)
     if (mapRef.current) {
       const activeBoundaryLayers: string[] = [
@@ -1419,7 +1472,7 @@ export function ParcelMap() {
     }
     setBoundaryPopup(null);
     fetchParcel(e.lngLat.lng, e.lngLat.lat);
-  }, [fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, showBusinessDir, showCountyBoundaries, showMunicipalBoundaries, showDenverNeighborhoods, showRecentSales]);
+  }, [fetchParcel, fetchParcelForMultiSelect, measureMode, multiSelectMode, showBusinessDir, showCountyBoundaries, showMunicipalBoundaries, showDenverNeighborhoods, showRecentSales, showNDArticles, showNDProperties]);
 
   // ── Close panel ───────────────────────────────────────────────────────────
 
@@ -1480,6 +1533,44 @@ export function ParcelMap() {
     });
     return { type: 'FeatureCollection', features };
   }, [bizSearch, bizGroupFilters, bizNDOnly, focusedBizId]);
+
+  const ndArticleGeoJSON = useMemo((): GeoJSON.FeatureCollection => ({
+    type: 'FeatureCollection',
+    features: ndArticles
+      .filter(a => a.lat !== null && a.lng !== null)
+      .map(a => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [a.lng!, a.lat!] },
+        properties: {
+          id: a.id,
+          title: a.title,
+          url: a.url,
+          publishedAt: a.publishedAt,
+          neighborhood: a.neighborhood,
+          developmentType: a.developmentType,
+          linkedBizIds: JSON.stringify(a.linkedBizIds),
+        },
+      })),
+  }), [ndArticles]);
+
+  const ndPropertyGeoJSON = useMemo((): GeoJSON.FeatureCollection => ({
+    type: 'FeatureCollection',
+    features: ndProperties
+      .filter(p => p.lat !== null && p.lng !== null)
+      .map(p => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [p.lng!, p.lat!] },
+        properties: {
+          id: p.id,
+          title: p.title,
+          url: p.url,
+          address: p.address,
+          type: p.type,
+          status: p.status,
+          linkedBizIds: JSON.stringify(p.linkedBizIds),
+        },
+      })),
+  }), [ndProperties]);
 
   // ── Load ND parcel polygon for a business ─────────────────────────────────
 
@@ -1833,6 +1924,80 @@ export function ParcelMap() {
                 ],
                 'circle-opacity': 0.85,
                 'circle-stroke-width': 1.5,
+                'circle-stroke-color': '#fff',
+              }}
+            />
+          </Source>
+        )}
+
+        {/* ND Article dots (purple) */}
+        {showNDArticles && ndArticleGeoJSON.features.length > 0 && (
+          <Source id="nd-articles" type="geojson" data={ndArticleGeoJSON} cluster clusterMaxZoom={13} clusterRadius={30}>
+            <Layer
+              id="nd-article-clusters"
+              type="circle"
+              filter={['has', 'point_count']}
+              paint={{
+                'circle-color': '#7c3aed',
+                'circle-radius': ['step', ['get', 'point_count'], 14, 10, 20, 30, 26],
+                'circle-opacity': 0.88,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#fff',
+              }}
+            />
+            <Layer
+              id="nd-article-cluster-count"
+              type="symbol"
+              filter={['has', 'point_count']}
+              layout={{ 'text-field': '{point_count_abbreviated}', 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 11 }}
+              paint={{ 'text-color': '#fff' }}
+            />
+            <Layer
+              id="nd-article-dots"
+              type="circle"
+              filter={['!', ['has', 'point_count']]}
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 15, 9],
+                'circle-color': '#8b5cf6',
+                'circle-opacity': 0.88,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#fff',
+              }}
+            />
+          </Source>
+        )}
+
+        {/* ND Property dots (amber) */}
+        {showNDProperties && ndPropertyGeoJSON.features.length > 0 && (
+          <Source id="nd-properties-src" type="geojson" data={ndPropertyGeoJSON} cluster clusterMaxZoom={13} clusterRadius={30}>
+            <Layer
+              id="nd-prop-clusters"
+              type="circle"
+              filter={['has', 'point_count']}
+              paint={{
+                'circle-color': '#d97706',
+                'circle-radius': ['step', ['get', 'point_count'], 14, 10, 20, 30, 26],
+                'circle-opacity': 0.88,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#fff',
+              }}
+            />
+            <Layer
+              id="nd-prop-cluster-count"
+              type="symbol"
+              filter={['has', 'point_count']}
+              layout={{ 'text-field': '{point_count_abbreviated}', 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'], 'text-size': 11 }}
+              paint={{ 'text-color': '#fff' }}
+            />
+            <Layer
+              id="nd-property-dots"
+              type="circle"
+              filter={['!', ['has', 'point_count']]}
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 6, 15, 10],
+                'circle-color': '#f59e0b',
+                'circle-opacity': 0.88,
+                'circle-stroke-width': 2,
                 'circle-stroke-color': '#fff',
               }}
             />
@@ -2241,6 +2406,56 @@ export function ParcelMap() {
         gap: 5,
         alignItems: 'flex-end',
       }}>
+        {/* ND Articles legend */}
+        {showNDArticles && ndArticles.length > 0 && (
+          <div style={{
+            background: 'rgba(255,255,255,0.96)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: 10,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            border: '1px solid rgba(0,0,0,0.08)',
+            padding: '8px 12px',
+            minWidth: 160,
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ap-t3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+              Naked Denver Articles
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#8b5cf6', border: '1.5px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.15)', flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: 'var(--ap-t2)' }}>Article location</span>
+            </div>
+            <div style={{ fontSize: 9, color: 'var(--ap-t3)', marginTop: 4 }}>
+              {ndArticles.filter(a => a.lat).length} of {ndArticles.length} geocoded
+            </div>
+          </div>
+        )}
+
+        {/* ND Properties legend */}
+        {showNDProperties && ndProperties.length > 0 && (
+          <div style={{
+            background: 'rgba(255,255,255,0.96)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRadius: 10,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            border: '1px solid rgba(0,0,0,0.08)',
+            padding: '8px 12px',
+            minWidth: 160,
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ap-t3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+              Naked Denver Properties
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', border: '1.5px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.15)', flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: 'var(--ap-t2)' }}>Property</span>
+            </div>
+            <div style={{ fontSize: 9, color: 'var(--ap-t3)', marginTop: 4 }}>
+              {ndProperties.filter(p => p.lat).length} of {ndProperties.length} geocoded
+            </div>
+          </div>
+        )}
+
         {/* Recent Sales legend */}
         {showRecentSales && (
           <div style={{
@@ -2339,7 +2554,31 @@ export function ParcelMap() {
           border: '1px solid rgba(255,255,255,0.3)',
         }}>
           {([
-            { key: 'sales', label: 'Recent Sales', active: showRecentSales, color: '#16a34a', toggle: () => {
+            { key: 'nd-articles', label: 'ND Articles', active: showNDArticles, color: '#8b5cf6', toggle: () => {
+            const next = !showNDArticles;
+            setShowNDArticles(next);
+            if (next) {
+              setNdContentPanelOpen(true);
+              if (ndArticles.length === 0) {
+                fetchNDArticles().then(result => {
+                  if (result) { setNDArticles(result.articles); setNDArticlesMeta(result.meta); }
+                });
+              }
+            }
+          }},
+          { key: 'nd-properties', label: 'ND Properties', active: showNDProperties, color: '#f59e0b', toggle: () => {
+            const next = !showNDProperties;
+            setShowNDProperties(next);
+            if (next) {
+              setNdContentPanelOpen(true);
+              if (ndProperties.length === 0) {
+                fetchNDProperties().then(result => {
+                  if (result) { setNDProperties(result.properties); setNDPropertiesMeta(result.meta); }
+                });
+              }
+            }
+          }},
+          { key: 'sales', label: 'Recent Sales', active: showRecentSales, color: '#16a34a', toggle: () => {
             const next = !showRecentSales;
             setShowRecentSales(next);
             setRecentSalesPopup(null);
@@ -2447,6 +2686,21 @@ export function ParcelMap() {
           parcelLoaded={ndParcelLoadedIds.has(selectedBiz.id)}
           onClose={() => setSelectedBiz(null)}
           onLoadParcel={handleLoadNDParcel}
+        />
+      )}
+
+      {/* ── ND Content panel ── */}
+      {(showNDArticles || showNDProperties) && ndContentPanelOpen && (
+        <NDContentPanel
+          articles={showNDArticles ? ndArticles : []}
+          properties={showNDProperties ? ndProperties : []}
+          articlesMeta={ndArticlesMeta}
+          propertiesMeta={ndPropertiesMeta}
+          focusedBizId={focusedBizId}
+          focusedBizName={focusedBizId !== null ? (BUSINESS_DIRECTORY.find(b => b.id === focusedBizId)?.name ?? null) : null}
+          onFlyTo={(lng, lat) => mapRef.current?.flyTo({ center: [lng, lat], zoom: 15, duration: 900, essential: true })}
+          onClose={() => setNdContentPanelOpen(false)}
+          offsetLeft={leftPanelOpen ? leftPanelWidth + 16 : 16}
         />
       )}
 
